@@ -6,12 +6,12 @@ import * as AuthContextModule from '../../src/modules/auth/context/AuthContext.j
 describe('PermissionGate UI Unit Tests', () => {
   it('should render children when user has required permission', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
-      user: { role: 'CASHIER', permissions: ['orders:create'] },
-      hasPermission: (key) => key === 'orders:create',
+      user: { role: 'CASHIER', permissions: ['orders.create'] },
+      hasPermission: (key) => key === 'orders.create',
     });
 
     render(
-      <PermissionGate permission="orders:create">
+      <PermissionGate permission="orders.create">
         <button>إنشاء طلب</button>
       </PermissionGate>
     );
@@ -21,12 +21,12 @@ describe('PermissionGate UI Unit Tests', () => {
 
   it('should hide children when user does not have permission', () => {
     vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
-      user: { role: 'CASHIER', permissions: ['orders:create'] },
+      user: { role: 'CASHIER', permissions: ['orders.create'] },
       hasPermission: () => false,
     });
 
     render(
-      <PermissionGate permission="employees:delete">
+      <PermissionGate permission="employees.manage">
         <button>حذف موظف</button>
       </PermissionGate>
     );
@@ -41,7 +41,7 @@ describe('PermissionGate UI Unit Tests', () => {
     });
 
     render(
-      <PermissionGate permission="employees:delete" disableOnly>
+      <PermissionGate permission="employees.manage" disableOnly>
         <button>حذف موظف</button>
       </PermissionGate>
     );

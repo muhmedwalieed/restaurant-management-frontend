@@ -174,7 +174,7 @@ export const EmployeesListPage = () => {
       key: 'actions',
       render: (row) => (
         <div className="flex items-center gap-1">
-          <PermissionGate permission="employees.update">
+          <PermissionGate permission="employees.manage">
             <button
               onClick={() => {
                 setSelectedEmployeeForForm(row);
@@ -187,7 +187,7 @@ export const EmployeesListPage = () => {
             </button>
           </PermissionGate>
 
-          <PermissionGate permission="employees.update">
+          <PermissionGate permission="employees.manage">
             <button
               onClick={() => {
                 setSelectedEmployeeForPassword(row);
@@ -200,7 +200,7 @@ export const EmployeesListPage = () => {
             </button>
           </PermissionGate>
 
-          <PermissionGate permission="employees.update">
+          <PermissionGate permission="employees.manage_roles">
             <button
               onClick={() => {
                 setSelectedEmployeeForRole(row);
@@ -226,7 +226,7 @@ export const EmployeesListPage = () => {
             </button>
           </PermissionGate>
 
-          <PermissionGate permission="employees.delete">
+          <PermissionGate permission="employees.manage">
             <button
               onClick={() => {
                 setEmployeeToDelete(row);
@@ -257,7 +257,7 @@ export const EmployeesListPage = () => {
           </p>
         </div>
 
-        <PermissionGate permission="employees.create">
+        <PermissionGate permission="employees.manage">
           <Button
             variant="primary"
             icon={UserPlus}
