@@ -145,4 +145,57 @@ describe('API Client Layer Tests (Section 10 & Technical Directives)', () => {
       expect(mockUnauthorizedCallback).toHaveBeenCalled();
     }
   });
+
+  it('should retry the original request once after a successful single-flight refresh (Section 16)', async () => {
+    const errorInterceptor = apiClient.interceptors.response.handlers[0].rejected;
+    const mockRefresh = vi.fn().mockResolvedValue('new-token-abc');
+    setApiCallbacks({ onRefresh: mockRefresh });
+
+    apiClient.defaults.adapter = () =>
+      Promise.resolve({
+        data: { success: true, data: { ok: true } },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      });
+
+    const mockError = {
+      config: { headers: {}, _retry: false },
+      response: {
+        status: 401,
+        data: { error: { code: 'UNAUTHORIZED', message: 'expired' } },
+      },
+    };
+
+    const result = await errorInterceptor(mockError);
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockError.config.headers.Authorization).toBe('Bearer new-token-abc');
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('should preserve error details (forceLogoutRequired) for the login force-logout UX', async () => {
+    const errorInterceptor = apiClient.interceptors.response.handlers[0].rejected;
+    const mockError = {
+      config: {},
+      response: {
+        status: 422,
+        data: {
+          error: {
+            code: 'BUSINESS_RULE_ERROR',
+            message: 'Active session on another device',
+            details: { forceLogoutRequired: true, sessionDevice: 'Chrome on Windows' },
+          },
+        },
+      },
+    };
+
+    try {
+      await errorInterceptor(mockError);
+    } catch (err) {
+      expect(err.code).toBe('BUSINESS_RULE_ERROR');
+      expect(err.details).toEqual({ forceLogoutRequired: true, sessionDevice: 'Chrome on Windows' });
+    }
+  });
 });

@@ -1,18 +1,35 @@
 /* eslint-disable react-refresh/only-export-components */
+import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../shared/layout/AppShell.jsx';
 import { LoginPage } from '../modules/auth/pages/LoginPage.jsx';
+import { EmployeesListPage } from '../modules/employees/pages/EmployeesListPage.jsx';
+import { RolesListPage } from '../modules/roles/pages/RolesListPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
 import { EmptyState } from '../shared/components/EmptyState.jsx';
 import { LoadingSkeleton } from '../shared/components/LoadingSkeleton.jsx';
-import { Store, Layers, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { SplashState } from '../shared/components/SplashState.jsx';
+import { Store, CheckCircle2, ShieldCheck, Users, Shield } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isBootstrapping } = useAuth();
+  if (isBootstrapping) {
+    return <SplashState />;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+// Section 13 — permission-gated routes are enforced before render, not just hidden
+const RequirePermission = ({ permission, children }) => {
+  const { hasPermission } = useAuth();
+  if (!hasPermission(permission)) {
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -24,47 +41,54 @@ const DashboardOverview = () => {
       {/* Welcome & Module Status Header */}
       <div className="bg-bg-surface border border-border-default rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-txt-primary">الرئيسية — Foundation & App Shell</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-txt-primary">لوحة التحكم — SaaS Dashboard</h1>
             <StatusPill status="success" icon={CheckCircle2}>
-              Module 1 Ready
+              Module 1 & 2 Ready
             </StatusPill>
           </div>
           <p className="text-xs text-txt-muted">
-            تم تشغيل الهيكل الأساسي للفرونت إند (Vite + React + Design Tokens + API Client) طبقًا لـ Frontend_Project_Guide.md
+            تكامل أنظمة المصادقة، إدارة الموظفين، والأدوار والصلاحيات مع الهيكل الأساسي للواجهة
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" icon={Layers}>
-            فحص الموديولات
-          </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <NavLink to="/settings/employees">
+            <Button variant="primary" size="sm" icon={Users}>
+              إدارة الموظفين
+            </Button>
+          </NavLink>
+          <NavLink to="/settings/roles">
+            <Button variant="outline" size="sm" icon={Shield}>
+              الصلاحيات والأدوار
+            </Button>
+          </NavLink>
         </div>
       </div>
 
-      {/* Module 1 Metrics Summary Cards */}
+      {/* Module 2 Active Metrics Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">حالة النظام المعماري</span>
-          <div className="text-lg font-bold text-brand-primary">React + ESM JS</div>
-          <p className="text-[11px] text-status-success font-medium">ADR-F001 Compliant (No TS)</p>
+          <span className="text-xs text-txt-muted">المصادقة والأمان</span>
+          <div className="text-lg font-bold text-brand-primary">Real REST API</div>
+          <p className="text-[11px] text-status-success font-medium">Session & Force Logout UX</p>
         </div>
 
         <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">نظام الألوان والتصميم</span>
-          <div className="text-lg font-bold text-txt-primary">CSS Design Tokens</div>
-          <p className="text-[11px] text-txt-muted">Anti-Vibe-Coding Rules</p>
+          <span className="text-xs text-txt-muted">إدارة أطقم العمل</span>
+          <div className="text-lg font-bold text-txt-primary">Employees CRUD</div>
+          <p className="text-[11px] text-status-info font-medium">Roles & Passwords Modals</p>
         </div>
 
         <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">طبقة الاتصال بالخادم</span>
-          <div className="text-lg font-bold text-txt-primary">Unified API Client</div>
-          <p className="text-[11px] text-status-info font-medium">401 & 409 Interceptors Active</p>
+          <span className="text-xs text-txt-muted">الأدوار والصلاحيات</span>
+          <div className="text-lg font-bold text-txt-primary">Permissions Matrix</div>
+          <p className="text-[11px] text-brand-primary font-medium">PermissionGate Active</p>
         </div>
 
         <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">الاستجابة للشاشات</span>
-          <div className="text-lg font-bold text-txt-primary">Responsive 320-1920px</div>
-          <p className="text-[11px] text-brand-primary font-medium">Max-width 1600px Bounds</p>
+          <span className="text-xs text-txt-muted">استجابة الجداول (Section 20.4)</span>
+          <div className="text-lg font-bold text-txt-primary">DataTable Component</div>
+          <p className="text-[11px] text-status-success font-medium">Condensed Mobile Cards</p>
         </div>
       </div>
 
@@ -127,11 +151,29 @@ const NotFoundPage = () => (
   </div>
 );
 
-export const router = createBrowserRouter([
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
+// Guest-only route: no login flash on refresh while the session is being restored,
+// and authenticated users are sent back to the app.
+const GuestRoute = ({ children }) => {
+  const { isAuthenticated, isBootstrapping } = useAuth();
+  if (isBootstrapping) {
+    return <SplashState />;
+  }
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+export const router = createBrowserRouter(
+  [
+    {
+      path: '/login',
+      element: (
+        <GuestRoute>
+          <LoginPage />
+        </GuestRoute>
+      ),
+    },
   {
     path: '/',
     element: (
@@ -177,9 +219,27 @@ export const router = createBrowserRouter([
         element: <DashboardOverview />,
       },
       {
+        path: 'settings/employees',
+        element: (
+          <RequirePermission permission="employees.view">
+            <EmployeesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/roles',
+        element: (
+          <RequirePermission permission="roles.view">
+            <RolesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
         path: '*',
         element: <NotFoundPage />,
       },
     ],
   },
-]);
+  ],
+  { future: { v7_startTransition: true } }
+);

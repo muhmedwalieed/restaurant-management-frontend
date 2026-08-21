@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,8 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Input } from '../../../shared/components/Input.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
-import { Store, Mail, Lock, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
+import { Modal } from '../../../shared/components/Modal.jsx';
+import { Store, Mail, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 // Zod Login Form Validation Schema
 export const loginSchema = z.object({
@@ -24,7 +25,10 @@ export const loginSchema = z.object({
 export const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [serverNotice, setServerNotice] = useState(null);
+  const [serverError, setServerError] = useState(null);
+  const [showForceLogoutModal, setShowForceLogoutModal] = useState(false);
+  const [pendingCredentials, setPendingCredentials] = useState(null);
+  const [sessionDevice, setSessionDevice] = useState(null);
 
   const {
     register,
@@ -38,17 +42,30 @@ export const LoginPage = () => {
     },
   });
 
-  const onSubmit = async (data) => {
-    setServerNotice(null);
+  const handleLoginSubmit = async (data, forceLogout = false) => {
+    setServerError(null);
     try {
-      // Presentational / UI-Only Handler (Section 7.1 & ADR-F009: Backend Auth Module is NOT DONE yet)
-      await login(data.email, data.password);
-      setServerNotice({ type: 'success', text: 'تم تسجيل الدخول بنجاح (واجهة العرض التجريبية).' });
-      setTimeout(() => {
-        navigate('/');
-      }, 500);
-    } catch (_err) {
-      setServerNotice({ type: 'error', text: 'فشل في تسجيل الدخول.' });
+      await login(data.email, data.password, forceLogout);
+      setShowForceLogoutModal(false);
+      navigate('/');
+    } catch (err) {
+      // Active session on another device → 422 BUSINESS_RULE_ERROR with details.forceLogoutRequired
+      const isActiveSession = err.code === 'BUSINESS_RULE_ERROR' && err.details?.forceLogoutRequired;
+      if (isActiveSession) {
+        setPendingCredentials(data);
+        setSessionDevice(err.details?.sessionDevice || null);
+        setShowForceLogoutModal(true);
+      } else if (err.status === 401) {
+        setServerError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+      } else {
+        setServerError(err.message || 'فشل في تسجيل الدخول. يرجى التأكد من صحة البيانات.');
+      }
+    }
+  };
+
+  const confirmForceLogout = async () => {
+    if (pendingCredentials) {
+      await handleLoginSubmit(pendingCredentials, true);
     }
   };
 
@@ -66,31 +83,19 @@ export const LoginPage = () => {
           </p>
         </div>
 
-        {/* UI-Only Notice Banner */}
-        <div className="bg-status-info-bg border border-status-info/30 rounded-md p-3 text-xs text-status-info flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 shrink-0" />
-          <span>
-            هذه الشاشة تجريبية (Presentational / UI-Only) تلتزم بـ ADR-F009 لعدم إرسال طلبات لـ Backend Auth الموديول القادم.
-          </span>
-        </div>
-
-        {serverNotice && (
-          <div
-            className={`p-3 rounded-md text-xs font-medium ${
-              serverNotice.type === 'success'
-                ? 'bg-status-success-bg text-status-success border border-status-success/30'
-                : 'bg-status-danger-bg text-status-danger border border-status-danger/30'
-            }`}
-          >
-            {serverNotice.text}
+        {serverError && (
+          <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>{serverError}</span>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit((data) => handleLoginSubmit(data, false))} className="space-y-4" noValidate>
           <Input
             label="البريد الإلكتروني"
             type="email"
+            autoComplete="email"
             placeholder="admin@restaurant.com"
             icon={Mail}
             required
@@ -101,6 +106,7 @@ export const LoginPage = () => {
           <Input
             label="كلمة المرور"
             type="password"
+            autoComplete="current-password"
             placeholder="••••••••"
             icon={Lock}
             required
@@ -120,9 +126,36 @@ export const LoginPage = () => {
         </form>
 
         <div className="text-center text-xs text-txt-muted border-t border-border-subtle pt-4">
-          نظام إدارة المطاعم SaaS — الإصدار 1.0 (Foundation Shell)
+          نظام إدارة المطاعم SaaS — الإصدار 1.0 (Module 2 Active)
         </div>
       </div>
+
+      {/* Force Logout Confirmation Modal (Section 16 UX) */}
+      <Modal
+        isOpen={showForceLogoutModal}
+        onClose={() => setShowForceLogoutModal(false)}
+        title="الحساب مفتوح على جهاز آخر"
+        subtitle="تنبيه أمان الجلسات النشطة"
+        size="sm"
+      >
+        <div className="space-y-4 text-right">
+          <div className="w-12 h-12 rounded-full bg-status-warning-bg text-status-warning flex items-center justify-center mx-auto">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <p className="text-xs text-txt-muted leading-relaxed">
+            هذا الحساب مسجّل دخوله حالياً على جهاز أو متصفح آخر
+            {sessionDevice ? ` (${sessionDevice})` : ''}. هل تريد إلغاء الجلسة السابقة وتسجيل الدخول من هذا الجهاز؟
+          </p>
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setShowForceLogoutModal(false)}>
+              إلغاء
+            </Button>
+            <Button variant="danger" size="sm" onClick={confirmForceLogout}>
+              إغلاق الجلسة السابقة وتسجيل الدخول
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

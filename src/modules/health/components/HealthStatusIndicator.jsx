@@ -14,7 +14,7 @@ export const HealthStatusIndicator = () => {
   if (isLoading) {
     return (
       <StatusPill status="neutral" icon={Activity} className="animate-pulse">
-        جاري الفحص...
+        جاري فحص الخادم...
       </StatusPill>
     );
   }

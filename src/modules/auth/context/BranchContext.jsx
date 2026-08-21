@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const MOCK_BRANCHES = [
   { id: 'br-1', name: 'فرع مدينة نصر (الفرع الرئيسي)', code: 'MN-01', isActive: true },
