@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
-import { DollarSign, Globe, CheckCircle2, Sliders } from 'lucide-react';
+import { DollarSign, Globe, CheckCircle2, Sliders, AlertCircle } from 'lucide-react';
 
 export const branchSettingsSchema = z.object({
   currency: z.string().min(2, 'رمز العملة مطلوب'),
@@ -28,6 +28,7 @@ const TIMEZONE_OPTIONS = [
 
 export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) => {
   const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const {
     register,
@@ -53,8 +54,13 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
 
   const handleFormSubmit = async (formData) => {
     setSuccessMessage(null);
-    await onSave(formData);
-    setSuccessMessage('تم حفظ إعدادات الفرع بنجاح.');
+    setErrorMessage(null);
+    try {
+      await onSave(formData);
+      setSuccessMessage('تم حفظ إعدادات الفرع بنجاح.');
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء حفظ إعدادات الفرع.');
+    }
   };
 
   return (
@@ -75,6 +81,13 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
         <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{successMessage}</span>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
         </div>
       )}
 

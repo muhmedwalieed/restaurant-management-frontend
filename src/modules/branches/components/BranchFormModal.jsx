@@ -84,7 +84,6 @@ export const BranchFormModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={isEdit ? 'تعديل بيانات الفرع' : 'إضافة فرع جديد'}
-      description="أدخل تفاصيل الفرع وموقعه الجغرافي وحالة التشغيل."
     >
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 text-right" noValidate>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

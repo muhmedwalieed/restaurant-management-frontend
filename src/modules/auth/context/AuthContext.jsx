@@ -141,7 +141,8 @@ export const AuthProvider = ({ children }) => {
   const hasPermission = useCallback(
     (permissionKey) => {
       if (!user) return false;
-      const permissions = user.permissions || [];
+      // /auth/me returns permissions nested under role.permissions
+      const permissions = user.permissions || user.role?.permissions || [];
       const isWildcard = permissions.some((p) => (typeof p === 'string' ? p === '*' : p.key === '*'));
       if (isWildcard) return true;
       return permissions.some((p) =>

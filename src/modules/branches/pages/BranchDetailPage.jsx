@@ -43,6 +43,7 @@ export const BranchDetailPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'working-hours' | 'settings'
   const [generalSuccess, setGeneralSuccess] = useState(null);
+  const [generalError, setGeneralError] = useState(null);
 
   // Queries & Mutations
   const { data: branch, isLoading: isBranchLoading, isError, error, refetch } = useBranchQuery(branchId);
@@ -73,8 +74,13 @@ export const BranchDetailPage = () => {
 
   const handleGeneralSubmit = async (formData) => {
     setGeneralSuccess(null);
-    await updateBranchMutation.mutateAsync({ id: branchId, payload: formData });
-    setGeneralSuccess('تم تحديث البيانات العامة للفرع بنجاح.');
+    setGeneralError(null);
+    try {
+      await updateBranchMutation.mutateAsync({ id: branchId, payload: formData });
+      setGeneralSuccess('تم تحديث البيانات العامة للفرع بنجاح.');
+    } catch (err) {
+      setGeneralError(err?.message || 'حدث خطأ أثناء تحديث بيانات الفرع.');
+    }
   };
 
   const handleWorkingHoursSave = async (workingHoursArray) => {
@@ -181,6 +187,13 @@ export const BranchDetailPage = () => {
               <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span>{generalSuccess}</span>
+              </div>
+            )}
+
+            {generalError && (
+              <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{generalError}</span>
               </div>
             )}
 

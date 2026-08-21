@@ -14,7 +14,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export const restaurantProfileSchema = z.object({
   name: z.string().min(2, 'اسم المطعم يجب أن لا يقل عن حرفين'),
@@ -43,6 +43,7 @@ export const RestaurantSettingsPage = () => {
   const updateMutation = useUpdateRestaurantMutation();
   const updateStatusMutation = useUpdateRestaurantStatusMutation();
   const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const {
     register,
@@ -74,15 +75,25 @@ export const RestaurantSettingsPage = () => {
 
   const onSubmit = async (formData) => {
     setSuccessMessage(null);
-    await updateMutation.mutateAsync(formData);
-    setSuccessMessage('تم حفظ بيانات المطعم بنجاح.');
+    setErrorMessage(null);
+    try {
+      await updateMutation.mutateAsync(formData);
+      setSuccessMessage('تم حفظ بيانات المطعم بنجاح.');
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء حفظ بيانات المطعم.');
+    }
   };
 
   const handleStatusToggle = async () => {
     setSuccessMessage(null);
+    setErrorMessage(null);
     const newStatus = restaurant?.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    await updateStatusMutation.mutateAsync(newStatus);
-    setSuccessMessage(`تم تغيير حالة المطعم إلى ${newStatus === 'ACTIVE' ? 'نشط' : 'معطل'}.`);
+    try {
+      await updateStatusMutation.mutateAsync(newStatus);
+      setSuccessMessage(`تم تغيير حالة المطعم إلى ${newStatus === 'ACTIVE' ? 'نشط' : 'معطل'}.`);
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء تغيير حالة المطعم.');
+    }
   };
 
   if (isLoading) {
@@ -148,6 +159,13 @@ export const RestaurantSettingsPage = () => {
         <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{successMessage}</span>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
         </div>
       )}
 

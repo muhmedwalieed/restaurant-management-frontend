@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   useBranchesQuery,
   useCreateBranchMutation,
-  useUpdateBranchMutation,
   useDeleteBranchMutation,
 } from '../hooks/useBranches.js';
 import { DataTable } from '../../../shared/components/DataTable.jsx';
@@ -16,7 +15,6 @@ import { BranchFormModal } from '../components/BranchFormModal.jsx';
 import {
   Building2,
   Plus,
-  Edit,
   Trash2,
   Settings,
   ShieldCheck,
@@ -36,14 +34,13 @@ export const BranchesListPage = () => {
   const navigate = useNavigate();
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [errorMessage, setErrorMessage] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingBranch, setEditingBranch] = useState(null);
   const [deletingBranch, setDeletingBranch] = useState(null);
 
   const queryParams = selectedStatus !== 'ALL' ? { status: selectedStatus } : {};
   const { data: branchesResponse, isLoading, isError, error, refetch } = useBranchesQuery(queryParams);
   const createMutation = useCreateBranchMutation();
-  const updateMutation = useUpdateBranchMutation();
   const deleteMutation = useDeleteBranchMutation();
 
   const branchesList = branchesResponse?.items || branchesResponse || [];
@@ -57,19 +54,26 @@ export const BranchesListPage = () => {
     return nameMatch || codeMatch;
   });
 
-  const handleCreateBranch = async (data) => {
-    await createMutation.mutateAsync(data);
+  const runBranchMutation = async (fn) => {
+    setErrorMessage(null);
+    try {
+      await fn();
+      return true;
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء تنفيذ العملية.');
+      return false;
+    }
   };
 
-  const handleUpdateBranch = async (data) => {
-    await updateMutation.mutateAsync({ id: editingBranch.id, payload: data });
-    setEditingBranch(null);
+  const handleCreateBranch = async (data) => {
+    const ok = await runBranchMutation(() => createMutation.mutateAsync(data));
+    if (ok) setIsCreateModalOpen(false);
   };
 
   const handleDeleteConfirm = async () => {
     if (!deletingBranch || deletingBranch.isMain) return;
-    await deleteMutation.mutateAsync(deletingBranch.id);
-    setDeletingBranch(null);
+    const ok = await runBranchMutation(() => deleteMutation.mutateAsync(deletingBranch.id));
+    if (ok) setDeletingBranch(null);
   };
 
   const columns = [
@@ -129,27 +133,18 @@ export const BranchesListPage = () => {
       header: 'الإجراءات',
       key: 'actions',
       render: (row) => (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <Button
             size="sm"
-            variant="outline"
+            variant="ghost"
             onClick={() => navigate(`/settings/branches/${row.id}`)}
             icon={Settings}
-            title="إعدادات الفرع"
-          >
-            الإعدادات
-          </Button>
+            title="الإعدادات ومواعيد العمل"
+            aria-label="الإعدادات ومواعيد العمل"
+          />
 
+          {/* Defensive check: Hide delete for isMain branch */}
           <PermissionGate permission="branches.manage">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setEditingBranch(row)}
-              icon={Edit}
-              title="تعديل البيانات"
-            />
-
-            {/* Defensive check: Disable / Hide delete for isMain branch */}
             {!row.isMain && (
               <Button
                 size="sm"
@@ -158,6 +153,7 @@ export const BranchesListPage = () => {
                 icon={Trash2}
                 className="text-status-danger hover:bg-status-danger-bg"
                 title="تعطيل الفرع (Soft Delete)"
+                aria-label="تعطيل الفرع"
               />
             )}
           </PermissionGate>
@@ -191,6 +187,13 @@ export const BranchesListPage = () => {
           </Button>
         </PermissionGate>
       </div>
+
+      {errorMessage && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-status-danger-bg text-status-danger border border-status-danger/30 text-xs font-medium">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
 
       {/* Main DataTable */}
       <DataTable
@@ -246,14 +249,14 @@ export const BranchesListPage = () => {
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => navigate(`/settings/branches/${branch.id}`)}
                 icon={Settings}
+                title="الإعدادات ومواعيد العمل"
               >
                 الإعدادات
               </Button>
               <PermissionGate permission="branches.manage">
-                <Button size="sm" variant="ghost" onClick={() => setEditingBranch(branch)} icon={Edit} />
                 {!branch.isMain && (
                   <Button
                     size="sm"
@@ -261,6 +264,7 @@ export const BranchesListPage = () => {
                     onClick={() => setDeletingBranch(branch)}
                     icon={Trash2}
                     className="text-status-danger"
+                    title="تعطيل الفرع"
                   />
                 )}
               </PermissionGate>
@@ -277,21 +281,11 @@ export const BranchesListPage = () => {
         isLoading={createMutation.isPending}
       />
 
-      {/* Edit Branch Modal */}
-      <BranchFormModal
-        isOpen={Boolean(editingBranch)}
-        onClose={() => setEditingBranch(null)}
-        initialValues={editingBranch}
-        onSubmit={handleUpdateBranch}
-        isLoading={updateMutation.isPending}
-      />
-
       {/* Soft Delete Confirm Modal */}
       <Modal
         isOpen={Boolean(deletingBranch)}
         onClose={() => setDeletingBranch(null)}
         title="تأكيد تعطيل الفرع"
-        description="سيتم تغيير حالة الفرع إلى معطل (INACTIVE). يمكن إعادة تفعيله لاحقاً."
       >
         <div className="space-y-4 text-right">
           <div className="flex items-center gap-3 p-3 bg-status-danger-bg border border-status-danger/20 rounded-md text-status-danger text-xs">
