@@ -229,7 +229,7 @@ export const router = createBrowserRouter(
       {
         path: 'settings/roles',
         element: (
-          <RequirePermission permission="roles.view">
+          <RequirePermission permission="employees.view">
             <RolesListPage />
           </RequirePermission>
         ),

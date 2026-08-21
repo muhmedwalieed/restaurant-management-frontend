@@ -98,7 +98,7 @@ export const RolesListPage = () => {
       key: 'actions',
       render: (row) => (
         <div className="flex items-center gap-1">
-          <PermissionGate permission="roles.update">
+          <PermissionGate permission="employees.manage_roles">
             <button
               onClick={() => {
                 setSelectedRole(row);
@@ -112,7 +112,7 @@ export const RolesListPage = () => {
           </PermissionGate>
 
           {!row.isSystem && (
-            <PermissionGate permission="roles.delete">
+            <PermissionGate permission="employees.manage_roles">
               <button
                 onClick={() => {
                   setRoleToDelete(row);
@@ -144,7 +144,7 @@ export const RolesListPage = () => {
           </p>
         </div>
 
-        <PermissionGate permission="roles.create">
+        <PermissionGate permission="employees.manage_roles">
           <Button
             variant="primary"
             icon={Plus}
