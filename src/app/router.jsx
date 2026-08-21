@@ -5,6 +5,9 @@ import { AppShell } from '../shared/layout/AppShell.jsx';
 import { LoginPage } from '../modules/auth/pages/LoginPage.jsx';
 import { EmployeesListPage } from '../modules/employees/pages/EmployeesListPage.jsx';
 import { RolesListPage } from '../modules/roles/pages/RolesListPage.jsx';
+import { RestaurantSettingsPage } from '../modules/restaurant/pages/RestaurantSettingsPage.jsx';
+import { BranchesListPage } from '../modules/branches/pages/BranchesListPage.jsx';
+import { BranchDetailPage } from '../modules/branches/pages/BranchDetailPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
@@ -217,6 +220,30 @@ export const router = createBrowserRouter(
       {
         path: 'settings',
         element: <DashboardOverview />,
+      },
+      {
+        path: 'settings/restaurant',
+        element: (
+          <RequirePermission permission="restaurants.manage">
+            <RestaurantSettingsPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/branches',
+        element: (
+          <RequirePermission permission="branches.manage">
+            <BranchesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/branches/:id',
+        element: (
+          <RequirePermission permission="branches.manage">
+            <BranchDetailPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'settings/employees',

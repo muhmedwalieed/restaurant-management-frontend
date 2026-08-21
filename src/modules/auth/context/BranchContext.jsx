@@ -1,24 +1,68 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState } from 'react';
-
-const MOCK_BRANCHES = [
-  { id: 'br-1', name: 'فرع مدينة نصر (الفرع الرئيسي)', code: 'MN-01', isActive: true },
-  { id: 'br-2', name: 'فرع التجمع الخامس', code: 'TJ-02', isActive: true },
-  { id: 'br-3', name: 'فرع المعادي', code: 'MD-03', isActive: true },
-];
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getBranchesApi } from '../../../lib/api/branches.api.js';
 
 const BranchContext = createContext(null);
 
 export const BranchProvider = ({ children }) => {
-  const [branches] = useState(MOCK_BRANCHES);
-  const [activeBranch, setActiveBranch] = useState(MOCK_BRANCHES[0]);
+  const [activeBranchId, setActiveBranchIdState] = useState(() => {
+    return localStorage.getItem('saas_active_branch_id') || null;
+  });
+
+  // Query Active Branches from Backend API
+  const {
+    data: branchesResponse,
+    isLoading,
+    refetch: refetchBranches,
+  } = useQuery({
+    queryKey: ['branches', { status: 'ACTIVE' }],
+    queryFn: () => getBranchesApi({ status: 'ACTIVE' }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const branches = useMemo(() => {
+    return branchesResponse?.items || (Array.isArray(branchesResponse) ? branchesResponse : []);
+  }, [branchesResponse]);
+
+  // Auto select active branch if none selected or selected branch no longer exists
+  useEffect(() => {
+    if (branches.length > 0) {
+      const exists = branches.some((b) => b.id === activeBranchId);
+      if (!activeBranchId || !exists) {
+        const defaultBranch = branches.find((b) => b.isMain) || branches[0];
+        setActiveBranchIdState(defaultBranch.id);
+        localStorage.setItem('saas_active_branch_id', defaultBranch.id);
+      }
+    }
+  }, [branches, activeBranchId]);
+
+  const setActiveBranch = (branchOrId) => {
+    const id = typeof branchOrId === 'object' ? branchOrId.id : branchOrId;
+    setActiveBranchIdState(id);
+    if (id) {
+      localStorage.setItem('saas_active_branch_id', id);
+    } else {
+      localStorage.removeItem('saas_active_branch_id');
+    }
+  };
+
+  const activeBranch = branches.find((b) => b.id === activeBranchId) || branches[0] || {
+    id: 'br-main',
+    name: 'الفرع الرئيسي',
+    code: 'MAIN',
+    isMain: true,
+  };
 
   return (
     <BranchContext.Provider
       value={{
         branches,
         activeBranch,
+        activeBranchId: activeBranch?.id || null,
         setActiveBranch,
+        isLoading,
+        refetchBranches,
       }}
     >
       {children}
