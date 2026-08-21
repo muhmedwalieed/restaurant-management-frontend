@@ -8,6 +8,9 @@ coverage/
 # Vite cache
 .vite/
 
+# Personal working documentation (not part of the repo)
+Frontend_Project_Guide.md
+
 # Environment variables (never commit secrets)
 .env
 .env.*
@@ -25,4 +28,5 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
 Frontend_Project_Guide.md
