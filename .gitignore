@@ -5,6 +5,9 @@ node_modules/
 dist/
 coverage/
 
+# Vite cache
+.vite/
+
 # Environment variables (never commit secrets)
 .env
 .env.*
@@ -22,3 +25,4 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+Frontend_Project_Guide.md

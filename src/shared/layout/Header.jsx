@@ -1,8 +1,8 @@
+import React, { useState } from 'react';
 import { Menu, Building2, User, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
 import { useBranch } from '../../modules/auth/context/BranchContext.jsx';
 import { HealthStatusIndicator } from '../../modules/health/components/HealthStatusIndicator.jsx';
-import { useState } from 'react';
 
 export const Header = ({ onToggleMobileNav, onToggleSidebar }) => {
   const { user, logout } = useAuth();
@@ -84,7 +84,7 @@ export const Header = ({ onToggleMobileNav, onToggleSidebar }) => {
               {user?.name || 'مدير النظام'}
             </span>
             <span className="text-[10px] text-txt-muted truncate">
-              {user?.role || 'Admin'}
+              {user?.role?.name || user?.role || 'Admin'}
             </span>
           </div>
           <button

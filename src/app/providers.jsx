@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '../modules/auth/context/AuthContext.jsx';
 import { BranchProvider } from '../modules/auth/context/BranchContext.jsx';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary.jsx';

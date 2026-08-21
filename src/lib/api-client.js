@@ -21,14 +21,32 @@ export const apiHealthClient = axios.create({
 let authToken = null;
 let onUnauthorizedCallback = null;
 let onConflict409Callback = null;
+let onRefreshCallback = null;
+let refreshPromise = null;
 
 export const setAuthToken = (token) => {
   authToken = token;
 };
 
-export const setApiCallbacks = ({ onUnauthorized, onConflict409 }) => {
+export const setApiCallbacks = ({ onUnauthorized, onConflict409, onRefresh }) => {
   if (onUnauthorized) onUnauthorizedCallback = onUnauthorized;
   if (onConflict409) onConflict409Callback = onConflict409;
+  if (onRefresh) onRefreshCallback = onRefresh;
+};
+
+// Single-flight token refresh: concurrent 401s share one refresh attempt (Section 16)
+const performRefresh = () => {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const newToken = await onRefreshCallback();
+        return newToken || null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
 };
 
 // Section 17 — error code → user-facing UI message mapping.
@@ -89,6 +107,7 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
       code,
       message: mappedMessage || errorBody.message || error.message || 'حدث خطأ في الاتصال بالخادم',
       requestId: errorBody.requestId || error.response?.headers?.['x-request-id'] || null,
+      details: errorBody.details || null,
       raw: error,
     };
 
@@ -100,9 +119,22 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
       return Promise.reject(normalizedError);
     }
 
-    // Handle 401 Unauthorized Session Expiration (Section 10.3)
+    // Handle 401 Unauthorized Session Expiration (Section 16 — refresh once, then retry)
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      if (onRefreshCallback) {
+        try {
+          const newToken = await performRefresh();
+          if (newToken) {
+            authToken = newToken;
+            originalRequest.headers = originalRequest.headers || {};
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return apiClient(originalRequest);
+          }
+        } catch (_err) {
+          // refresh failed → treat as session expired
+        }
+      }
       if (onUnauthorizedCallback) {
         onUnauthorizedCallback(normalizedError);
       }
