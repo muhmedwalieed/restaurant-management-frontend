@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { WorkingHoursEditor } from '../../src/modules/branches/components/WorkingHoursEditor.jsx';
 
 describe('WorkingHoursEditor Component Unit Tests', () => {
-  it('should render all 7 Egyptian week days starting with Saturday', () => {
+  it('should render all 7 days (Saturday to Friday) with the table layout', () => {
     render(<WorkingHoursEditor onSave={vi.fn()} />);
 
     expect(screen.getByText('السبت')).toBeInTheDocument();
@@ -14,24 +14,30 @@ describe('WorkingHoursEditor Component Unit Tests', () => {
     expect(screen.getByText('الأربعاء')).toBeInTheDocument();
     expect(screen.getByText('الخميس')).toBeInTheDocument();
     expect(screen.getByText('الجمعة')).toBeInTheDocument();
+
+    const switches = screen.getAllByRole('switch');
+    expect(switches.length).toBe(7); // one activation toggle per day
   });
 
-  it('should allow toggling a day to closed status', () => {
+  it('should disable a day times when its activation toggle is off', () => {
     render(<WorkingHoursEditor onSave={vi.fn()} />);
 
-    const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBe(7);
+    const switches = screen.getAllByRole('switch');
+    // First switch is Saturday's activation toggle (Saturday..Friday)
+    fireEvent.click(switches[0]);
+    expect(switches[0]).toHaveAttribute('aria-checked', 'false');
 
-    // Toggle Saturday
-    fireEvent.click(checkboxes[0]);
-    expect(screen.getByText('عطلة أسبوعية / مغلق طوال اليوم')).toBeInTheDocument();
+    const satStart = screen.getByLabelText('السبت — ساعة البداية');
+    const satEnd = screen.getByLabelText('السبت — ساعة النهاية');
+    expect(satStart).toBeDisabled();
+    expect(satEnd).toBeDisabled();
   });
 
-  it('should trigger onSave callback with schedule payload', async () => {
+  it('should trigger onSave callback with schedule payload (Saturday first)', async () => {
     const handleSave = vi.fn().mockResolvedValueOnce();
     render(<WorkingHoursEditor onSave={handleSave} />);
 
-    const saveButton = screen.getByRole('button', { name: /حفظ الجدول/i });
+    const saveButton = screen.getByRole('button', { name: /حفظ/i });
     await act(async () => {
       fireEvent.click(saveButton);
     });

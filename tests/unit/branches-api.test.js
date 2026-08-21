@@ -10,7 +10,6 @@ import {
   getBranchByIdApi,
   createBranchApi,
   updateBranchApi,
-  deleteBranchApi,
   getBranchWorkingHoursApi,
   updateBranchWorkingHoursApi,
   getBranchSettingsApi,
@@ -77,17 +76,11 @@ describe('Module 3 Restaurant & Branches API Services Unit Tests', () => {
     expect(res.name).toBe('اسم جديد');
   });
 
-  it('deleteBranchApi should call DELETE /branches/:id', async () => {
-    apiClient.delete.mockResolvedValueOnce({ success: true });
-    await deleteBranchApi('br-1');
-    expect(apiClient.delete).toHaveBeenCalledWith('/branches/br-1');
-  });
-
-  it('updateBranchWorkingHoursApi should call PUT /branches/:id/working-hours', async () => {
+  it('updateBranchWorkingHoursApi should call PUT /branches/:id/working-hours with wrapped payload', async () => {
     const hours = [{ day: 'SAT', openTime: '09:00', closeTime: '23:00', isOpen: true }];
     apiClient.put.mockResolvedValueOnce(hours);
     const res = await updateBranchWorkingHoursApi('br-1', hours);
-    expect(apiClient.put).toHaveBeenCalledWith('/branches/br-1/working-hours', hours);
+    expect(apiClient.put).toHaveBeenCalledWith('/branches/br-1/working-hours', { workingHours: hours });
     expect(res).toEqual(hours);
   });
 

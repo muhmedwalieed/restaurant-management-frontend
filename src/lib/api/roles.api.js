@@ -8,13 +8,6 @@ export const getRolesApi = async (params = {}) => {
 };
 
 /**
- * Get role details by ID
- */
-export const getRoleByIdApi = async (id) => {
-  return apiClient.get(`/roles/${id}`);
-};
-
-/**
  * Create a new role
  */
 export const createRoleApi = async (payload) => {

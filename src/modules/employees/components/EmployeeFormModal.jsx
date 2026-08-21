@@ -38,7 +38,8 @@ export const EmployeeFormModal = ({
   const { data: rolesData } = useRolesQuery({ limit: 100 });
   const { branches } = useBranch();
 
-  const roleOptions = (rolesData?.items || []).map((role) => ({
+  const rolesList = rolesData?.items || (Array.isArray(rolesData) ? rolesData : []);
+  const roleOptions = rolesList.map((role) => ({
     value: role.id,
     label: role.name,
   }));

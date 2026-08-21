@@ -30,7 +30,7 @@ export const RolesListPage = () => {
   const updateMutation = useUpdateRoleMutation();
   const deleteMutation = useDeleteRoleMutation();
 
-  const rolesList = data?.items || [];
+  const rolesList = data?.items || (Array.isArray(data) ? data : []);
   const pagination = data?.pagination || { page: 1, totalPages: 1, total: 0 };
 
   const runMutation = async (fn) => {

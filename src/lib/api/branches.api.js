@@ -35,14 +35,6 @@ export const updateBranchApi = async (id, payload) => {
 };
 
 /**
- * Soft-delete branch (sets status: INACTIVE)
- * DELETE /branches/:id
- */
-export const deleteBranchApi = async (id) => {
-  return apiClient.delete(`/branches/${id}`);
-};
-
-/**
  * Get branch working hours 7-day schedule
  * GET /branches/:id/working-hours
  */
@@ -53,10 +45,10 @@ export const getBranchWorkingHoursApi = async (branchId) => {
 /**
  * Update branch working hours 7-day schedule
  * PUT /branches/:id/working-hours
- * Payload: Array of [ { day: "MON".."SUN", openTime: "HH:mm", closeTime: "HH:mm", isOpen } ]
+ * Payload: { workingHours: [ { day: "MON".."SUN", openTime: "HH:mm", closeTime: "HH:mm", isOpen } ] }
  */
 export const updateBranchWorkingHoursApi = async (branchId, workingHoursArray) => {
-  return apiClient.put(`/branches/${branchId}/working-hours`, workingHoursArray);
+  return apiClient.put(`/branches/${branchId}/working-hours`, { workingHours: workingHoursArray });
 };
 
 /**

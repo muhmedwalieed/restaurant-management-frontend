@@ -13,15 +13,16 @@ import { BranchSettingsForm } from '../components/BranchSettingsForm.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   Building2,
   Clock,
   Sliders,
   ChevronRight,
   ShieldCheck,
+  BadgeCheck,
   Hash,
   MapPin,
   Phone,
@@ -34,15 +35,14 @@ import { branchFormSchema } from '../components/BranchFormModal.jsx';
 
 const STATUS_OPTIONS = [
   { value: 'ACTIVE', label: 'نشط' },
-  { value: 'INACTIVE', label: 'معطل' },
-  { value: 'SUSPENDED', label: 'موقوف مؤقتاً' },
+  { value: 'INACTIVE', label: 'معطل' }
 ];
 
 export const BranchDetailPage = () => {
   const { id: branchId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'working-hours' | 'settings'
-  const [generalSuccess, setGeneralSuccess] = useState(null);
+  const [generalSuccess, setGeneralSuccess] = useAutoDismiss();
   const [generalError, setGeneralError] = useState(null);
 
   // Queries & Mutations
@@ -87,6 +87,14 @@ export const BranchDetailPage = () => {
     await updateHoursMutation.mutateAsync({ branchId, workingHours: workingHoursArray });
   };
 
+  const handleTimezoneChange = async (timezone) => {
+    const current = branchSettings || {};
+    await updateSettingsMutation.mutateAsync({
+      branchId,
+      settings: { currency: current.currency || 'EGP', timezone },
+    });
+  };
+
   const handleSettingsSave = async (settingsData) => {
     await updateSettingsMutation.mutateAsync({ branchId, settings: settingsData });
   };
@@ -127,15 +135,11 @@ export const BranchDetailPage = () => {
         </Button>
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-txt-primary">{branch?.name || 'تفاصيل الفرع'}</h1>
-          {branch?.isMain && (
-            <span className="px-2 py-0.5 rounded text-xs font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              الفرع الرئيسي
+          {branch?.isMain && branch?.status === 'ACTIVE' && (
+            <span title="الفرع الرئيسي — نشط" aria-label="الفرع الرئيسي — نشط">
+              <BadgeCheck className="w-5 h-5 text-status-success" />
             </span>
           )}
-          <StatusPill status={branch?.status === 'ACTIVE' ? 'success' : 'neutral'}>
-            {branch?.status === 'ACTIVE' ? 'نشط' : 'معطل'}
-          </StatusPill>
         </div>
       </div>
 
@@ -183,6 +187,7 @@ export const BranchDetailPage = () => {
         {/* Tab 1: General Info */}
         {activeTab === 'general' && (
           <form onSubmit={handleSubmit(handleGeneralSubmit)} className="space-y-6 text-right" noValidate>
+            <input type="hidden" {...register('code')} value={branch?.code || ''} />
             {generalSuccess && (
               <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -209,9 +214,9 @@ export const BranchDetailPage = () => {
               <Input
                 label="كود الفرع"
                 icon={Hash}
-                required
-                error={errors.code?.message}
-                {...register('code')}
+                value={branch?.code || ''}
+                disabled
+                readOnly
               />
             </div>
 
@@ -239,16 +244,19 @@ export const BranchDetailPage = () => {
               {...register('address')}
             />
 
-            <div className="flex items-center gap-2 p-3 bg-bg-surface-elevated rounded-md border border-border-subtle">
+            <div className="flex items-center gap-2 p-3 bg-bg-surface-elevated rounded-md border border-border-subtle w-fit">
               <input
                 type="checkbox"
                 id="isMainDetail"
                 className="w-4 h-4 rounded border-border-default text-brand-primary focus:ring-brand-primary cursor-pointer"
                 {...register('isMain')}
               />
-              <label htmlFor="isMainDetail" className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-1.5">
+              <label
+                htmlFor="isMainDetail"
+                className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-1.5"
+              >
                 <ShieldCheck className="w-4 h-4 text-brand-primary" />
-                <span>الفرع الرئيسي للمطعم (isMain)</span>
+                <span>الفرع الرئيسي</span>
               </label>
             </div>
 
@@ -272,6 +280,8 @@ export const BranchDetailPage = () => {
                 initialData={workingHours}
                 onSave={handleWorkingHoursSave}
                 isLoading={updateHoursMutation.isPending}
+                timezone={branchSettings?.timezone || 'Africa/Cairo'}
+                onTimezoneChange={handleTimezoneChange}
               />
             )}
           </div>

@@ -14,6 +14,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export const restaurantProfileSchema = z.object({
@@ -42,7 +43,7 @@ export const RestaurantSettingsPage = () => {
   const { data: restaurant, isLoading, isError, error, refetch } = useRestaurantQuery();
   const updateMutation = useUpdateRestaurantMutation();
   const updateStatusMutation = useUpdateRestaurantStatusMutation();
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useAutoDismiss();
   const [errorMessage, setErrorMessage] = useState(null);
 
   const {
@@ -182,11 +183,10 @@ export const RestaurantSettingsPage = () => {
             />
 
             <Input
-              label="معرّف الرابط (Slug)"
+              label="معرّف الرابط"
               value={restaurant?.slug || ''}
               disabled
               readOnly
-              helperText="معرّف ثابت يُستخدم في روابط النظام والـ WhatsApp/QR"
             />
           </div>
 

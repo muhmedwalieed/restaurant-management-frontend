@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
+import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { DollarSign, Globe, CheckCircle2, Sliders, AlertCircle } from 'lucide-react';
 
 export const branchSettingsSchema = z.object({
@@ -27,7 +28,7 @@ const TIMEZONE_OPTIONS = [
 ];
 
 export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) => {
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useAutoDismiss();
   const [errorMessage, setErrorMessage] = useState(null);
 
   const {
