@@ -4,7 +4,6 @@ import {
   getBranchByIdApi,
   createBranchApi,
   updateBranchApi,
-  deleteBranchApi,
   getBranchWorkingHoursApi,
   updateBranchWorkingHoursApi,
   getBranchSettingsApi,
@@ -43,16 +42,6 @@ export const useUpdateBranchMutation = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['branches'] });
       queryClient.invalidateQueries({ queryKey: ['branch', id] });
-    },
-  });
-};
-
-export const useDeleteBranchMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: deleteBranchApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['branches'] });
     },
   });
 };

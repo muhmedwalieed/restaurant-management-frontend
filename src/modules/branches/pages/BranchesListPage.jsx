@@ -1,50 +1,29 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  useBranchesQuery,
-  useCreateBranchMutation,
-  useUpdateBranchMutation,
-  useDeleteBranchMutation,
-} from '../hooks/useBranches.js';
+import { useBranchesQuery, useCreateBranchMutation } from '../hooks/useBranches.js';
 import { DataTable } from '../../../shared/components/DataTable.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
-import { Modal } from '../../../shared/components/Modal.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { BranchFormModal } from '../components/BranchFormModal.jsx';
-import {
-  Building2,
-  Plus,
-  Edit,
-  Trash2,
-  Settings,
-  ShieldCheck,
-  Phone,
-  MapPin,
-  AlertTriangle,
-} from 'lucide-react';
+import { Building2, Plus, Settings, Phone, MapPin, AlertTriangle } from 'lucide-react';
 
 const STATUS_FILTER_OPTIONS = [
   { value: 'ALL', label: 'جميع الحالات' },
   { value: 'ACTIVE', label: 'نشط فقط' },
   { value: 'INACTIVE', label: 'معطل فقط' },
-  { value: 'SUSPENDED', label: 'موقوف فقط' },
 ];
 
 export const BranchesListPage = () => {
   const navigate = useNavigate();
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [errorMessage, setErrorMessage] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingBranch, setEditingBranch] = useState(null);
-  const [deletingBranch, setDeletingBranch] = useState(null);
 
   const queryParams = selectedStatus !== 'ALL' ? { status: selectedStatus } : {};
   const { data: branchesResponse, isLoading, isError, error, refetch } = useBranchesQuery(queryParams);
   const createMutation = useCreateBranchMutation();
-  const updateMutation = useUpdateBranchMutation();
-  const deleteMutation = useDeleteBranchMutation();
 
   const branchesList = branchesResponse?.items || branchesResponse || [];
 
@@ -57,19 +36,20 @@ export const BranchesListPage = () => {
     return nameMatch || codeMatch;
   });
 
+  const runBranchMutation = async (fn) => {
+    setErrorMessage(null);
+    try {
+      await fn();
+      return true;
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء تنفيذ العملية.');
+      return false;
+    }
+  };
+
   const handleCreateBranch = async (data) => {
-    await createMutation.mutateAsync(data);
-  };
-
-  const handleUpdateBranch = async (data) => {
-    await updateMutation.mutateAsync({ id: editingBranch.id, payload: data });
-    setEditingBranch(null);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deletingBranch || deletingBranch.isMain) return;
-    await deleteMutation.mutateAsync(deletingBranch.id);
-    setDeletingBranch(null);
+    const ok = await runBranchMutation(() => createMutation.mutateAsync(data));
+    if (ok) setIsCreateModalOpen(false);
   };
 
   const columns = [
@@ -77,21 +57,29 @@ export const BranchesListPage = () => {
       header: 'كود الفرع',
       accessorKey: 'code',
       width: '100px',
-      render: (row) => <span className="font-mono font-bold text-txt-primary">{row.code}</span>,
+      render: (row) => (
+        <span
+          className={`font-mono font-bold ${
+            row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'
+          }`}
+        >
+          {row.code}
+        </span>
+      ),
     },
     {
       header: 'اسم الفرع',
       accessorKey: 'name',
       render: (row) => (
         <div className="flex items-center gap-2">
-          <Building2 className="w-4 h-4 text-brand-primary shrink-0" />
-          <span className="font-bold text-txt-primary">{row.name}</span>
-          {row.isMain && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-primary/10 text-brand-primary border border-brand-primary/20 flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" />
-              الفرع الرئيسي
-            </span>
-          )}
+          <Building2
+            className={`w-4 h-4 shrink-0 ${
+              row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-brand-primary'
+            }`}
+          />
+          <span className={`font-bold ${row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+            {row.name}
+          </span>
         </div>
       ),
     },
@@ -99,7 +87,11 @@ export const BranchesListPage = () => {
       header: 'الهاتف',
       accessorKey: 'phone',
       render: (row) => (
-        <span className="text-txt-muted dir-ltr inline-block">
+        <span
+          className={`dir-ltr inline-block ${
+            row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'
+          }`}
+        >
           {row.phone ? `${row.phone}` : '—'}
         </span>
       ),
@@ -108,60 +100,29 @@ export const BranchesListPage = () => {
       header: 'العنوان',
       accessorKey: 'address',
       render: (row) => (
-        <span className="text-txt-muted truncate max-w-[200px] inline-block">
+        <span
+          className={`truncate max-w-[200px] inline-block ${
+            row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'
+          }`}
+        >
           {row.address || '—'}
         </span>
       ),
     },
     {
-      header: 'الحالة',
-      accessorKey: 'status',
-      render: (row) => {
-        const isAct = row.status === 'ACTIVE';
-        return (
-          <StatusPill status={isAct ? 'success' : 'neutral'}>
-            {isAct ? 'نشط' : row.status === 'SUSPENDED' ? 'موقوف' : 'معطل'}
-          </StatusPill>
-        );
-      },
-    },
-    {
       header: 'الإجراءات',
       key: 'actions',
       render: (row) => (
-        <div className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate(`/settings/branches/${row.id}`)}
-            icon={Settings}
-            title="إعدادات الفرع"
-          >
-            الإعدادات
-          </Button>
-
-          <PermissionGate permission="branches.manage">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setEditingBranch(row)}
-              icon={Edit}
-              title="تعديل البيانات"
-            />
-
-            {/* Defensive check: Disable / Hide delete for isMain branch */}
-            {!row.isMain && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setDeletingBranch(row)}
-                icon={Trash2}
-                className="text-status-danger hover:bg-status-danger-bg"
-                title="تعطيل الفرع (Soft Delete)"
-              />
-            )}
-          </PermissionGate>
-        </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => navigate(`/settings/branches/${row.id}`)}
+          icon={Settings}
+          className="text-txt-primary hover:text-brand-primary hover:bg-bg-surface-elevated"
+          title="الإعدادات ومواعيد العمل"
+        >
+          الإعدادات
+        </Button>
       ),
     },
   ];
@@ -192,6 +153,13 @@ export const BranchesListPage = () => {
         </PermissionGate>
       </div>
 
+      {errorMessage && (
+        <div className="flex items-center gap-2 p-3 rounded-md bg-status-danger-bg text-status-danger border border-status-danger/30 text-xs font-medium">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {/* Main DataTable */}
       <DataTable
         columns={columns}
@@ -217,14 +185,19 @@ export const BranchesListPage = () => {
         }
         mobileCardRender={(branch) => (
           <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-brand-primary" />
-                <span className="font-bold text-txt-primary text-sm">{branch.name}</span>
-              </div>
-              <StatusPill status={branch.status === 'ACTIVE' ? 'success' : 'neutral'}>
-                {branch.status === 'ACTIVE' ? 'نشط' : 'معطل'}
-              </StatusPill>
+            <div className="flex items-center gap-2">
+              <Building2
+                className={`w-4 h-4 shrink-0 ${
+                  branch.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-brand-primary'
+                }`}
+              />
+              <span
+                className={`font-bold text-sm ${
+                  branch.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'
+                }`}
+              >
+                {branch.name}
+              </span>
             </div>
 
             <div className="text-xs text-txt-muted space-y-1">
@@ -243,27 +216,17 @@ export const BranchesListPage = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+            <div className="flex items-center justify-end pt-2 border-t border-border-subtle">
               <Button
                 size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => navigate(`/settings/branches/${branch.id}`)}
                 icon={Settings}
+                className="text-txt-primary hover:text-brand-primary"
+                title="الإعدادات ومواعيد العمل"
               >
                 الإعدادات
               </Button>
-              <PermissionGate permission="branches.manage">
-                <Button size="sm" variant="ghost" onClick={() => setEditingBranch(branch)} icon={Edit} />
-                {!branch.isMain && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setDeletingBranch(branch)}
-                    icon={Trash2}
-                    className="text-status-danger"
-                  />
-                )}
-              </PermissionGate>
             </div>
           </div>
         )}
@@ -276,45 +239,6 @@ export const BranchesListPage = () => {
         onSubmit={handleCreateBranch}
         isLoading={createMutation.isPending}
       />
-
-      {/* Edit Branch Modal */}
-      <BranchFormModal
-        isOpen={Boolean(editingBranch)}
-        onClose={() => setEditingBranch(null)}
-        initialValues={editingBranch}
-        onSubmit={handleUpdateBranch}
-        isLoading={updateMutation.isPending}
-      />
-
-      {/* Soft Delete Confirm Modal */}
-      <Modal
-        isOpen={Boolean(deletingBranch)}
-        onClose={() => setDeletingBranch(null)}
-        title="تأكيد تعطيل الفرع"
-        description="سيتم تغيير حالة الفرع إلى معطل (INACTIVE). يمكن إعادة تفعيله لاحقاً."
-      >
-        <div className="space-y-4 text-right">
-          <div className="flex items-center gap-3 p-3 bg-status-danger-bg border border-status-danger/20 rounded-md text-status-danger text-xs">
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            <span>هل أنت تأكد من تعطيل فرع ({deletingBranch?.name})؟</span>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => setDeletingBranch(null)}>
-              إلغاء
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              isLoading={deleteMutation.isPending}
-              onClick={handleDeleteConfirm}
-              className="bg-status-danger hover:bg-status-danger/90 text-white"
-            >
-              تعطيل الفرع
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

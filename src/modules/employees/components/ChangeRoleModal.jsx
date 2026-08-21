@@ -13,7 +13,8 @@ export const ChangeRoleModal = ({
   isLoading = false,
 }) => {
   const { data: rolesData } = useRolesQuery({ limit: 100 });
-  const roleOptions = (rolesData?.items || []).map((role) => ({
+  const rolesList = rolesData?.items || (Array.isArray(rolesData) ? rolesData : []);
+  const roleOptions = rolesList.map((role) => ({
     value: role.id,
     label: role.name,
   }));

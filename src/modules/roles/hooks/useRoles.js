@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getRolesApi,
-  getRoleByIdApi,
   createRoleApi,
   updateRoleApi,
   deleteRoleApi,
@@ -12,14 +11,6 @@ export const useRolesQuery = (params = {}) => {
   return useQuery({
     queryKey: ['roles', params],
     queryFn: () => getRolesApi(params),
-  });
-};
-
-export const useRoleQuery = (id) => {
-  return useQuery({
-    queryKey: ['roles', id],
-    queryFn: () => getRoleByIdApi(id),
-    enabled: Boolean(id),
   });
 };
 

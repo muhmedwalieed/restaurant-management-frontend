@@ -14,7 +14,8 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
+import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export const restaurantProfileSchema = z.object({
   name: z.string().min(2, 'اسم المطعم يجب أن لا يقل عن حرفين'),
@@ -42,7 +43,8 @@ export const RestaurantSettingsPage = () => {
   const { data: restaurant, isLoading, isError, error, refetch } = useRestaurantQuery();
   const updateMutation = useUpdateRestaurantMutation();
   const updateStatusMutation = useUpdateRestaurantStatusMutation();
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useAutoDismiss();
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const {
     register,
@@ -74,15 +76,25 @@ export const RestaurantSettingsPage = () => {
 
   const onSubmit = async (formData) => {
     setSuccessMessage(null);
-    await updateMutation.mutateAsync(formData);
-    setSuccessMessage('تم حفظ بيانات المطعم بنجاح.');
+    setErrorMessage(null);
+    try {
+      await updateMutation.mutateAsync(formData);
+      setSuccessMessage('تم حفظ بيانات المطعم بنجاح.');
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء حفظ بيانات المطعم.');
+    }
   };
 
   const handleStatusToggle = async () => {
     setSuccessMessage(null);
+    setErrorMessage(null);
     const newStatus = restaurant?.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    await updateStatusMutation.mutateAsync(newStatus);
-    setSuccessMessage(`تم تغيير حالة المطعم إلى ${newStatus === 'ACTIVE' ? 'نشط' : 'معطل'}.`);
+    try {
+      await updateStatusMutation.mutateAsync(newStatus);
+      setSuccessMessage(`تم تغيير حالة المطعم إلى ${newStatus === 'ACTIVE' ? 'نشط' : 'معطل'}.`);
+    } catch (err) {
+      setErrorMessage(err?.message || 'حدث خطأ أثناء تغيير حالة المطعم.');
+    }
   };
 
   if (isLoading) {
@@ -151,6 +163,13 @@ export const RestaurantSettingsPage = () => {
         </div>
       )}
 
+      {errorMessage && (
+        <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {/* Main Form */}
       <div className="bg-bg-surface border border-border-default rounded-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-right" noValidate>
@@ -164,11 +183,10 @@ export const RestaurantSettingsPage = () => {
             />
 
             <Input
-              label="معرّف الرابط (Slug)"
+              label="معرّف الرابط"
               value={restaurant?.slug || ''}
               disabled
               readOnly
-              helperText="معرّف ثابت يُستخدم في روابط النظام والـ WhatsApp/QR"
             />
           </div>
 

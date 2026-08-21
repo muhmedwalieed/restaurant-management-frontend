@@ -1,4 +1,4 @@
-import React, { forwardRef, useId } from 'react';
+import { forwardRef, useId } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -14,6 +14,7 @@ export const Input = forwardRef(
       className = '',
       icon: Icon,
       required = false,
+      readOnly = false,
       ...props
     },
     ref
@@ -43,12 +44,18 @@ export const Input = forwardRef(
             id={inputId}
             name={name}
             type={type}
+            readOnly={readOnly}
             aria-invalid={Boolean(error)}
+            aria-readonly={readOnly}
             aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
             className={twMerge(
               clsx(
-                'w-full bg-bg-surface text-txt-primary placeholder:text-txt-muted border rounded-md text-sm px-3 py-2 min-h-[40px] transition-colors focus-visible:outline-none focus-visible:border-brand-primary',
-                Icon ? 'pr-9 pl-3' : 'px-3',
+                'w-full bg-bg-surface text-txt-primary placeholder:text-txt-muted border rounded-md text-sm px-3 py-2 min-h-[40px] transition-colors focus-visible:outline-none',
+                readOnly
+                  ? 'bg-bg-base/60 text-txt-muted border-dashed border-border-default cursor-not-allowed'
+                  : 'focus-visible:border-brand-primary',
+                Icon ? 'pr-9' : 'px-3',
+                'pl-3',
                 error
                   ? 'border-status-danger focus-visible:border-status-danger'
                   : 'border-border-default hover:border-text-muted',

@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../shared/layout/AppShell.jsx';
 import { LoginPage } from '../modules/auth/pages/LoginPage.jsx';
 import { EmployeesListPage } from '../modules/employees/pages/EmployeesListPage.jsx';
+import { EmployeeDetailPage } from '../modules/employees/pages/EmployeeDetailPage.jsx';
 import { RolesListPage } from '../modules/roles/pages/RolesListPage.jsx';
 import { RestaurantSettingsPage } from '../modules/restaurant/pages/RestaurantSettingsPage.jsx';
 import { BranchesListPage } from '../modules/branches/pages/BranchesListPage.jsx';
@@ -250,6 +251,14 @@ export const router = createBrowserRouter(
         element: (
           <RequirePermission permission="employees.view">
             <EmployeesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/employees/:id',
+        element: (
+          <RequirePermission permission="employees.view">
+            <EmployeeDetailPage />
           </RequirePermission>
         ),
       },

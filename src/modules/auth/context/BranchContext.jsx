@@ -47,12 +47,7 @@ export const BranchProvider = ({ children }) => {
     }
   };
 
-  const activeBranch = branches.find((b) => b.id === activeBranchId) || branches[0] || {
-    id: 'br-main',
-    name: 'الفرع الرئيسي',
-    code: 'MAIN',
-    isMain: true,
-  };
+  const activeBranch = branches.find((b) => b.id === activeBranchId) || branches[0] || null;
 
   return (
     <BranchContext.Provider
