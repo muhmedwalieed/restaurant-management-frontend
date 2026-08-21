@@ -12,6 +12,7 @@ import {
   MessageSquare,
   BarChart3,
   Settings,
+  Building2,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -24,7 +25,10 @@ const NAV_ITEMS = [
   { label: 'العملاء', path: '/customers', icon: Users },
   { label: 'الواتساب والرسائل', path: '/whatsapp', icon: MessageSquare },
   { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3 },
-  { label: 'الإعدادات', path: '/settings', icon: Settings },
+  { label: 'إعدادات المطعم', path: '/settings/restaurant', icon: Store },
+  { label: 'الفروع والمواقع', path: '/settings/branches', icon: Building2 },
+  { label: 'الموظفين', path: '/settings/employees', icon: Users },
+  { label: 'الأدوار والصلاحيات', path: '/settings/roles', icon: Settings },
 ];
 
 export const MobileNav = ({ isOpen, onClose }) => {
