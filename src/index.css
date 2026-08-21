@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --bg-base: #0f172a;
+    --bg-surface: #1e293b;
+    --bg-surface-elevated: #334155;
+
+    /* Brand & Accent Colors */
+    --color-primary: #f59e0b;
+    --color-primary-hover: #d97706;
+    --color-accent: #38bdf8;
+
+    /* Text Colors */
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-inverted: #0f172a;
+
+    /* Borders */
+    --border-default: #334155;
+    --border-subtle: #1e293b;
+
+    /* Status Colors & Backgrounds */
+    --status-success: #10b981;
+    --status-success-bg: rgba(16, 185, 129, 0.12);
+    
+    --status-warning: #f59e0b;
+    --status-warning-bg: rgba(245, 158, 11, 0.12);
+    
+    --status-danger: #ef4444;
+    --status-danger-bg: rgba(239, 68, 68, 0.12);
+    
+    --status-info: #3b82f6;
+    --status-info-bg: rgba(59, 130, 246, 0.12);
+    
+    --status-neutral: #64748b;
+    --status-neutral-bg: rgba(100, 116, 139, 0.12);
+
+    /* Border Radius Scale (Section 6.12) */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-pill: 9999px;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Accessibility Focus Ring (Section 6.24 & 20.13) */
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Custom Scrollbar for Operational Tables & Views */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
