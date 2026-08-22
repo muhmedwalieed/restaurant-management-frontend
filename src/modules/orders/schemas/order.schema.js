@@ -23,6 +23,49 @@ export const cancelOrderSchema = z.object({
   expectedVersion: z.coerce.number().int().min(1, 'expectedVersion مطلوب'),
 });
 
+export const posOrderSchema = z.object({
+  type: z.enum(['DINE_IN', 'DELIVERY', 'PICKUP']).default('DINE_IN'),
+  tableId: z.string().optional(),
+  customerPhone: z.string().optional(),
+  customerName: z.string().optional(),
+  notes: z.string().optional(),
+  items: z.array(orderItemSchema).min(1, 'أضف صنفًا واحدًا على الأقل'),
+});
+
+export const paymentSchema = z.object({
+  paymentMethod: z.enum(['CASH', 'CARD', 'ONLINE']),
+  amount: z.coerce.number().positive('المبلغ يجب أن يكون موجبًا').optional(),
+  expectedVersion: z.coerce.number().int().min(1, 'expectedVersion مطلوب'),
+});
+
+export const refundSchema = z.object({
+  reason: z.string().min(1, 'سبب الاسترداد مطلوب'),
+  expectedVersion: z.coerce.number().int().min(1, 'expectedVersion مطلوب'),
+});
+
+export const PAYMENT_METHOD_LABELS = {
+  CASH: 'كاش',
+  CARD: 'بطاقة',
+  ONLINE: 'أونلاين',
+};
+
+export const PAYMENT_METHOD_OPTIONS = Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
+
+export const PAYMENT_STATUS_LABELS = {
+  PENDING: 'قيد الانتظار',
+  PAID: 'مدفوع',
+  FAILED: 'فشل',
+  REFUNDED: 'مسترجع',
+};
+
+export const paymentStatusPill = (status) => {
+  const map = { PENDING: 'neutral', PAID: 'success', FAILED: 'danger', REFUNDED: 'warning' };
+  return map[status] || 'neutral';
+};
+
 export const ORDER_STATUS_LABELS = {
   PENDING: 'قيد الانتظار',
   CONFIRMED: 'مؤكد',

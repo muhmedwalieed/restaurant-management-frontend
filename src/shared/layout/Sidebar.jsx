@@ -8,6 +8,7 @@ import {
   Users,
   MessageSquare,
   BarChart3,
+  Calculator,
   Settings,
   Store,
   Building2,
@@ -18,6 +19,7 @@ import { clsx } from 'clsx';
 const NAV_ITEMS = [
   { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard },
   { label: 'الطلبات', path: '/orders', icon: ShoppingBag, badge: 'POS' },
+  { label: 'نقطة البيع (POS)', path: '/pos', icon: Calculator },
   { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat },
   { label: 'الترابيزات', path: '/tables', icon: Grid },
   { label: 'المنيو', path: '/menu', icon: UtensilsCrossed },

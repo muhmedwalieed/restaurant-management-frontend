@@ -6,6 +6,11 @@ import {
   updateOrderStatusApi,
   cancelOrderApi,
   getOrderHistoryApi,
+  createPosOrderApi,
+  processPaymentApi,
+  processRefundApi,
+  getKdsOrdersApi,
+  updateKdsOrderStatusApi,
 } from '../../../lib/api/orders.api.js';
 
 export const useOrdersQuery = (branchId, params = {}) => {
@@ -64,6 +69,60 @@ export const useCancelOrderMutation = () => {
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
       qc.invalidateQueries({ queryKey: ['order', branchId, id] });
       qc.invalidateQueries({ queryKey: ['order-history', branchId, id] });
+      qc.invalidateQueries({ queryKey: ['tables', branchId] });
+    },
+  });
+};
+
+export const useCreatePosOrderMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ branchId, payload, idempotencyKey }) => createPosOrderApi(branchId, payload, idempotencyKey),
+    onSuccess: (_, { branchId }) => {
+      qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['tables', branchId] });
+    },
+  });
+};
+
+export const usePaymentMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ branchId, orderId, payload }) => processPaymentApi(branchId, orderId, payload),
+    onSuccess: (_, { branchId, orderId }) => {
+      qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['order', branchId, orderId] });
+    },
+  });
+};
+
+export const useRefundMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ branchId, orderId, payload }) => processRefundApi(branchId, orderId, payload),
+    onSuccess: (_, { branchId, orderId }) => {
+      qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['order', branchId, orderId] });
+    },
+  });
+};
+
+export const useKdsOrdersQuery = (branchId, params = {}) => {
+  return useQuery({
+    queryKey: ['kds', branchId, params],
+    queryFn: () => getKdsOrdersApi(branchId, params),
+    enabled: Boolean(branchId),
+    refetchInterval: 30000,
+  });
+};
+
+export const useUpdateKdsStatusMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ branchId, orderId, payload }) => updateKdsOrderStatusApi(branchId, orderId, payload),
+    onSuccess: (_, { branchId }) => {
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
+      qc.invalidateQueries({ queryKey: ['orders', branchId] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
     },
   });

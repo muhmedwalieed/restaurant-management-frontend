@@ -5,6 +5,8 @@ import {
   useOrderHistoryQuery,
   useUpdateOrderStatusMutation,
   useCancelOrderMutation,
+  usePaymentMutation,
+  useRefundMutation,
 } from '../hooks/useOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import {
@@ -13,11 +15,16 @@ import {
   ORDER_SOURCE_LABELS,
   orderStatusPill,
   nextStatuses,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_METHOD_OPTIONS,
+  PAYMENT_STATUS_LABELS,
+  paymentStatusPill,
 } from '../schemas/order.schema.js';
 import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { Input } from '../../../shared/components/Input.jsx';
+import { Select } from '../../../shared/components/Select.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
@@ -33,6 +40,8 @@ import {
   Phone,
   Users,
   Tag,
+  Wallet,
+  Banknote,
 } from 'lucide-react';
 
 const InfoRow = ({ icon: Icon, label, value }) => (
@@ -56,12 +65,19 @@ export const OrderDetailPage = () => {
   const [actionError, setActionError] = useState(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('CASH');
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [isRefundOpen, setIsRefundOpen] = useState(false);
+  const [refundReason, setRefundReason] = useState('');
 
   const branchId = activeBranchId;
   const { data: order, isLoading, isError, error, refetch } = useOrderQuery(branchId, id);
   const { data: history, isLoading: isHistoryLoading } = useOrderHistoryQuery(branchId, id);
   const updateStatusMutation = useUpdateOrderStatusMutation();
   const cancelMutation = useCancelOrderMutation();
+  const paymentMutation = usePaymentMutation();
+  const refundMutation = useRefundMutation();
 
   const runAction = async (fn) => {
     setActionError(null);
@@ -93,6 +109,42 @@ export const OrderDetailPage = () => {
     if (ok) {
       setIsCancelOpen(false);
       setCancelReason('');
+    }
+  };
+
+  const handlePayment = async () => {
+    const ok = await runAction(() =>
+      paymentMutation.mutateAsync({
+        branchId,
+        orderId: id,
+        payload: {
+          paymentMethod,
+          amount: paymentAmount ? Number(paymentAmount) : undefined,
+          expectedVersion: order.version,
+        },
+      })
+    );
+    if (ok) {
+      setIsPaymentOpen(false);
+      setPaymentAmount('');
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!refundReason.trim()) {
+      setActionError('سبب الاسترداد مطلوب.');
+      return;
+    }
+    const ok = await runAction(() =>
+      refundMutation.mutateAsync({
+        branchId,
+        orderId: id,
+        payload: { expectedVersion: order.version, reason: refundReason },
+      })
+    );
+    if (ok) {
+      setIsRefundOpen(false);
+      setRefundReason('');
     }
   };
 
@@ -143,6 +195,7 @@ export const OrderDetailPage = () => {
         {[
           { key: 'details', label: 'تفاصيل الطلب', icon: ListChecks },
           { key: 'history', label: 'السجل الزمني', icon: History },
+          { key: 'payment', label: 'الدفع', icon: Wallet },
           { key: 'actions', label: 'الإجراءات', icon: ChevronLeft },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -263,7 +316,59 @@ export const OrderDetailPage = () => {
           </div>
         )}
 
-        {/* Tab 3: Actions */}
+        {/* Tab 3: Payment */}
+        {activeTab === 'payment' && (
+          <div className="space-y-5">
+            <div className="bg-bg-base border border-border-default rounded-lg p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="p-2 rounded-md bg-bg-surface-elevated text-brand-primary">
+                  <Wallet className="w-5 h-5" />
+                </span>
+                <div>
+                  <p className="text-xs text-txt-muted">حالة الدفع</p>
+                  <StatusPill status={paymentStatusPill(order?.paymentStatus)}>
+                    {PAYMENT_STATUS_LABELS[order?.paymentStatus] || order?.paymentStatus}
+                  </StatusPill>
+                </div>
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-txt-muted">الإجمالي</p>
+                <p className="text-lg font-bold text-brand-primary">{Number(order?.total || 0).toFixed(2)} EGP</p>
+              </div>
+            </div>
+
+            {order?.paymentStatus === 'PAID' && order?.paidAt && (
+              <div className="bg-bg-base border border-border-default rounded-lg p-4 text-xs text-txt-muted">
+                مدفوع بتاريخ {new Date(order.paidAt).toLocaleString('ar-EG')} —
+                {order.paymentMethod ? ` طريقة الدفع: ${PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod}` : ''}
+              </div>
+            )}
+            {order?.paymentStatus === 'REFUNDED' && order?.refundReason && (
+              <div className="bg-bg-base border border-border-default rounded-lg p-4 text-xs text-txt-muted">
+                سبب الاسترداد: {order.refundReason}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              {order?.paymentStatus !== 'PAID' && order?.paymentStatus !== 'REFUNDED' && order?.status !== 'CANCELLED' && (
+                <PermissionGate permission="orders.payment">
+                  <Button variant="primary" size="sm" icon={Banknote} onClick={() => setIsPaymentOpen(true)}>
+                    تحصيل الدفع
+                  </Button>
+                </PermissionGate>
+              )}
+              {order?.paymentStatus === 'PAID' && (
+                <PermissionGate permission="orders.refund">
+                  <Button variant="danger" size="sm" icon={Wallet} onClick={() => setIsRefundOpen(true)}>
+                    استرداد المبلغ
+                  </Button>
+                </PermissionGate>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Actions */}
         {activeTab === 'actions' && (
           <div className="space-y-5">
             {isTerminal ? (
@@ -330,6 +435,62 @@ export const OrderDetailPage = () => {
             </Button>
             <Button variant="danger" size="sm" isLoading={cancelMutation.isPending} onClick={handleCancel}>
               تأكيد الإلغاء
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Payment Modal */}
+      <Modal isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} title="تحصيل الدفع" size="sm">
+        <div className="space-y-4 text-right">
+          <p className="text-xs text-txt-muted">
+            استلام دفعة الطلب <span className="font-bold text-txt-primary">#{order?.orderNumber}</span> بمبلغ{' '}
+            <span className="font-bold text-brand-primary">{Number(order?.total || 0).toFixed(2)} EGP</span>
+          </p>
+          <Select
+            label="طريقة الدفع"
+            options={PAYMENT_METHOD_OPTIONS}
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          />
+          <Input
+            label="المبلغ (اختياري — الافتراضي الإجمالي)"
+            type="number"
+            step="0.01"
+            min="0"
+            dir="ltr"
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(e.target.value)}
+          />
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+            <Button variant="outline" size="sm" onClick={() => setIsPaymentOpen(false)} disabled={paymentMutation.isPending}>
+              تراجع
+            </Button>
+            <Button variant="primary" size="sm" isLoading={paymentMutation.isPending} onClick={handlePayment}>
+              تأكيد الدفع
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Refund Modal */}
+      <Modal isOpen={isRefundOpen} onClose={() => setIsRefundOpen(false)} title="استرداد المبلغ" size="sm">
+        <div className="space-y-4 text-right">
+          <p className="text-xs text-txt-muted">
+            سيتم استرداد مبلغ الطلب <span className="font-bold text-txt-primary">#{order?.orderNumber}</span>.
+          </p>
+          <Input
+            label="سبب الاسترداد (مطلوب)"
+            placeholder="مثال: خطأ في الطلب"
+            value={refundReason}
+            onChange={(e) => setRefundReason(e.target.value)}
+          />
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+            <Button variant="outline" size="sm" onClick={() => setIsRefundOpen(false)} disabled={refundMutation.isPending}>
+              تراجع
+            </Button>
+            <Button variant="danger" size="sm" isLoading={refundMutation.isPending} onClick={handleRefund}>
+              تأكيد الاسترداد
             </Button>
           </div>
         </div>
