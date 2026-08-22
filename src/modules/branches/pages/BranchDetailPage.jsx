@@ -10,6 +10,7 @@ import {
 } from '../hooks/useBranches.js';
 import { WorkingHoursEditor } from '../components/WorkingHoursEditor.jsx';
 import { BranchSettingsForm } from '../components/BranchSettingsForm.jsx';
+import { BranchUsersPanel } from '../../multi-branch/components/BranchUsersPanel.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
@@ -28,6 +29,7 @@ import {
   Phone,
   CheckCircle2,
   AlertCircle,
+  Users,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +43,7 @@ const STATUS_OPTIONS = [
 export const BranchDetailPage = () => {
   const { id: branchId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'working-hours' | 'settings'
+  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'working-hours' | 'settings' | 'users'
   const [generalSuccess, setGeneralSuccess] = useAutoDismiss();
   const [generalError, setGeneralError] = useState(null);
 
@@ -180,6 +182,18 @@ export const BranchDetailPage = () => {
           <Sliders className="w-4 h-4" />
           <span>إعدادات التشغيل</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === 'users'
+              ? 'border-brand-primary text-brand-primary'
+              : 'border-transparent text-txt-muted hover:text-txt-primary'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>الموظفون</span>
+        </button>
       </div>
 
       {/* Tab Content Panels */}
@@ -299,6 +313,13 @@ export const BranchDetailPage = () => {
                 isLoading={updateSettingsMutation.isPending}
               />
             )}
+          </div>
+        )}
+
+        {/* Tab 4: Branch Users (Module 19) */}
+        {activeTab === 'users' && (
+          <div>
+            <BranchUsersPanel branchId={branchId} />
           </div>
         )}
       </div>

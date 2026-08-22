@@ -12,27 +12,70 @@ import {
   Settings,
   Store,
   Building2,
+  Bell,
+  TicketPercent,
+  ScrollText,
+  Phone,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
 
-// Section 6.5 Operational Navigation Structure
+// Section 6.5 Operational Navigation Structure.
+// Each item is gated by a permission key — a cashier only sees the pages they can use.
 const NAV_ITEMS = [
-  { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard },
+  { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
   { label: 'الطلبات', path: '/orders', icon: ShoppingBag, badge: 'POS' },
-  { label: 'نقطة البيع (POS)', path: '/pos', icon: Calculator },
+  { label: 'نقطة البيع (POS)', path: '/pos', icon: Calculator, permission: 'orders.create' },
+  { label: 'أوردرات الهاتف', path: '/phone-order', icon: Phone, permission: 'orders.create' },
   { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat },
-  { label: 'الترابيزات', path: '/tables', icon: Grid },
-  { label: 'المنيو', path: '/menu', icon: UtensilsCrossed },
-  { label: 'العملاء', path: '/customers', icon: Users },
-  { label: 'الواتساب والرسائل', path: '/whatsapp', icon: MessageSquare },
-  { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3 },
-  { label: 'إعدادات المطعم', path: '/settings/restaurant', icon: Store },
-  { label: 'الفروع والمواقع', path: '/settings/branches', icon: Building2 },
-  { label: 'الموظفين', path: '/settings/employees', icon: Users },
-  { label: 'الأدوار والصلاحيات', path: '/settings/roles', icon: Settings },
+  { label: 'الترابيزات', path: '/tables', icon: Grid, permission: 'tables.manage' },
+  { label: 'المنيو', path: '/menu', icon: UtensilsCrossed, permission: 'menu.manage' },
+  { label: 'العملاء', path: '/customers', icon: Users, permission: 'customers.view' },
+  { label: 'الواتساب والرسائل', path: '/whatsapp', icon: MessageSquare, permission: 'whatsapp.view' },
+  { label: 'الإشعارات', path: '/notifications', icon: Bell, permission: 'notifications.view' },
+  { label: 'كوبونات الخصم', path: '/coupons', icon: TicketPercent, permission: 'coupons.manage' },
+  { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3, permission: 'dashboard.view' },
+  { label: 'إعدادات المطعم', path: '/settings/restaurant', icon: Store, permission: 'restaurants.manage' },
+  { label: 'الفروع والمواقع', path: '/settings/branches', icon: Building2, permission: 'branches.manage' },
+  { label: 'الموظفين', path: '/settings/employees', icon: Users, permission: 'employees.view' },
+  { label: 'سجل التدقيق', path: '/settings/audit-logs', icon: ScrollText, permission: 'audit.view' },
+  { label: 'الأدوار والصلاحيات', path: '/settings/roles', icon: Settings, permission: 'employees.manage_roles' },
 ];
 
+// Items without an explicit permission (orders list / KDS) fall back to orders.view.
+const DEFAULT_PERMISSION = 'orders.view';
+
 export const Sidebar = ({ isCollapsed = false }) => {
+  const { hasPermission } = useAuth();
+
+  const visibleItems = NAV_ITEMS.filter((item) => hasPermission(item.permission || DEFAULT_PERMISSION));
+
+  if (visibleItems.length === 0) {
+    return (
+      <aside
+        className={clsx(
+          'hidden md:flex flex-col bg-bg-surface border-l border-border-default shrink-0 select-none',
+          isCollapsed ? 'w-16' : 'w-64'
+        )}
+      >
+        <div className="h-16 px-4 flex items-center gap-3 border-b border-border-default overflow-hidden">
+          <div className="w-9 h-9 rounded-lg bg-brand-primary/10 border border-brand-primary/20 text-brand-primary flex items-center justify-center shrink-0">
+            <Store className="w-5 h-5" />
+          </div>
+          {!isCollapsed && (
+            <div className="flex flex-col truncate">
+              <span className="text-sm font-bold text-txt-primary truncate">مطعم البرجر الشهي</span>
+              <span className="text-[10px] text-txt-muted truncate">SaaS Enterprise</span>
+            </div>
+          )}
+        </div>
+        <div className="flex-1 py-4 px-2 flex items-start justify-center">
+          <span className={`text-[10px] text-txt-muted ${isCollapsed ? 'hidden' : 'block'}`}>مفيش صفحات متاحة لحسابك</span>
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside
       className={clsx(
@@ -55,7 +98,7 @@ export const Sidebar = ({ isCollapsed = false }) => {
 
       {/* Navigation List */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
