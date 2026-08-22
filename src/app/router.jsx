@@ -14,6 +14,8 @@ import { ProductDetailPage } from '../modules/menu/pages/ProductDetailPage.jsx';
 import { TablesListPage } from '../modules/tables/pages/TablesListPage.jsx';
 import { TableDetailPage } from '../modules/tables/pages/TableDetailPage.jsx';
 import { PublicTableMenuPage } from '../modules/tables/pages/PublicTableMenuPage.jsx';
+import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
+import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
@@ -201,7 +203,19 @@ export const router = createBrowserRouter(
       },
       {
         path: 'orders',
-        element: <DashboardOverview />,
+        element: (
+          <RequirePermission permission="orders.view">
+            <OrdersListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'orders/:id',
+        element: (
+          <RequirePermission permission="orders.view">
+            <OrderDetailPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'kds',
