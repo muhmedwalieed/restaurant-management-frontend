@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { Menu, Building2, User, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, Building2, User, LogOut, ChevronDown, Bell } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
 import { useBranch } from '../../modules/auth/context/BranchContext.jsx';
+import { useUnreadCountQuery } from '../../modules/notifications/hooks/useNotifications.js';
 import { HealthStatusIndicator } from '../../modules/health/components/HealthStatusIndicator.jsx';
 
 export const Header = ({ onToggleMobileNav, onToggleSidebar }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const { activeBranch, branches, setActiveBranch } = useBranch();
+  const unreadQuery = useUnreadCountQuery();
+  const unreadCount = unreadQuery.data?.count ?? 0;
+  const canSeeNotifications = hasPermission('notifications.view');
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
 
   return (
@@ -71,6 +76,23 @@ export const Header = ({ onToggleMobileNav, onToggleSidebar }) => {
 
       {/* Left Controls (Health Status & User Context) */}
       <div className="flex items-center gap-3">
+        {/* Notifications bell with unread count */}
+        {canSeeNotifications && (
+          <Link
+            to="/notifications"
+            className="relative p-2 rounded-md text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors focus-visible:outline-none"
+            aria-label={`الإشعارات — ${unreadCount} غير مقروء`}
+            title="الإشعارات"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-status-danger text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Link>
+        )}
+
         {/* Backend Health Status Indicator (Section 7 Module 1) */}
         <HealthStatusIndicator />
 

@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getBranchesApi } from '../../../lib/api/branches.api.js';
+import { getMyBranchesApi } from '../../../lib/api/multi-branch.api.js';
 import { useAuth } from './AuthContext.jsx';
 
 const BranchContext = createContext(null);
@@ -13,16 +13,16 @@ export const BranchProvider = ({ children }) => {
     return localStorage.getItem('saas_active_branch_id') || null;
   });
 
-  // Query Active Branches from Backend API — only when authenticated.
-  // Without this gate the provider (mounted above the router) would fire
-  // GET /branches on every page — including /login — causing 401 console spam.
+  // Query the branches the CURRENT employee can access (home + granted).
+  // Uses the authenticate-only endpoint so cashiers/kitchen (who lack branches.manage)
+  // still get a working branch switcher (Module 19).
   const {
     data: branchesResponse,
     isLoading,
     refetch: refetchBranches,
   } = useQuery({
-    queryKey: ['branches', { status: 'ACTIVE' }],
-    queryFn: () => getBranchesApi({ status: 'ACTIVE' }),
+    queryKey: ['my-branches'],
+    queryFn: () => getMyBranchesApi(),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled: isAuthenticated,
   });

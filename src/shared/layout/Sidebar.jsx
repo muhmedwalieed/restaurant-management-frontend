@@ -12,6 +12,9 @@ import {
   Settings,
   Store,
   Building2,
+  Bell,
+  TicketPercent,
+  ScrollText,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -25,10 +28,13 @@ const NAV_ITEMS = [
   { label: 'المنيو', path: '/menu', icon: UtensilsCrossed },
   { label: 'العملاء', path: '/customers', icon: Users },
   { label: 'الواتساب والرسائل', path: '/whatsapp', icon: MessageSquare },
+  { label: 'الإشعارات', path: '/notifications', icon: Bell },
+  { label: 'كوبونات الخصم', path: '/coupons', icon: TicketPercent },
   { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3 },
   { label: 'إعدادات المطعم', path: '/settings/restaurant', icon: Store },
   { label: 'الفروع والمواقع', path: '/settings/branches', icon: Building2 },
   { label: 'الموظفين', path: '/settings/employees', icon: Users },
+  { label: 'سجل التدقيق', path: '/settings/audit-logs', icon: ScrollText },
   { label: 'الأدوار والصلاحيات', path: '/settings/roles', icon: Settings },
 ];
 

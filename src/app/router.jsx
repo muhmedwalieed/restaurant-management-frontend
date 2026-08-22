@@ -26,13 +26,12 @@ import { WhatsAppPage } from '../modules/whatsapp/pages/WhatsAppPage.jsx';
 import { ConversationsListPage } from '../modules/whatsapp/pages/ConversationsListPage.jsx';
 import { ConversationDetailPage } from '../modules/whatsapp/pages/ConversationDetailPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
-import { StatusPill } from '../shared/components/StatusPill.jsx';
+import { DashboardPage } from '../modules/dashboard/pages/DashboardPage.jsx';
+import { NotificationsPage } from '../modules/notifications/pages/NotificationsPage.jsx';
+import { CouponsListPage } from '../modules/coupons/pages/CouponsListPage.jsx';
+import { AuditLogsPage } from '../modules/audit-logs/pages/AuditLogsPage.jsx';
 import { Button } from '../shared/components/Button.jsx';
-import { EmptyState } from '../shared/components/EmptyState.jsx';
-import { LoadingSkeleton } from '../shared/components/LoadingSkeleton.jsx';
 import { SplashState } from '../shared/components/SplashState.jsx';
-import { Store, CheckCircle2, ShieldCheck, Users, Shield } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isBootstrapping } = useAuth();
@@ -52,114 +51,6 @@ const RequirePermission = ({ permission, children }) => {
     return <Navigate to="/" replace />;
   }
   return children;
-};
-
-// Root Dashboard Placeholder View (Foundation Shell demonstration)
-const DashboardOverview = () => {
-  return (
-    <div className="space-y-6">
-      {/* Welcome & Module Status Header */}
-      <div className="bg-bg-surface border border-border-default rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold text-txt-primary">لوحة التحكم — SaaS Dashboard</h1>
-            <StatusPill status="success" icon={CheckCircle2}>
-              Module 1 & 2 Ready
-            </StatusPill>
-          </div>
-          <p className="text-xs text-txt-muted">
-            تكامل أنظمة المصادقة، إدارة الموظفين، والأدوار والصلاحيات مع الهيكل الأساسي للواجهة
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <NavLink to="/settings/employees">
-            <Button variant="primary" size="sm" icon={Users}>
-              إدارة الموظفين
-            </Button>
-          </NavLink>
-          <NavLink to="/settings/roles">
-            <Button variant="outline" size="sm" icon={Shield}>
-              الصلاحيات والأدوار
-            </Button>
-          </NavLink>
-        </div>
-      </div>
-
-      {/* Module 2 Active Metrics Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">المصادقة والأمان</span>
-          <div className="text-lg font-bold text-brand-primary">Real REST API</div>
-          <p className="text-[11px] text-status-success font-medium">Session & Force Logout UX</p>
-        </div>
-
-        <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">إدارة أطقم العمل</span>
-          <div className="text-lg font-bold text-txt-primary">Employees CRUD</div>
-          <p className="text-[11px] text-status-info font-medium">Roles & Passwords Modals</p>
-        </div>
-
-        <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">الأدوار والصلاحيات</span>
-          <div className="text-lg font-bold text-txt-primary">Permissions Matrix</div>
-          <p className="text-[11px] text-brand-primary font-medium">PermissionGate Active</p>
-        </div>
-
-        <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-2">
-          <span className="text-xs text-txt-muted">استجابة الجداول (Section 20.4)</span>
-          <div className="text-lg font-bold text-txt-primary">DataTable Component</div>
-          <p className="text-[11px] text-status-success font-medium">Condensed Mobile Cards</p>
-        </div>
-      </div>
-
-      {/* Demonstration of Shared Primitives & UI States */}
-      <div className="bg-bg-surface border border-border-default rounded-lg p-6 space-y-4">
-        <h2 className="text-sm font-bold text-txt-primary flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-brand-primary" />
-          <span>اختبار المكونات الأساسية (Shared Primitives)</span>
-        </h2>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="primary">زرار رئيسي (Primary)</Button>
-          <Button variant="secondary">زرار ثانوية (Secondary)</Button>
-          <Button variant="outline">زرار إطار (Outline)</Button>
-          <Button variant="danger">زرار تحذير (Danger)</Button>
-          <Button variant="primary" isLoading>
-            جاري التحميل
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <StatusPill status="success">نشط / مكتمل</StatusPill>
-          <StatusPill status="warning">قيد الانتظار</StatusPill>
-          <StatusPill status="danger">ملغى / متوقف</StatusPill>
-          <StatusPill status="info">معلومات</StatusPill>
-          <StatusPill status="neutral">مسودة</StatusPill>
-        </div>
-      </div>
-
-      {/* Demonstration of Content Skeleton & Empty State */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-bg-surface border border-border-default rounded-lg p-6 space-y-4">
-          <h3 className="text-sm font-bold text-txt-primary">نموذج Skeleton التحميل</h3>
-          <div className="space-y-3">
-            <LoadingSkeleton height={40} className="w-full" />
-            <LoadingSkeleton height={20} className="w-3/4" />
-            <LoadingSkeleton height={20} className="w-1/2" />
-          </div>
-        </div>
-
-        <div className="bg-bg-surface border border-border-default rounded-lg p-6">
-          <h3 className="text-sm font-bold text-txt-primary mb-2">نموذج Empty State مع إشعار وظيفي</h3>
-          <EmptyState
-            title="لا توجد أوردرات نشطة الآن"
-            description="عند استقبال أوردرات جديدة من الكاشير أو الواتساب ستظهر تلقائيًا هنا."
-            actionLabel="إنشاء أوردر سريع"
-            onAction={() => alert('سيتم تفعيله في Module 6/8')}
-            icon={Store}
-          />
-        </div>
-      </div>
-    </div>
-  );
 };
 
 // 404 Fallback View
@@ -212,7 +103,15 @@ export const router = createBrowserRouter(
     children: [
       {
         index: true,
-        element: <DashboardOverview />,
+        element: <DashboardPage />,
+      },
+      {
+        path: 'reports',
+        element: (
+          <RequirePermission permission="dashboard.view">
+            <DashboardPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'orders',
@@ -303,6 +202,22 @@ export const router = createBrowserRouter(
         ),
       },
       {
+        path: 'coupons',
+        element: (
+          <RequirePermission permission="coupons.manage">
+            <CouponsListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'notifications',
+        element: (
+          <RequirePermission permission="notifications.view">
+            <NotificationsPage />
+          </RequirePermission>
+        ),
+      },
+      {
         path: 'whatsapp',
         element: (
           <RequirePermission permission="whatsapp.view">
@@ -327,14 +242,6 @@ export const router = createBrowserRouter(
         ),
       },
       {
-        path: 'reports',
-        element: <DashboardOverview />,
-      },
-      {
-        path: 'settings',
-        element: <DashboardOverview />,
-      },
-      {
         path: 'settings/restaurant',
         element: (
           <RequirePermission permission="restaurants.manage">
@@ -355,6 +262,14 @@ export const router = createBrowserRouter(
         element: (
           <RequirePermission permission="branches.manage">
             <BranchDetailPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/audit-logs',
+        element: (
+          <RequirePermission permission="audit.view">
+            <AuditLogsPage />
           </RequirePermission>
         ),
       },
