@@ -16,6 +16,7 @@ import { TableDetailPage } from '../modules/tables/pages/TableDetailPage.jsx';
 import { PublicTableMenuPage } from '../modules/tables/pages/PublicTableMenuPage.jsx';
 import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
 import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
+import { PosPage } from '../modules/orders/pages/PosPage.jsx';
 import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
 import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
@@ -216,6 +217,14 @@ export const router = createBrowserRouter(
         element: (
           <RequirePermission permission="orders.view">
             <OrderDetailPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'pos',
+        element: (
+          <RequirePermission permission="orders.create">
+            <PosPage />
           </RequirePermission>
         ),
       },

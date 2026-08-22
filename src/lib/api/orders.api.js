@@ -51,3 +51,31 @@ export const cancelOrderApi = async (branchId, id, payload) => {
 export const getOrderHistoryApi = async (branchId, id) => {
   return apiClient.get(`/branches/${branchId}/orders/${id}/history`);
 };
+
+/**
+ * Create a POS / cashier order (source is forced to CASHIER server-side)
+ * POST /branches/:branchId/pos/orders
+ * Payload: { type, tableId?, customerPhone?, customerName?, items: [{ productId, quantity }], notes? }
+ */
+export const createPosOrderApi = async (branchId, payload, idempotencyKey) => {
+  const headers = idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {};
+  return apiClient.post(`/branches/${branchId}/pos/orders`, payload, { headers });
+};
+
+/**
+ * Process an order payment
+ * POST /branches/:branchId/orders/:id/payment
+ * Payload: { paymentMethod, amount?, expectedVersion }
+ */
+export const processPaymentApi = async (branchId, orderId, payload) => {
+  return apiClient.post(`/branches/${branchId}/orders/${orderId}/payment`, payload);
+};
+
+/**
+ * Process an order refund
+ * POST /branches/:branchId/orders/:id/refund
+ * Payload: { reason, expectedVersion }
+ */
+export const processRefundApi = async (branchId, orderId, payload) => {
+  return apiClient.post(`/branches/${branchId}/orders/${orderId}/refund`, payload);
+};
