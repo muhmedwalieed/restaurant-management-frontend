@@ -11,6 +11,9 @@ import { BranchesListPage } from '../modules/branches/pages/BranchesListPage.jsx
 import { BranchDetailPage } from '../modules/branches/pages/BranchDetailPage.jsx';
 import { MenuManagementPage } from '../modules/menu/pages/MenuManagementPage.jsx';
 import { ProductDetailPage } from '../modules/menu/pages/ProductDetailPage.jsx';
+import { TablesListPage } from '../modules/tables/pages/TablesListPage.jsx';
+import { TableDetailPage } from '../modules/tables/pages/TableDetailPage.jsx';
+import { PublicTableMenuPage } from '../modules/tables/pages/PublicTableMenuPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
@@ -173,6 +176,10 @@ const GuestRoute = ({ children }) => {
 export const router = createBrowserRouter(
   [
     {
+      path: '/menu/table/:qrToken',
+      element: <PublicTableMenuPage />,
+    },
+    {
       path: '/login',
       element: (
         <GuestRoute>
@@ -202,7 +209,19 @@ export const router = createBrowserRouter(
       },
       {
         path: 'tables',
-        element: <DashboardOverview />,
+        element: (
+          <RequirePermission permission="tables.manage">
+            <TablesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'tables/:id',
+        element: (
+          <RequirePermission permission="tables.manage">
+            <TableDetailPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'menu',
