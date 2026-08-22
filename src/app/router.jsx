@@ -53,6 +53,17 @@ const RequirePermission = ({ permission, children }) => {
   return children;
 };
 
+// Landing page picker: a manager with dashboard.view sees the dashboard; a cashier
+// (no dashboard.view) is sent to the most useful page they CAN open (POS → orders → customers).
+const HomeRedirect = () => {
+  const { hasPermission } = useAuth();
+  if (hasPermission('dashboard.view')) return <DashboardPage />;
+  if (hasPermission('orders.create')) return <Navigate to="/pos" replace />;
+  if (hasPermission('orders.view')) return <Navigate to="/orders" replace />;
+  if (hasPermission('customers.view')) return <Navigate to="/customers" replace />;
+  return <DashboardPage />;
+};
+
 // 404 Fallback View
 const NotFoundPage = () => (
   <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
@@ -103,7 +114,7 @@ export const router = createBrowserRouter(
     children: [
       {
         index: true,
-        element: <DashboardPage />,
+        element: <HomeRedirect />,
       },
       {
         path: 'reports',
