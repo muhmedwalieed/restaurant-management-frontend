@@ -56,6 +56,28 @@ const InfoRow = ({ icon: Icon, label, value }) => (
   </div>
 );
 
+const historyTitle = (h) => {
+  if (h.reason?.startsWith('Payment processed')) return 'تم الدفع';
+  if (h.reason?.startsWith('Payment refunded')) return 'استرداد المبلغ';
+  if (h.reason === 'Order created') return 'تم إنشاء الطلب';
+  if (h.toStatus) return ORDER_STATUS_LABELS[h.toStatus] || h.toStatus;
+  return '—';
+};
+
+const historySub = (h) => {
+  if (h.reason?.startsWith('Payment processed')) {
+    const method = h.reason.match(/\((\w+)\)/)?.[1];
+    return method ? `الدفع (${PAYMENT_METHOD_LABELS[method] || method})` : 'الدفع';
+  }
+  if (h.reason?.startsWith('Payment refunded')) return h.reason.replace('Payment refunded:', 'سبب الاسترداد:');
+  if (h.reason === 'Order created') return 'تم تسجيل الطلب في النظام';
+  if (h.reason?.startsWith('Status updated from')) {
+    const match = h.reason.match(/from (\w+) to (\w+)/);
+    if (match) return `من ${ORDER_STATUS_LABELS[match[1]] || match[1]} إلى ${ORDER_STATUS_LABELS[match[2]] || match[2]}`;
+  }
+  return h.reason || '';
+};
+
 export const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -302,13 +324,13 @@ export const OrderDetailPage = () => {
                     <span className="absolute -right-[27px] top-1 w-3 h-3 rounded-full bg-brand-primary" />
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="text-sm font-bold text-txt-primary">
-                        {h.toStatus ? ORDER_STATUS_LABELS[h.toStatus] || h.toStatus : '—'}
+                        {historyTitle(h)}
                       </span>
                       <span className="text-[11px] text-txt-muted">
                         {new Date(h.createdAt).toLocaleString('ar-EG')}
                       </span>
                     </div>
-                    {h.reason && <p className="text-xs text-txt-muted mt-1">{h.reason}</p>}
+                    {historySub(h) && <p className="text-xs text-txt-muted mt-1">{historySub(h)}</p>}
                   </li>
                 ))}
               </ol>

@@ -14,6 +14,7 @@ import { ProductDetailPage } from '../modules/menu/pages/ProductDetailPage.jsx';
 import { TablesListPage } from '../modules/tables/pages/TablesListPage.jsx';
 import { TableDetailPage } from '../modules/tables/pages/TableDetailPage.jsx';
 import { PublicTableMenuPage } from '../modules/tables/pages/PublicTableMenuPage.jsx';
+import { WebsiteOrderingPage } from '../modules/website/pages/WebsiteOrderingPage.jsx';
 import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
 import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
 import { PosPage } from '../modules/orders/pages/PosPage.jsx';
@@ -187,6 +188,10 @@ export const router = createBrowserRouter(
     {
       path: '/menu/table/:qrToken',
       element: <PublicTableMenuPage />,
+    },
+    {
+      path: '/order/:slug',
+      element: <WebsiteOrderingPage />,
     },
     {
       path: '/login',

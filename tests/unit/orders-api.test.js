@@ -7,6 +7,8 @@ import {
   updateOrderStatusApi,
   cancelOrderApi,
   getOrderHistoryApi,
+  createPublicOrderApi,
+  trackOrderApi,
 } from '../../src/lib/api/orders.api.js';
 
 vi.mock('../../src/lib/api-client.js', () => ({
@@ -64,3 +66,18 @@ describe('Module 6 Orders API Layer', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/branches/br-1/orders/o1/history');
   });
 });
+  it('createPublicOrderApi should call POST /orders/public with idempotency header', async () => {
+    apiClient.post.mockResolvedValueOnce({ id: 'o1', orderNumber: 1001 });
+    await createPublicOrderApi({ restaurantId: 'r1', type: 'DELIVERY', items: [{ productId: 'p1', quantity: 1 }] }, 'web-1');
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/orders/public',
+      { restaurantId: 'r1', type: 'DELIVERY', items: [{ productId: 'p1', quantity: 1 }] },
+      { headers: { 'Idempotency-Key': 'web-1' } }
+    );
+  });
+
+  it('trackOrderApi should call GET /orders/track with params', async () => {
+    apiClient.get.mockResolvedValueOnce({ orderNumber: 1001, status: 'PREPARING' });
+    await trackOrderApi({ slug: 'rest', orderNumber: 1001, phone: '+2010' });
+    expect(apiClient.get).toHaveBeenCalledWith('/orders/track', { params: { slug: 'rest', orderNumber: 1001, phone: '+2010' } });
+  });
