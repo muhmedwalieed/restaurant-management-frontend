@@ -9,6 +9,8 @@ import { RolesListPage } from '../modules/roles/pages/RolesListPage.jsx';
 import { RestaurantSettingsPage } from '../modules/restaurant/pages/RestaurantSettingsPage.jsx';
 import { BranchesListPage } from '../modules/branches/pages/BranchesListPage.jsx';
 import { BranchDetailPage } from '../modules/branches/pages/BranchDetailPage.jsx';
+import { MenuManagementPage } from '../modules/menu/pages/MenuManagementPage.jsx';
+import { ProductDetailPage } from '../modules/menu/pages/ProductDetailPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
@@ -204,7 +206,19 @@ export const router = createBrowserRouter(
       },
       {
         path: 'menu',
-        element: <DashboardOverview />,
+        element: (
+          <RequirePermission permission="menu.manage">
+            <MenuManagementPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'menu/products/:id',
+        element: (
+          <RequirePermission permission="menu.manage">
+            <ProductDetailPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'customers',

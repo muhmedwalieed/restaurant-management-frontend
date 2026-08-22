@@ -29,8 +29,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem(REFRESH_STORAGE_KEY);
   }, []);
 
-  const handleRefresh = useCallback(async () => {
-    if (!refreshTokenRef.current) return null;
+// Single-flight refresh: the backend ROTATES the refresh token on every successful refresh,
+// so concurrent callers MUST share one refresh attempt or the second one 401s (revoked token).
+const refreshPromiseRef = useRef(null);
+
+const handleRefresh = useCallback(async () => {
+  if (!refreshTokenRef.current) return null;
+  if (refreshPromiseRef.current) return refreshPromiseRef.current;
+
+  refreshPromiseRef.current = (async () => {
     try {
       const res = await refreshTokenApi(refreshTokenRef.current);
       if (res?.accessToken) {
@@ -43,45 +50,46 @@ export const AuthProvider = ({ children }) => {
       return null;
     } catch (_err) {
       return null;
+    } finally {
+      refreshPromiseRef.current = null;
     }
-  }, []);
+  })();
 
-  // Silent session restore on page refresh (Section 16 — refresh token with rotation).
-  // restoreStartedRef guards against React StrictMode double-invoking the effect in dev,
-  // which would otherwise call /auth/refresh twice with the same (rotated) token.
-  const restoreStartedRef = useRef(false);
+  return refreshPromiseRef.current;
+}, []);
 
-  useEffect(() => {
-    const restoreSession = async () => {
-      const storedRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
-      if (!storedRefresh) {
-        setIsBootstrapping(false);
-        return;
-      }
-      refreshTokenRef.current = storedRefresh;
-      try {
-        const res = await refreshTokenApi(storedRefresh);
-        if (res?.accessToken) {
-          refreshTokenRef.current = res.refreshToken ?? storedRefresh;
-          localStorage.setItem(REFRESH_STORAGE_KEY, refreshTokenRef.current);
-          setToken(res.accessToken);
-          setAuthToken(res.accessToken);
-          const me = await getCurrentUserApi();
-          setUser(me);
-        } else {
-          clearSession();
-        }
-      } catch (_err) {
+// Silent session restore on page refresh (Section 16 — refresh token with rotation).
+// Uses the SAME single-flight handleRefresh so the restore and any 401-driven refresh
+// never call /auth/refresh twice with the same (rotated) token.
+const restoreStartedRef = useRef(false);
+
+useEffect(() => {
+  const restoreSession = async () => {
+    const storedRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
+    if (!storedRefresh) {
+      setIsBootstrapping(false);
+      return;
+    }
+    refreshTokenRef.current = storedRefresh;
+    try {
+      const newToken = await handleRefresh();
+      if (newToken) {
+        const me = await getCurrentUserApi();
+        setUser(me);
+      } else {
         clearSession();
-      } finally {
-        setIsBootstrapping(false);
+      }
+    } catch (_err) {
+      clearSession();
+    } finally {
+      setIsBootstrapping(false);
       }
     };
     if (!restoreStartedRef.current) {
       restoreStartedRef.current = true;
       restoreSession();
     }
-  }, [clearSession]);
+  }, [clearSession, handleRefresh]);
 
   useEffect(() => {
     setApiCallbacks({
@@ -141,6 +149,8 @@ export const AuthProvider = ({ children }) => {
   const hasPermission = useCallback(
     (permissionKey) => {
       if (!user) return false;
+      // Owner bypass — mirrors the backend authorize.middleware.js owner bypass
+      if (user.role?.isSystem && user.role?.name === 'owner') return true;
       // /auth/me returns permissions nested under role.permissions
       const permissions = user.permissions || user.role?.permissions || [];
       const isWildcard = permissions.some((p) => (typeof p === 'string' ? p === '*' : p.key === '*'));

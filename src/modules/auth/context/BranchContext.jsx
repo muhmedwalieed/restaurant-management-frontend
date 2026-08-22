@@ -2,15 +2,20 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchesApi } from '../../../lib/api/branches.api.js';
+import { useAuth } from './AuthContext.jsx';
 
 const BranchContext = createContext(null);
 
 export const BranchProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+
   const [activeBranchId, setActiveBranchIdState] = useState(() => {
     return localStorage.getItem('saas_active_branch_id') || null;
   });
 
-  // Query Active Branches from Backend API
+  // Query Active Branches from Backend API — only when authenticated.
+  // Without this gate the provider (mounted above the router) would fire
+  // GET /branches on every page — including /login — causing 401 console spam.
   const {
     data: branchesResponse,
     isLoading,
@@ -19,7 +24,16 @@ export const BranchProvider = ({ children }) => {
     queryKey: ['branches', { status: 'ACTIVE' }],
     queryFn: () => getBranchesApi({ status: 'ACTIVE' }),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: isAuthenticated,
   });
+
+  // Clear the selected branch whenever the user logs out / session ends
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setActiveBranchIdState(null);
+      localStorage.removeItem('saas_active_branch_id');
+    }
+  }, [isAuthenticated]);
 
   const branches = useMemo(() => {
     return branchesResponse?.items || (Array.isArray(branchesResponse) ? branchesResponse : []);
