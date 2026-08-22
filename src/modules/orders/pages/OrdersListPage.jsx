@@ -21,7 +21,7 @@ const STATUS_FILTER_OPTIONS = [{ value: 'ALL', label: 'جميع الحالات' 
 
 export const OrdersListPage = () => {
   const navigate = useNavigate();
-  const { activeBranchId, activeBranch } = useBranch();
+  const { activeBranchId } = useBranch();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [page, setPage] = useState(1);
@@ -121,14 +121,6 @@ export const OrdersListPage = () => {
           </Button>
         </PermissionGate>
       </div>
-
-      {activeBranch && (
-        <div className="flex items-center gap-2 text-xs text-txt-muted">
-          <span className="font-semibold text-txt-primary">الفرع الحالي:</span>
-          <span>{activeBranch.name}</span>
-          <span className="font-mono text-[10px]">({activeBranch.code})</span>
-        </div>
-      )}
 
       {!activeBranchId ? (
         <EmptyState

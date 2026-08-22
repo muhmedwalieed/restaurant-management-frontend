@@ -16,6 +16,8 @@ import { TableDetailPage } from '../modules/tables/pages/TableDetailPage.jsx';
 import { PublicTableMenuPage } from '../modules/tables/pages/PublicTableMenuPage.jsx';
 import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
 import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
+import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
+import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
@@ -255,7 +257,19 @@ export const router = createBrowserRouter(
       },
       {
         path: 'customers',
-        element: <DashboardOverview />,
+        element: (
+          <RequirePermission permission="customers.view">
+            <CustomersListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'customers/:id',
+        element: (
+          <RequirePermission permission="customers.view">
+            <CustomerDetailPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'whatsapp',
