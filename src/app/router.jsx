@@ -20,6 +20,7 @@ import { PosPage } from '../modules/orders/pages/PosPage.jsx';
 import { KdsPage } from '../modules/orders/pages/KdsPage.jsx';
 import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
 import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
+import { WhatsAppPage } from '../modules/whatsapp/pages/WhatsAppPage.jsx';
 import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { StatusPill } from '../shared/components/StatusPill.jsx';
 import { Button } from '../shared/components/Button.jsx';
@@ -287,7 +288,11 @@ export const router = createBrowserRouter(
       },
       {
         path: 'whatsapp',
-        element: <DashboardOverview />,
+        element: (
+          <RequirePermission permission="whatsapp.view">
+            <WhatsAppPage />
+          </RequirePermission>
+        ),
       },
       {
         path: 'reports',
