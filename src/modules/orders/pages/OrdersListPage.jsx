@@ -15,7 +15,7 @@ import {
   ORDER_SOURCE_LABELS,
   orderStatusPill,
 } from '../schemas/order.schema.js';
-import { ShoppingCart, Plus, Eye, ReceiptText } from 'lucide-react';
+import { ShoppingCart, Plus, Eye, ReceiptText, PhoneCall } from 'lucide-react';
 
 const STATUS_FILTER_OPTIONS = [{ value: 'ALL', label: 'جميع الحالات' }, ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label }))];
 
@@ -116,6 +116,9 @@ export const OrdersListPage = () => {
         </div>
 
         <PermissionGate permission="orders.create">
+          <Button variant="outline" size="sm" icon={PhoneCall} onClick={() => navigate('/phone-order')}>
+            طلب هاتف
+          </Button>
           <Button variant="primary" size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
             طلب جديد
           </Button>
