@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -28,6 +29,7 @@ import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   MessageSquare,
+  MessagesSquare,
   Phone,
   Link2,
   Plus,
@@ -39,6 +41,7 @@ import {
 } from 'lucide-react';
 
 export const WhatsAppPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('connection');
   const [successMsg, setSuccessMsg] = useAutoDismiss();
   const [errorMsg, setErrorMsg] = useState(null);
@@ -178,6 +181,9 @@ export const WhatsAppPage = () => {
             إعادة معالجة الأحداث
           </Button>
         </PermissionGate>
+        <Button variant="outline" size="sm" icon={MessagesSquare} onClick={() => navigate('/whatsapp/conversations')}>
+          المحادثات
+        </Button>
       </div>
 
       {successMsg && (

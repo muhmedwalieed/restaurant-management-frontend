@@ -57,3 +57,35 @@ export const getMessagesApi = async (params = {}) => {
 export const retryWebhooksApi = async () => {
   return apiClient.post('/whatsapp/webhooks/retry');
 };
+
+/**
+ * List WhatsApp automation conversations
+ * GET /v1/whatsapp/conversations?page=&limit=&status=
+ */
+export const getConversationsApi = async (params = {}) => {
+  return apiClient.get('/whatsapp/conversations', { params });
+};
+
+/**
+ * Get a single conversation
+ * GET /v1/whatsapp/conversations/:id
+ */
+export const getConversationApi = async (id) => {
+  return apiClient.get(`/whatsapp/conversations/${id}`);
+};
+
+/**
+ * Force human handoff (status -> WAITING_AGENT)
+ * POST /v1/whatsapp/conversations/:id/handoff
+ */
+export const handoffConversationApi = async (id) => {
+  return apiClient.post(`/whatsapp/conversations/${id}/handoff`);
+};
+
+/**
+ * Close a conversation (status -> CLOSED)
+ * POST /v1/whatsapp/conversations/:id/close
+ */
+export const closeConversationApi = async (id) => {
+  return apiClient.post(`/whatsapp/conversations/${id}/close`);
+};
