@@ -69,9 +69,10 @@ const ERROR_MESSAGE_MAP = {
 // Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    if (authToken) {
+    if (authToken && !config.skipAuth) {
       config.headers.Authorization = `Bearer ${authToken}`;
     }
+    delete config.skipAuth;
     return config;
   },
   (error) => Promise.reject(error)
@@ -121,6 +122,13 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
 
     // Handle 401 Unauthorized Session Expiration (Section 16 — refresh once, then retry)
     if (status === 401 && !originalRequest._retry) {
+      // Do NOT refresh when the failing request IS /auth/refresh itself:
+      // a refresh 401 means the token was already rotated/revoked server-side,
+      // so retrying would spin an infinite refresh loop. Bail straight to logout.
+      if (originalRequest.url && originalRequest.url.includes('/auth/refresh')) {
+        if (onUnauthorizedCallback) onUnauthorizedCallback(normalizedError);
+        return Promise.reject(normalizedError);
+      }
       originalRequest._retry = true;
       if (onRefreshCallback) {
         try {

@@ -28,8 +28,10 @@ export const logoutApi = async () => {
 
 /**
  * Refresh access token (POST /auth/refresh)
+ * Sends the refresh token WITHOUT the (possibly expired) access token in the Authorization header,
+ * so the backend only sees the refresh token it needs.
  * @param {string} refreshToken
  */
 export const refreshTokenApi = async (refreshToken) => {
-  return apiClient.post('/auth/refresh', { refreshToken });
+  return apiClient.post('/auth/refresh', { refreshToken }, { skipAuth: true });
 };
