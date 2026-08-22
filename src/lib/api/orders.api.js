@@ -96,3 +96,21 @@ export const getKdsOrdersApi = async (branchId, params = {}) => {
 export const updateKdsOrderStatusApi = async (branchId, orderId, payload) => {
   return apiClient.patch(`/branches/${branchId}/kds/orders/${orderId}/status`, payload);
 };
+
+/**
+ * Create a public / website order (no auth)
+ * POST /orders/public
+ * Payload: { restaurantId, branchId, type, customerPhone, customerName?, address?, items, notes? }
+ */
+export const createPublicOrderApi = async (payload, idempotencyKey) => {
+  const headers = idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {};
+  return apiClient.post('/orders/public', payload, { headers });
+};
+
+/**
+ * Track a public order (no auth)
+ * GET /orders/track?slug=&orderNumber=&phone=
+ */
+export const trackOrderApi = async (params = {}) => {
+  return apiClient.get('/orders/track', { params });
+};
