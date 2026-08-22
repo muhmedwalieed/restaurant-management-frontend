@@ -9,6 +9,8 @@ import {
   createPosOrderApi,
   processPaymentApi,
   processRefundApi,
+  getKdsOrdersApi,
+  updateKdsOrderStatusApi,
 } from '../../../lib/api/orders.api.js';
 
 export const useOrdersQuery = (branchId, params = {}) => {
@@ -101,6 +103,27 @@ export const useRefundMutation = () => {
     onSuccess: (_, { branchId, orderId }) => {
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
       qc.invalidateQueries({ queryKey: ['order', branchId, orderId] });
+    },
+  });
+};
+
+export const useKdsOrdersQuery = (branchId, params = {}) => {
+  return useQuery({
+    queryKey: ['kds', branchId, params],
+    queryFn: () => getKdsOrdersApi(branchId, params),
+    enabled: Boolean(branchId),
+    refetchInterval: 30000,
+  });
+};
+
+export const useUpdateKdsStatusMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ branchId, orderId, payload }) => updateKdsOrderStatusApi(branchId, orderId, payload),
+    onSuccess: (_, { branchId }) => {
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
+      qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['tables', branchId] });
     },
   });
 };

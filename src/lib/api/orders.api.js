@@ -79,3 +79,20 @@ export const processPaymentApi = async (branchId, orderId, payload) => {
 export const processRefundApi = async (branchId, orderId, payload) => {
   return apiClient.post(`/branches/${branchId}/orders/${orderId}/refund`, payload);
 };
+
+/**
+ * Get active kitchen (KDS) orders — CONFIRMED/PREPARING FIFO with server-side elapsedMinutes
+ * GET /branches/:branchId/kds/orders?status=&page=&limit=
+ */
+export const getKdsOrdersApi = async (branchId, params = {}) => {
+  return apiClient.get(`/branches/${branchId}/kds/orders`, { params });
+};
+
+/**
+ * Advance a kitchen order status (delegates to the Order Engine state machine)
+ * PATCH /branches/:branchId/kds/orders/:id/status
+ * Payload: { newStatus, expectedVersion, reason? }
+ */
+export const updateKdsOrderStatusApi = async (branchId, orderId, payload) => {
+  return apiClient.patch(`/branches/${branchId}/kds/orders/${orderId}/status`, payload);
+};
