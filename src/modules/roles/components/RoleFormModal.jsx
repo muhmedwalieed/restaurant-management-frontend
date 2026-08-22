@@ -47,9 +47,13 @@ export const RoleFormModal = ({
           name: initialValues.name || '',
           description: initialValues.description || '',
         });
-        setSelectedPermissions((initialValues.permissions || []).map((p) =>
-          typeof p === 'string' ? p : p.key
-        ));
+        // Backend list returns permissions as [{ permission: { key } }] (RolePermission rows).
+        // Normalize to plain keys so the checkboxes render checked and the saved payload is valid.
+        setSelectedPermissions(
+          (initialValues.permissions || [])
+            .map((p) => (typeof p === 'string' ? p : p.permission?.key ?? p.key))
+            .filter(Boolean)
+        );
       } else {
         reset({
           name: '',
