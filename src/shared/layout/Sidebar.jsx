@@ -12,7 +12,6 @@ import {
   Calculator,
   Store,
   TicketPercent,
-  Phone,
   ChevronDown,
   UserCheck,
 } from 'lucide-react';
@@ -27,7 +26,6 @@ const NAV_SECTIONS = [
       { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
       { label: 'الطلبات', path: '/orders', icon: ShoppingBag },
       { label: 'نقطة البيع (POS)', path: '/pos', icon: Calculator, permission: 'orders.create' },
-      { label: 'طلبات الهاتف', path: '/phone-order', icon: Phone, permission: 'orders.create' },
       { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat },
       { label: 'الطاولات', path: '/tables', icon: Grid, permission: 'tables.manage' },
     ],

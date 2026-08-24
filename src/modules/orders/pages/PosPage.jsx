@@ -29,6 +29,13 @@ import {
   History,
 } from 'lucide-react';
 
+const ORDER_SOURCE_OPTIONS = [
+  { value: 'CASHIER', label: 'كاشير' },
+  { value: 'PHONE', label: 'موبايل / هاتف' },
+  { value: 'WHATSAPP', label: 'واتساب' },
+  { value: 'WEBSITE', label: 'موقع / أونلاين' },
+];
+
 export const PosPage = () => {
   const navigate = useNavigate();
   const { activeBranchId, activeBranch } = useBranch();
@@ -45,6 +52,7 @@ export const PosPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]); // [{ productId, name, unitPrice, quantity }]
   const [orderType, setOrderType] = useState('DINE_IN');
+  const [source, setSource] = useState('CASHIER');
   const [tableId, setTableId] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -143,6 +151,7 @@ export const PosPage = () => {
     try {
       const payload = {
         type: orderType,
+        source,
         tableId: orderType === 'DINE_IN' ? tableId : undefined,
         customerPhone: customerPhone || undefined,
         customerName: customerName || undefined,
@@ -410,6 +419,15 @@ export const PosPage = () => {
 
             {/* Embedded Order Settings Section */}
             <div className="p-4 border-t border-border-default bg-bg-base/30 space-y-3">
+              {/* Order Source (method) Selector */}
+              <Select
+                label="مصدر الطلب"
+                options={ORDER_SOURCE_OPTIONS}
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                aria-label="مصدر الطلب"
+              />
+
               {/* Segmented Control for Order Type */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-txt-primary block">نوع الطلب</label>

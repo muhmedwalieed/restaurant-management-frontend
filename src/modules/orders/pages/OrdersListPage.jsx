@@ -116,12 +116,12 @@ export const OrdersListPage = () => {
       ),
     },
     {
-      header: 'العميل / الطاولة',
+      header: 'العميل',
       key: 'customer',
       render: (row) => (
         <div className="flex flex-col text-xs leading-tight">
           <span className="font-medium text-txt-primary truncate">
-            {row.customer?.name || (row.table ? `طاولة ${row.table.label}` : 'عميل مباشر')}
+            {row.customer?.name || 'عميل مباشر'}
           </span>
           {row.customer?.phone && (
             <span className="text-[11px] text-txt-muted font-mono" dir="ltr">
@@ -129,6 +129,16 @@ export const OrdersListPage = () => {
             </span>
           )}
         </div>
+      ),
+    },
+    {
+      header: 'الطاولة',
+      key: 'table',
+      width: '110px',
+      render: (row) => (
+        <span className="text-xs text-txt-muted">
+          {row.table ? `طاولة ${row.table.label}` : '—'}
+        </span>
       ),
     },
     {
@@ -191,7 +201,7 @@ export const OrdersListPage = () => {
               variant="outline"
               size="sm"
               icon={PhoneCall}
-              onClick={() => navigate('/phone-order')}
+              onClick={() => navigate('/pos')}
               className="text-xs"
             >
               طلب هاتف
@@ -303,7 +313,10 @@ export const OrdersListPage = () => {
                 المصدر: <strong className="text-txt-primary">{ORDER_SOURCE_LABELS[o.source] || o.source}</strong>
               </p>
               <p>
-                العميل/الطاولة: <strong className="text-txt-primary">{o.customer?.phone || o.customer?.name || (o.table ? `طاولة ${o.table.label}` : 'غير محدد')}</strong>
+                العميل: <strong className="text-txt-primary">{o.customer?.name || 'عميل مباشر'}{o.customer?.phone ? ` (${o.customer.phone})` : ''}</strong>
+              </p>
+              <p>
+                الطاولة: <strong className="text-txt-primary">{o.table ? `طاولة ${o.table.label}` : '—'}</strong>
               </p>
             </div>
 
