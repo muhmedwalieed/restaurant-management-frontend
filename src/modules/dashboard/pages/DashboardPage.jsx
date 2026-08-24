@@ -41,7 +41,7 @@ const formatCompactMoney = (v) => {
 };
 
 const CHANNEL_LABELS = {
-  CASHIER: 'الكاشير (POS)',
+  CASHIER: 'الكاشير',
   WEBSITE: 'الموقع الإلكتروني',
   WHATSAPP: 'الواتساب',
   PHONE: 'طلب هاتف',

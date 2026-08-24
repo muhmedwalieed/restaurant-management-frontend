@@ -184,7 +184,7 @@ export const PosPage = () => {
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
             <Utensils className="w-5 h-5 text-brand-primary" />
-            <span>نقطة البيع وإداراة الطلبات (POS)</span>
+            <span>نقطة البيع وإدارة الطلبات</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
             منصة موحدة لإنشاء كافة أنواع الطلبات (صالة، استلام، توصيل)، {activeBranch?.name || 'الفرع الحالي'}.
