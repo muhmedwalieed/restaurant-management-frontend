@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   useCategoriesQuery,
@@ -11,6 +11,7 @@ import { DataTable } from '../../../shared/components/DataTable.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { resolveAssetUrl } from '../../../lib/asset-url.js';
 import { Utensils, FolderPlus, Plus, Eye, Tag, Edit3 } from 'lucide-react';
 
 const CATEGORY_STATUS_OPTIONS = [
@@ -101,7 +102,7 @@ export const MenuManagementPage = () => {
         <div className="flex items-center gap-3">
           {prod.imageUrl && (
             <img
-              src={prod.imageUrl}
+              src={resolveAssetUrl(prod.imageUrl)}
               alt={prod.name}
               className={`w-10 h-10 object-cover rounded-lg border border-border-subtle shrink-0 ${
                 prod.status !== 'ACTIVE' ? 'opacity-50' : ''
@@ -353,7 +354,7 @@ export const MenuManagementPage = () => {
                 <div className="flex items-center gap-3">
                   {prod.imageUrl ? (
                     <img
-                      src={prod.imageUrl}
+                      src={resolveAssetUrl(prod.imageUrl)}
                       alt={prod.name}
                       className={`w-12 h-12 object-cover rounded-md border border-border-default shrink-0 ${
                         prod.status !== 'ACTIVE' ? 'opacity-50' : ''

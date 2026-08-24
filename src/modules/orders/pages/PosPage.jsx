@@ -5,6 +5,7 @@ import { useTablesQuery } from '../../tables/hooks/useTables.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { useCreatePosOrderMutation } from '../hooks/useOrders.js';
 import { lookupCallerApi } from '../../../lib/api/phone-order.api.js';
+import { resolveAssetUrl } from '../../../lib/asset-url.js';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
@@ -317,7 +318,7 @@ export const PosPage = () => {
                     {/* Center: Image OR Clean Centered Typography Box */}
                     {p.imageUrl ? (
                       <img
-                        src={p.imageUrl}
+                        src={resolveAssetUrl(p.imageUrl)}
                         alt={p.name}
                         className="w-full h-20 object-cover rounded-lg mb-2 group-hover:opacity-95 transition-opacity"
                       />

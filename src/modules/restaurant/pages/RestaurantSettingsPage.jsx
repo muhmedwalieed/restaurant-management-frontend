@@ -14,6 +14,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 
@@ -23,6 +24,12 @@ export const restaurantProfileSchema = z.object({
   phone: z.string().min(6, 'رقم الهاتف غير صحيح'),
   currency: z.string().min(2, 'رمز العملة مطلوب'),
   timezone: z.string().min(2, 'التوقيت المحلي مطلوب'),
+  logoUrl: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.startsWith('/uploads/') || z.string().url().safeParse(val).success, {
+      message: 'أرفع لوجو من جهازك أو أدخل رابط صحيح',
+    }),
 });
 
 const CURRENCY_OPTIONS = [
@@ -50,6 +57,8 @@ export const RestaurantSettingsPage = () => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(restaurantProfileSchema),
@@ -59,6 +68,7 @@ export const RestaurantSettingsPage = () => {
       phone: '',
       currency: 'EGP',
       timezone: 'Africa/Cairo',
+      logoUrl: '',
     },
   });
 
@@ -70,6 +80,7 @@ export const RestaurantSettingsPage = () => {
         phone: restaurant.phone || '',
         currency: restaurant.currency || 'EGP',
         timezone: restaurant.timezone || 'Africa/Cairo',
+        logoUrl: restaurant.logoUrl || '',
       });
     }
   }, [restaurant, reset]);
@@ -78,7 +89,7 @@ export const RestaurantSettingsPage = () => {
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      await updateMutation.mutateAsync(formData);
+      await updateMutation.mutateAsync({ ...formData, logoUrl: watch('logoUrl') || undefined });
       setSuccessMessage('تم حفظ بيانات المطعم بنجاح.');
     } catch (err) {
       setErrorMessage(err?.message || 'حدث خطأ أثناء حفظ بيانات المطعم.');
@@ -173,6 +184,13 @@ export const RestaurantSettingsPage = () => {
       {/* Main Form */}
       <div className="bg-bg-surface border border-border-default rounded-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-right" noValidate>
+          <ImageUploadInput
+            label="شعار المطعم"
+            value={watch('logoUrl')}
+            onChange={(url) => setValue('logoUrl', url, { shouldValidate: true })}
+            hint="ارفع لوجو من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="اسم المطعم"

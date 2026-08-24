@@ -16,8 +16,8 @@ export const productFormSchema = z.object({
     .string()
     .trim()
     .optional()
-    .refine((val) => !val || z.string().url().safeParse(val).success, {
-      message: 'يرجى إدخال رابط صورة صحيح (URL)',
+    .refine((val) => !val || val.startsWith('/uploads/') || z.string().url().safeParse(val).success, {
+      message: 'أرفع صورة من جهازك أو أدخل رابط صورة صحيح',
     }),
   isAvailable: z.boolean().default(true),
   status: z.enum(['ACTIVE', 'INACTIVE']).default('ACTIVE'),

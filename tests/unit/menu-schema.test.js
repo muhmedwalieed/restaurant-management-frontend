@@ -91,7 +91,7 @@ describe('Module 4 Menu Validation Schemas Unit Tests', () => {
       };
       const result = productFormSchema.safeParse(input);
       expect(result.success).toBe(false);
-      expect(result.error.issues[0].message).toBe('يرجى إدخال رابط صورة صحيح (URL)');
+      expect(result.error.issues[0].message).toBe('أرفع صورة من جهازك أو أدخل رابط صورة صحيح');
     });
   });
 

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getTableMenuApi } from '../../../lib/api/tables.api.js';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
+import { resolveAssetUrl } from '../../../lib/asset-url.js';
 import { Store, Tag, AlertCircle, UtensilsCrossed } from 'lucide-react';
 
 /**
@@ -75,7 +76,7 @@ export const PublicTableMenuPage = () => {
         <div className="max-w-md mx-auto px-4 py-6 text-center">
           {restaurant.logoUrl ? (
             <img
-              src={restaurant.logoUrl}
+              src={resolveAssetUrl(restaurant.logoUrl)}
               alt={restaurant.name}
               className="w-20 h-20 object-cover rounded-lg border border-border-default mx-auto"
             />
@@ -179,7 +180,7 @@ export const PublicTableMenuPage = () => {
                         </div>
                         {p.imageUrl ? (
                           <img
-                            src={p.imageUrl}
+                            src={resolveAssetUrl(p.imageUrl)}
                             alt={p.name}
                             className="w-16 h-16 object-cover rounded-lg border border-border-default shrink-0"
                           />

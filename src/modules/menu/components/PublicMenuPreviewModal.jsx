@@ -3,6 +3,7 @@ import { Modal } from '../../../shared/components/Modal.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { getRestaurantProfileApi } from '../../../lib/api/restaurant.api.js';
+import { resolveAssetUrl } from '../../../lib/asset-url.js';
 import { usePublicMenuQuery } from '../hooks/useMenu.js';
 import { Store, Tag } from 'lucide-react';
 
@@ -106,7 +107,7 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
               <div className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center gap-3">
                 {restaurantInfo?.logoUrl ? (
                   <img
-                    src={restaurantInfo.logoUrl}
+                    src={resolveAssetUrl(restaurantInfo.logoUrl)}
                     alt={restaurantInfo.name}
                     className="w-12 h-12 object-cover rounded-lg border border-border-default shrink-0"
                   />
@@ -214,7 +215,7 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
                               </div>
                               {prod.imageUrl && (
                                 <img
-                                  src={prod.imageUrl}
+                                  src={resolveAssetUrl(prod.imageUrl)}
                                   alt={prod.name}
                                   className="w-16 h-16 object-cover rounded-lg border border-border-subtle shrink-0"
                                 />

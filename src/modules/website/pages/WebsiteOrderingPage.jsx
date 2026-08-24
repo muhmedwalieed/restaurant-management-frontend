@@ -8,6 +8,7 @@ import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { ORDER_STATUS_LABELS, orderStatusPill } from '../../orders/schemas/order.schema.js';
+import { resolveAssetUrl } from '../../../lib/asset-url.js';
 import { Store, Tag, Plus, Minus, ShoppingCart, PackageSearch, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 
 export const WebsiteOrderingPage = () => {
@@ -128,7 +129,7 @@ export const WebsiteOrderingPage = () => {
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
             {restaurant.logoUrl ? (
-              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-16 h-16 object-cover rounded-lg border border-border-default" />
+              <img src={resolveAssetUrl(restaurant.logoUrl)} alt={restaurant.name} className="w-16 h-16 object-cover rounded-lg border border-border-default" />
             ) : (
               <Store className="w-8 h-8 text-brand-primary" />
             )}

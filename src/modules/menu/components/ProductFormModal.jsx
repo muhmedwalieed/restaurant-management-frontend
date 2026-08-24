@@ -6,9 +6,10 @@ import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
+import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import { productFormSchema } from '../schemas/menu.schema.js';
 import { useCreateProductMutation, useUpdateProductMutation } from '../hooks/useMenu.js';
-import { Utensils, DollarSign, Image } from 'lucide-react';
+import { Utensils, DollarSign } from 'lucide-react';
 
 export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, categories = [] }) => {
   const isEditing = Boolean(productToEdit);
@@ -41,6 +42,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
   });
 
   const isAvailableValue = watch('isAvailable');
+  const imageUrlValue = watch('imageUrl');
 
   useEffect(() => {
     if (isOpen) {
@@ -127,14 +129,11 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
             {...register('price')}
           />
 
-          <Input
-            label="رابط الصورة (Image URL)"
-            type="url"
-            placeholder="https://example.com/item.jpg"
-            helperText="رابط صورة مباشر للمنتج"
-            icon={Image}
-            error={errors.imageUrl?.message}
-            {...register('imageUrl')}
+          <ImageUploadInput
+            label="صورة المنتج"
+            value={imageUrlValue}
+            onChange={(url) => setValue('imageUrl', url, { shouldValidate: true })}
+            hint="ارفع صورة من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
           />
         </div>
 

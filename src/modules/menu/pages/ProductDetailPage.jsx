@@ -18,11 +18,11 @@ import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
+import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import {
   Utensils,
   Layers,
   ChevronRight,
-  Image as ImageIcon,
   PlusCircle,
   Edit3,
   Trash2,
@@ -243,13 +243,11 @@ export const ProductDetailPage = () => {
                   {...register('price')}
                 />
 
-                <Input
-                  label="رابط الصورة"
-                  type="url"
-                  icon={ImageIcon}
-                  placeholder="https://..."
-                  error={errors.imageUrl?.message}
-                  {...register('imageUrl')}
+                <ImageUploadInput
+                  label="صورة الصنف"
+                  value={watch('imageUrl')}
+                  onChange={(url) => setValue('imageUrl', url, { shouldValidate: true })}
+                  hint="ارفع صورة من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
                 />
               </div>
 
