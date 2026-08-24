@@ -16,6 +16,21 @@ describe('Module 8 POS & Payment Schema', () => {
     expect(posOrderSchema.safeParse({ type: 'DELIVERY', items: [] }).success).toBe(false);
   });
 
+  it('should require customer name and phone for DELIVERY POS orders', () => {
+    expect(
+      posOrderSchema.safeParse({ type: 'DELIVERY', items: [{ productId: 'p1', quantity: 1 }] }).success
+    ).toBe(false);
+    expect(
+      posOrderSchema.safeParse({
+        type: 'DELIVERY',
+        customerName: 'عميل',
+        customerPhone: '0100',
+        address: 'شارع الرئيسي',
+        items: [{ productId: 'p1', quantity: 1 }],
+      }).success
+    ).toBe(true);
+  });
+
   it('should validate payment schema', () => {
     expect(paymentSchema.safeParse({ paymentMethod: 'CASH', expectedVersion: 1 }).success).toBe(true);
     expect(paymentSchema.safeParse({ paymentMethod: 'CASH' }).success).toBe(false);

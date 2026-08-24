@@ -21,6 +21,25 @@ describe('Module 6 Orders Schema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('should require customer name and phone for DELIVERY orders', () => {
+    const missing = orderFormSchema.safeParse({ type: 'DELIVERY', items: [{ productId: 'p1', quantity: 1 }] });
+    expect(missing.success).toBe(false);
+    const withNameOnly = orderFormSchema.safeParse({
+      type: 'DELIVERY',
+      customerName: 'عميل',
+      items: [{ productId: 'p1', quantity: 1 }],
+    });
+    expect(withNameOnly.success).toBe(false);
+    const valid = orderFormSchema.safeParse({
+      type: 'DELIVERY',
+      customerName: 'عميل',
+      customerPhone: '0100',
+      address: 'شارع الرئيسي',
+      items: [{ productId: 'p1', quantity: 1 }],
+    });
+    expect(valid.success).toBe(true);
+  });
+
   it('should coerce quantity and default type to DINE_IN', () => {
     const result = orderFormSchema.safeParse({ items: [{ productId: 'p1', quantity: '3' }] });
     expect(result.success).toBe(true);

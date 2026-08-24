@@ -8,7 +8,8 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { orderFormSchema, ORDER_TYPE_OPTIONS } from '../schemas/order.schema.js';
 import { useCreateOrderMutation } from '../hooks/useOrders.js';
 import { useProductsQuery } from '../../menu/hooks/useMenu.js';
-import { Plus, Trash2, ShoppingCart, Users, Phone } from 'lucide-react';
+import { lookupCallerApi } from '../../../lib/api/phone-order.api.js';
+import { Plus, Trash2, ShoppingCart, Users, Phone, MapPin } from 'lucide-react';
 
 export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
   const createMutation = useCreateOrderMutation();
@@ -23,13 +24,17 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
     control,
     reset,
     watch,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(orderFormSchema),
     defaultValues: {
       type: 'DINE_IN',
       tableId: '',
+      customerName: '',
       customerPhone: '',
+      address: '',
       notes: '',
       items: [{ productId: '', quantity: 1 }],
     },
@@ -37,19 +42,45 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
 
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
   const orderType = watch('type');
+  const customerPhoneValue = watch('customerPhone');
 
   useEffect(() => {
     if (isOpen) {
-      reset({ type: 'DINE_IN', tableId: '', customerPhone: '', notes: '', items: [{ productId: '', quantity: 1 }] });
+      reset({ type: 'DINE_IN', tableId: '', customerName: '', customerPhone: '', address: '', notes: '', items: [{ productId: '', quantity: 1 }] });
     }
   }, [isOpen, reset]);
+
+  // Phone lookup auto-fill (delivery): typing a valid number fetches the customer's name + default address.
+  // Fields stay editable — a manually typed name/address is never overwritten.
+  useEffect(() => {
+    const cleanPhone = (customerPhoneValue || '').trim();
+    if (cleanPhone.length < 8) return undefined;
+    const timer = setTimeout(async () => {
+      try {
+        const data = await lookupCallerApi(cleanPhone);
+        if (!data) return;
+        if (data.customer?.name && !data.customer.name.startsWith('عميل هاتف') && !getValues('customerName')?.trim()) {
+          setValue('customerName', data.customer.name, { shouldValidate: true });
+        }
+        if (data.defaultAddress && !getValues('address')?.trim()) {
+          const addr = [data.defaultAddress.street, data.defaultAddress.city].filter(Boolean).join('، ');
+          if (addr) setValue('address', addr, { shouldValidate: true });
+        }
+      } catch {
+        // Silent catch while typing
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [customerPhoneValue, getValues, setValue]);
 
   const onSubmit = async (data) => {
     try {
       const payload = {
         type: data.type,
         tableId: data.type === 'DINE_IN' && data.tableId ? data.tableId : undefined,
+        customerName: data.customerName || undefined,
         customerPhone: data.customerPhone || undefined,
+        address: data.address || undefined,
         notes: data.notes || undefined,
         items: data.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       };
@@ -74,6 +105,7 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Select
           label="نوع الطلب"
+          required
           options={ORDER_TYPE_OPTIONS}
           error={errors.type?.message}
           {...register('type')}
@@ -81,7 +113,7 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
 
         {orderType === 'DINE_IN' && (
           <Input
-            label="رقم الترابيزة (اختياري — بيتم التحقق منها تلقائيًا)"
+            label="رقم الطاولة (اختياري، بيتم التحقق منها تلقائيًا)"
             placeholder="مثال: T1"
             icon={Users}
             error={errors.tableId?.message}
@@ -90,17 +122,38 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
         )}
 
         <Input
-          label="رقم هاتف العميل (اختياري — بيتسجل تلقائيًا لو مش موجود)"
+          label="اسم العميل"
+          placeholder="اسم العميل"
+          icon={Users}
+          required={orderType === 'DELIVERY'}
+          error={errors.customerName?.message}
+          {...register('customerName')}
+        />
+
+        <Input
+          label="رقم هاتف العميل"
           placeholder="+2010..."
           icon={Phone}
           dir="ltr"
+          required={orderType === 'DELIVERY'}
           error={errors.customerPhone?.message}
           {...register('customerPhone')}
         />
 
+        {orderType === 'DELIVERY' && (
+          <Input
+            label="عنوان التوصيل"
+            placeholder="الشارع، المنطقة، رقم العقار..."
+            icon={MapPin}
+            required
+            error={errors.address?.message}
+            {...register('address')}
+          />
+        )}
+
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-txt-primary flex items-center gap-1.5">
+            <label className="text-xs font-medium text-txt-primary flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-brand-primary" />
               الأصناف
             </label>
@@ -139,8 +192,8 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5 w-full text-right">
-          <label className="text-xs font-medium text-txt-primary">ملاحظات (اختياري)</label>
+        <div className="flex flex-col gap-2 w-full text-right">
+          <label className="text-xs font-medium text-txt-primary">ملاحظات</label>
           <textarea
             rows={2}
             placeholder="ملاحظات على الطلب..."
