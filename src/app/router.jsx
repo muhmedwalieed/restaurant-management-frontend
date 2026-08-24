@@ -43,11 +43,12 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Section 13 — permission-gated routes are enforced before render, not just hidden
+// Section 13 — permission-gated routes are enforced before render, not just hidden.
+// Unauthorized users get a 404 instead of a redirect, so they can't tell the page exists.
 const RequirePermission = ({ permission, children }) => {
   const { hasPermission } = useAuth();
   if (!hasPermission(permission)) {
-    return <Navigate to="/" replace />;
+    return <NotFoundPage />;
   }
   return children;
 };
