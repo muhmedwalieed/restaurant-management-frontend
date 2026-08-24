@@ -2,6 +2,7 @@
 import { AuthProvider } from '../modules/auth/context/AuthContext.jsx';
 import { BranchProvider } from '../modules/auth/context/BranchContext.jsx';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary.jsx';
+import { SocketProvider } from '../shared/realtime/SocketProvider.jsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,7 +19,9 @@ export const AppProviders = ({ children }) => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BranchProvider>{children}</BranchProvider>
+          <BranchProvider>
+            <SocketProvider>{children}</SocketProvider>
+          </BranchProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
