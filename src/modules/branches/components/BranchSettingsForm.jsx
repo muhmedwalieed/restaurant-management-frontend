@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
+import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { DollarSign, Globe, CheckCircle2, Sliders, AlertCircle } from 'lucide-react';
 
@@ -113,9 +114,11 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
       </div>
 
       <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
-        <Button type="submit" variant="primary" size="sm" isLoading={isLoading}>
-          حفظ إعدادات الفرع
-        </Button>
+        <PermissionGate permission="branches.manage">
+          <Button type="submit" variant="primary" size="sm" isLoading={isLoading}>
+            حفظ إعدادات الفرع
+          </Button>
+        </PermissionGate>
       </div>
     </form>
   );

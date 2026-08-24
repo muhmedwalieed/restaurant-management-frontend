@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
+import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   Clock,
@@ -149,11 +150,13 @@ export const WorkingHoursEditor = ({
               <label className="block text-xs font-medium text-txt-primary mb-1.5">
                 المنطقة الزمنية
               </label>
-              <Select
-                options={timezoneOptions}
-                value={timezone}
-                onChange={(e) => onTimezoneChange?.(e.target.value)}
-              />
+              <PermissionGate permission="branches.manage" disableOnly>
+                <Select
+                  options={timezoneOptions}
+                  value={timezone}
+                  onChange={(e) => onTimezoneChange?.(e.target.value)}
+                />
+              </PermissionGate>
             </div>
 
             <div className="flex items-center gap-6">
@@ -259,9 +262,11 @@ export const WorkingHoursEditor = ({
           </div>
 
       <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
-        <Button type="submit" variant="primary" size="sm" isLoading={isLoading} icon={Save}>
-          حفظ
-        </Button>
+        <PermissionGate permission="branches.manage">
+          <Button type="submit" variant="primary" size="sm" isLoading={isLoading} icon={Save}>
+            حفظ
+          </Button>
+        </PermissionGate>
       </div>
     </form>
   );

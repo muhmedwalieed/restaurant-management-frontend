@@ -360,24 +360,26 @@ export const ProductDetailPage = () => {
                           {Number(mod.priceDelta) > 0 ? `+${mod.priceDelta} ج.م` : 'مجاني'}
                         </td>
                         <td className="p-2.5 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenModifierModal(mod)}
-                              className="p-1 rounded-md text-txt-muted hover:text-white hover:bg-white/[0.06] transition-colors"
-                              title="تعديل الإضافة"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteModifier(mod)}
-                              className="p-1 rounded-md text-txt-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                              title="حذف الإضافة"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          <PermissionGate permission="menu.manage">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenModifierModal(mod)}
+                                className="p-1 rounded-md text-txt-muted hover:text-white hover:bg-white/[0.06] transition-colors"
+                                title="تعديل الإضافة"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteModifier(mod)}
+                                className="p-1 rounded-md text-txt-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                title="حذف الإضافة"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </PermissionGate>
                         </td>
                       </tr>
                     ))}

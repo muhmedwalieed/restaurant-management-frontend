@@ -331,6 +331,8 @@ export const CustomerDetailPage = () => {
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
+                        </PermissionGate>
+                        <PermissionGate permission="customers.delete">
                           <button
                             onClick={() => handleDeleteAddress(addr.id, addr.label)}
                             className="p-1 text-txt-muted hover:text-red-400 transition-colors rounded"

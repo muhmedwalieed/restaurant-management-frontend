@@ -85,23 +85,25 @@ export const CouponsListPage = () => {
       header: 'إجراءات',
       key: 'actions',
       render: (row) => (
-        <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" icon={Pencil} onClick={() => openEdit(row)} title="تعديل">
-            تعديل
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            icon={Trash2}
-            className="text-status-danger hover:text-status-danger"
-            title="حذف الكوبون"
-            onClick={() => {
-              if (window.confirm(`متأكد إنك عايز تعطّل كوبون ${row.code}؟`)) deleteMutation.mutate(row.id);
-            }}
-          >
-            حذف
-          </Button>
-        </div>
+        <PermissionGate permission="coupons.manage">
+          <div className="flex items-center gap-1">
+            <Button size="sm" variant="ghost" icon={Pencil} onClick={() => openEdit(row)} title="تعديل">
+              تعديل
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={Trash2}
+              className="text-status-danger hover:text-status-danger"
+              title="حذف الكوبون"
+              onClick={() => {
+                if (window.confirm(`متأكد إنك عايز تعطّل كوبون ${row.code}؟`)) deleteMutation.mutate(row.id);
+              }}
+            >
+              حذف
+            </Button>
+          </div>
+        </PermissionGate>
       ),
     },
   ];

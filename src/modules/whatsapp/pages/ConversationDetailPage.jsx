@@ -160,14 +160,14 @@ export const ConversationDetailPage = () => {
             </div>
             <div className="px-4 py-3 space-y-2">
               {conv?.status !== 'WAITING_AGENT' && (
-                <PermissionGate permission="whatsapp.manage">
+                <PermissionGate permission="chats.assign">
                   <Button variant="outline" size="sm" icon={Headset} className="w-full" onClick={() => setIsHandoffOpen(true)}>
                     تحويل لموظف (Human Handoff)
                   </Button>
                 </PermissionGate>
               )}
               {conv?.status !== 'CLOSED' && (
-                <PermissionGate permission="whatsapp.manage">
+                <PermissionGate permission="chats.close">
                   <Button variant="danger" size="sm" icon={XCircle} className="w-full" onClick={() => setIsCloseOpen(true)}>
                     إغلاق المحادثة
                   </Button>

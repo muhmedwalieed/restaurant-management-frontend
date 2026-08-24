@@ -204,7 +204,7 @@ export const EmployeeDetailPage = () => {
 
       {/* Action buttons */}
       <div className="flex flex-wrap items-center gap-2">
-        <PermissionGate permission="employees.manage_roles">
+        <PermissionGate permission="employees.manage">
           <Button
             variant="primary"
             size="sm"

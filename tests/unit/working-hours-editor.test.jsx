@@ -1,9 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WorkingHoursEditor } from '../../src/modules/branches/components/WorkingHoursEditor.jsx';
+import * as AuthContextModule from '../../src/modules/auth/context/AuthContext.jsx';
 
 describe('WorkingHoursEditor Component Unit Tests', () => {
+  beforeEach(() => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: { role: 'OWNER', permissions: ['branches.manage'] },
+      hasPermission: () => true,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
   it('should render all 7 days (Saturday to Friday) with the table layout', () => {
     render(<WorkingHoursEditor onSave={vi.fn()} />);
 
