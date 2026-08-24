@@ -14,7 +14,7 @@ import {
   ORDER_SOURCE_LABELS,
   orderStatusPill,
 } from '../schemas/order.schema.js';
-import { ShoppingCart, Plus, ReceiptText, PhoneCall, ChevronLeft, Building2 } from 'lucide-react';
+import { ShoppingCart, Plus, ReceiptText, ChevronLeft, Building2 } from 'lucide-react';
 
 const STATUS_FILTER_OPTIONS = [
   { value: 'ALL', label: 'جميع الحالات' },
@@ -197,15 +197,6 @@ export const OrdersListPage = () => {
         {/* Action Buttons Group: Secondary Phone Order + Primary New Order */}
         <PermissionGate permission="orders.create">
           <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              icon={PhoneCall}
-              onClick={() => navigate('/pos')}
-              className="text-xs"
-            >
-              طلب هاتف
-            </Button>
             <Button
               variant="primary"
               size="sm"
