@@ -13,6 +13,8 @@ export const Input = forwardRef(
       type = 'text',
       className = '',
       icon: Icon,
+      prefix,
+      suffix,
       required = false,
       readOnly = false,
       ...props
@@ -39,6 +41,11 @@ export const Input = forwardRef(
               <Icon className="w-4 h-4" />
             </div>
           )}
+          {prefix && (
+            <span className="absolute right-3 text-xs font-medium text-txt-muted pointer-events-none">
+              {prefix}
+            </span>
+          )}
           <input
             ref={ref}
             id={inputId}
@@ -54,8 +61,8 @@ export const Input = forwardRef(
                 readOnly
                   ? 'bg-bg-base/60 text-txt-muted border-dashed border-border-default cursor-not-allowed'
                   : 'focus-visible:border-brand-primary',
-                Icon ? 'pr-9' : 'px-3',
-                'pl-3',
+                Icon ? 'pr-9' : prefix ? 'pr-9' : 'pr-3',
+                suffix ? 'pl-14 font-mono' : 'pl-3',
                 error
                   ? 'border-status-danger focus-visible:border-status-danger'
                   : 'border-border-default hover:border-text-muted',
@@ -64,14 +71,19 @@ export const Input = forwardRef(
             )}
             {...props}
           />
+          {suffix && (
+            <span className="absolute left-3 text-xs font-mono font-medium text-txt-muted pointer-events-none select-none">
+              {suffix}
+            </span>
+          )}
         </div>
         {error && (
-          <p id={`${inputId}-error`} className="text-xs text-status-danger font-medium mt-0.5">
+          <p id={`${inputId}-error`} className="text-xs text-status-danger font-medium mt-1">
             {error}
           </p>
         )}
         {!error && helperText && (
-          <p id={`${inputId}-helper`} className="text-xs text-txt-muted mt-0.5">
+          <p id={`${inputId}-helper`} className="text-xs text-txt-muted mt-1">
             {helperText}
           </p>
         )}

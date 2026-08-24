@@ -33,7 +33,7 @@ export const Toggle = ({
       <span
         className={twMerge(
           clsx(
-            'inline-block w-4 h-4 transform rounded-full bg-white shadow-sm transition-transform',
+            'inline-block w-4 h-4 transform rounded-full bg-white transition-transform',
             checked ? 'translate-x-4' : 'translate-x-0'
           )
         )}
