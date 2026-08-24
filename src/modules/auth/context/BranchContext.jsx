@@ -23,7 +23,7 @@ export const BranchProvider = ({ children }) => {
   } = useQuery({
     queryKey: ['my-branches'],
     queryFn: () => getMyBranchesApi(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 5, // 5 seconds fresh
     enabled: isAuthenticated,
   });
 
@@ -36,7 +36,11 @@ export const BranchProvider = ({ children }) => {
   }, [isAuthenticated]);
 
   const branches = useMemo(() => {
-    return branchesResponse?.items || (Array.isArray(branchesResponse) ? branchesResponse : []);
+    if (!branchesResponse) return [];
+    if (Array.isArray(branchesResponse)) return branchesResponse;
+    if (Array.isArray(branchesResponse?.items)) return branchesResponse.items;
+    if (Array.isArray(branchesResponse?.data)) return branchesResponse.data;
+    return [];
   }, [branchesResponse]);
 
   // Auto select active branch if none selected or selected branch no longer exists

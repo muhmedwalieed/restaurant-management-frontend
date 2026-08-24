@@ -10,24 +10,27 @@ export const AppShell = () => {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-row font-sans text-txt-primary">
-      {/* Sidebar for Desktop & Tablet */}
+    <div className="h-[100dvh] max-h-[100dvh] bg-bg-base flex font-sans text-txt-primary overflow-hidden">
+      {/* 1. Dedicated Clean Navigation-Only Sidebar (Desktop) */}
       <Sidebar isCollapsed={isSidebarCollapsed} />
 
-      {/* Mobile Drawer Navigation */}
+      {/* 2. Mobile Drawer Navigation */}
       <MobileNav
         isOpen={isMobileNavOpen}
         onClose={() => setIsMobileNavOpen(false)}
       />
 
-      {/* Main Page Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      {/* 3. Main Workspace Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-[100dvh] max-h-[100dvh] overflow-hidden">
+        {/* Top Navbar (Header): Branch switcher & Sidebar toggle on right, Notifications & Profile on left */}
         <Header
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleDesktopSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onToggleMobileNav={() => setIsMobileNavOpen(!isMobileNavOpen)}
-          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
-        <ContentContainer>
+        {/* Page Content with strict min-h-0 */}
+        <ContentContainer className="flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </ContentContainer>
       </div>

@@ -60,7 +60,7 @@ const NAV_SECTIONS = [
 
 const DEFAULT_PERMISSION = 'orders.view';
 
-export const MobileNav = ({ isOpen, onClose }) => {
+export const DrawerNav = ({ isOpen, onClose }) => {
   const closeButtonRef = useRef(null);
   const previousFocusRef = useRef(null);
   const { user, logout, hasPermission } = useAuth();
@@ -68,7 +68,6 @@ export const MobileNav = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
-  // Keep all sections open by default in mobile drawer to eliminate dead empty space
   const [openSections, setOpenSections] = useState({
     ops: true,
     manage: true,
@@ -135,21 +134,21 @@ export const MobileNav = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="md:hidden fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="القائمة الرئيسية">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="القائمة الرئيسية">
+      {/* Backdrop (Dark overlay with blur, closes on click) */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer Content */}
-      <div className="relative flex flex-col w-5/6 max-w-xs bg-bg-surface border-l border-white/[0.07] h-[100dvh] max-h-[100dvh] z-10 shadow-2xl overflow-hidden">
+      {/* Drawer Panel (Width: 320px-340px on Desktop, 80%-85% on Mobile) */}
+      <div className="relative flex flex-col w-5/6 sm:w-[340px] max-w-sm bg-bg-surface border-l border-white/[0.07] h-full z-10 shadow-2xl">
         {/* 1. Header with 2 Distinct Levels */}
-        <div className="p-3 border-b border-white/[0.07] shrink-0">
+        <div className="p-3.5 border-b border-white/[0.07] shrink-0">
           {/* Level 1: Brand & Close Button ✕ */}
           <div className="flex items-center justify-between h-11">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
               <Store className="w-5 h-5 text-brand-primary shrink-0" />
               <span className="text-sm font-bold text-txt-primary truncate">
                 نظام إدارة المطاعم
@@ -167,14 +166,14 @@ export const MobileNav = ({ isOpen, onClose }) => {
           </div>
 
           {/* Level 2: Full-width Branch Switcher */}
-          <div className="relative mt-2">
+          <div className="relative mt-2.5">
             <button
               type="button"
               onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
               className="w-full flex items-center justify-between h-9 px-3 rounded-md bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-xs text-txt-primary transition-colors focus-visible:outline-none text-right group"
               title="تغيير الفرع الحالي"
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
                 <Building2 className="w-4 h-4 text-txt-muted shrink-0" />
                 <span className="text-xs font-medium text-txt-primary truncate">
                   {activeBranch?.name || 'الفرع الرئيسي'}
@@ -186,74 +185,58 @@ export const MobileNav = ({ isOpen, onClose }) => {
             {isBranchDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setIsBranchDropdownOpen(false)} aria-hidden="true" />
-                <div className="absolute right-0 left-0 mt-1 bg-bg-surface border border-white/[0.08] rounded-md shadow-2xl py-1 z-40">
+                <div className="absolute right-0 left-0 mt-1 bg-bg-surface border border-white/[0.08] rounded-md shadow-2xl py-1 z-40 max-h-52 overflow-y-auto">
                   <div className="px-3 py-1.5 text-[10px] font-medium text-txt-muted border-b border-white/[0.07] uppercase tracking-wider flex items-center justify-between">
                     <span>الفروع المتاحة</span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-txt-muted">{branches.length}</span>
                   </div>
-                  <div className="max-h-48 overflow-y-auto py-1">
-                    {branches.map((b) => (
-                      <button
-                        key={b.id}
-                        onClick={() => {
-                          setActiveBranch(b);
-                          setIsBranchDropdownOpen(false);
-                        }}
-                        className={`w-full text-right px-3 py-2 text-xs flex items-center justify-between hover:bg-white/[0.04] transition-colors ${
-                          activeBranch?.id === b.id ? 'text-brand-primary font-semibold bg-white/[0.02]' : 'text-txt-primary'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Building2 className="w-3.5 h-3.5 text-txt-muted shrink-0" />
-                          <span className="truncate">{b.name}</span>
-                        </div>
-                        {activeBranch?.id === b.id && <span className="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" />}
-                      </button>
-                    ))}
-                  </div>
-                  {hasPermission('branches.manage') && (
-                    <div className="border-t border-white/[0.07] pt-1">
-                      <NavLink
-                        to="/settings/branches"
-                        onClick={() => {
-                          setIsBranchDropdownOpen(false);
-                          onClose();
-                        }}
-                        className="w-full text-right px-3 py-1.5 text-[11px] text-txt-muted hover:text-txt-primary hover:bg-white/[0.04] flex items-center gap-2 transition-colors"
-                      >
-                        <Store className="w-3.5 h-3.5 shrink-0" />
-                        <span>إدارة الفروع</span>
-                      </NavLink>
-                    </div>
-                  )}
+                  {branches.map((b) => (
+                    <button
+                      key={b.id}
+                      onClick={() => {
+                        setActiveBranch(b);
+                        setIsBranchDropdownOpen(false);
+                      }}
+                      className={`w-full text-right px-3 py-2 text-xs flex items-center justify-between hover:bg-white/[0.04] transition-colors ${
+                        activeBranch?.id === b.id ? 'text-brand-primary font-semibold bg-white/[0.02]' : 'text-txt-primary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Building2 className="w-3.5 h-3.5 text-txt-muted shrink-0" />
+                        <span className="truncate">{b.name}</span>
+                      </div>
+                      {activeBranch?.id === b.id && <span className="w-1.5 h-1.5 rounded-full bg-brand-primary shrink-0" />}
+                    </button>
+                  ))}
                 </div>
               </>
             )}
           </div>
         </div>
 
-        {/* 2. Middle Navigation Accordion (Natural vertical rhythm, all visible) */}
-        <nav className="flex-1 min-h-0 py-3 px-3 overflow-y-auto space-y-1 pb-16 custom-scrollbar">
+        {/* Navigation Sections */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-1 pb-12">
           {visibleSections.map((section) => {
-            const isSectionOpen = !!openSections[section.key];
+            const isOpen = !!openSections[section.key];
+
             return (
               <div key={section.key}>
                 <button
                   type="button"
                   onClick={() => toggleSection(section.key)}
                   className="w-full flex items-center justify-between px-3 py-1.5 mt-3 first:mt-0 mb-1 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors focus-visible:outline-none select-none text-right rounded-md group"
-                  aria-expanded={isSectionOpen}
+                  aria-expanded={isOpen}
                 >
                   <span className="truncate">{section.title}</span>
                   <ChevronDown
                     className={clsx(
                       'w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-transform duration-200 shrink-0',
-                      isSectionOpen ? 'rotate-0' : '-rotate-90'
+                      isOpen ? 'rotate-0' : '-rotate-90'
                     )}
                   />
                 </button>
 
-                {isSectionOpen && (
+                {isOpen && (
                   <div className="space-y-1">
                     {section.items.map((item) => {
                       const Icon = item.icon;
@@ -273,8 +256,13 @@ export const MobileNav = ({ isOpen, onClose }) => {
                         >
                           {({ isActive }) => (
                             <>
-                              <Icon className={clsx('w-4 h-4 shrink-0 transition-colors', isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200')} />
-                              <span className="flex-1 truncate leading-none">{item.label}</span>
+                              <Icon
+                                className={clsx(
+                                  'w-4 h-4 shrink-0 transition-colors',
+                                  isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
+                                )}
+                              />
+                              <span className="truncate min-w-0 leading-none">{item.label}</span>
                             </>
                           )}
                         </NavLink>
@@ -285,9 +273,9 @@ export const MobileNav = ({ isOpen, onClose }) => {
               </div>
             );
           })}
-        </nav>
+        </div>
 
-        {/* 3. Footer with Safe Area Padding (Protected against browser URL bar) */}
+        {/* 3. Footer with User Profile and Logout */}
         <div
           className="border-t border-white/[0.07] p-3 shrink-0 bg-bg-surface"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 24px))' }}
@@ -320,5 +308,3 @@ export const MobileNav = ({ isOpen, onClose }) => {
     </div>
   );
 };
-
-

@@ -1,10 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { getHealthStatus } from '../../../lib/api/health.api.js';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
-import { Activity, WifiOff } from 'lucide-react';
 
-export const HealthStatusIndicator = () => {
-  const { data, isError, isLoading } = useQuery({
+export const HealthStatusIndicator = ({ showLabel = false }) => {
+  const { isError, isLoading } = useQuery({
     queryKey: ['health-status'],
     queryFn: getHealthStatus,
     refetchInterval: 30000, // 30 seconds periodic check (Technical Note 4)
@@ -13,26 +11,39 @@ export const HealthStatusIndicator = () => {
 
   if (isLoading) {
     return (
-      <StatusPill status="neutral" icon={Activity} className="animate-pulse">
-        جاري فحص الخادم...
-      </StatusPill>
+      <span
+        className="inline-flex items-center gap-2 text-xs text-txt-muted"
+        title="جاري فحص الخادم..."
+        aria-label="جاري فحص الخادم"
+      >
+        <span className="w-2 h-2 rounded-full bg-txt-muted animate-pulse" aria-hidden="true" />
+        {showLabel && <span>جاري فحص الخادم...</span>}
+      </span>
     );
   }
 
   if (isError) {
     return (
-      <StatusPill status="danger" icon={WifiOff} title="تعذر الاتصال بالخادم الرئيسي">
-        غير متصل
-      </StatusPill>
+      <span
+        className="inline-flex items-center gap-2 text-xs text-txt-muted"
+        title="تعذر الاتصال بالخادم الرئيسي"
+        aria-label="غير متصل بالخادم"
+      >
+        <span className="w-2 h-2 rounded-full bg-status-danger" aria-hidden="true" />
+        {showLabel && <span>غير متصل</span>}
+      </span>
     );
   }
 
   // GET /api/health returns { uptime, timestamp }; any successful response means the server is alive
-  const statusText = data ? 'الخادم نشط' : 'متصل';
-
   return (
-    <StatusPill status="success" icon={Activity}>
-      {statusText}
-    </StatusPill>
+    <span
+      className="inline-flex items-center gap-2 text-xs text-txt-muted"
+      title="متصل بالخادم"
+      aria-label="متصل بالخادم"
+    >
+      <span className="w-2 h-2 rounded-full bg-status-success" aria-hidden="true" />
+      {showLabel && <span>متصل بالخادم</span>}
+    </span>
   );
 };
