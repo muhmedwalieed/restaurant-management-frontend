@@ -15,15 +15,24 @@ import {
   ORDER_SOURCE_LABELS,
   orderStatusPill,
 } from '../schemas/order.schema.js';
-import { ShoppingCart, Plus, Eye, ReceiptText, PhoneCall } from 'lucide-react';
+import { ShoppingCart, Plus, ReceiptText, PhoneCall, ChevronLeft } from 'lucide-react';
 
-const STATUS_FILTER_OPTIONS = [{ value: 'ALL', label: 'جميع الحالات' }, ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label }))];
+const STATUS_FILTER_OPTIONS = [
+  { value: 'ALL', label: 'جميع الحالات' },
+  ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label })),
+];
+
+const TYPE_FILTER_OPTIONS = [
+  { value: 'ALL', label: 'جميع الأنواع' },
+  ...Object.entries(ORDER_TYPE_LABELS).map(([value, label]) => ({ value, label })),
+];
 
 export const OrdersListPage = () => {
   const navigate = useNavigate();
   const { activeBranchId } = useBranch();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [typeFilter, setTypeFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,11 +40,13 @@ export const OrdersListPage = () => {
     page,
     limit: 20,
     status: statusFilter === 'ALL' ? undefined : statusFilter,
+    type: typeFilter === 'ALL' ? undefined : typeFilter,
   });
 
   const ordersList = ordersResponse?.items || [];
 
   const filteredOrders = ordersList.filter((o) => {
+    if (typeFilter !== 'ALL' && o.type !== typeFilter) return false;
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -50,9 +61,9 @@ export const OrdersListPage = () => {
     {
       header: 'رقم الطلب',
       accessorKey: 'orderNumber',
-      width: '110px',
+      width: '120px',
       render: (row) => (
-        <span className={`font-mono font-bold ${row.status === 'CANCELLED' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+        <span className={`font-mono font-bold text-xs ${row.status === 'CANCELLED' ? 'text-txt-muted' : 'text-txt-primary'}`}>
           #{row.orderNumber}
         </span>
       ),
@@ -60,6 +71,7 @@ export const OrdersListPage = () => {
     {
       header: 'الحالة',
       accessorKey: 'status',
+      width: '130px',
       render: (row) => (
         <StatusPill status={orderStatusPill(row.status)}>{ORDER_STATUS_LABELS[row.status] || row.status}</StatusPill>
       ),
@@ -67,47 +79,70 @@ export const OrdersListPage = () => {
     {
       header: 'النوع',
       accessorKey: 'type',
-      render: (row) => <span className="font-semibold text-txt-primary">{ORDER_TYPE_LABELS[row.type] || row.type}</span>,
+      width: '110px',
+      render: (row) => (
+        <span className="font-semibold text-xs text-txt-primary">
+          {ORDER_TYPE_LABELS[row.type] || row.type}
+        </span>
+      ),
     },
     {
-      header: 'العميل / الترابيزة',
+      header: 'العميل / الطاولة',
       key: 'customer',
       render: (row) => (
-        <span className="text-txt-muted">
-          {row.customer?.phone || row.customer?.name || (row.table ? `ترابيزة ${row.table.label}` : '—')}
+        <div className="flex flex-col text-xs leading-tight">
+          <span className="font-medium text-txt-primary truncate">
+            {row.customer?.name || (row.table ? `طاولة ${row.table.label}` : 'عميل مباشر')}
+          </span>
+          {row.customer?.phone && (
+            <span className="text-[11px] text-txt-muted font-mono" dir="ltr">
+              {row.customer.phone}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: 'وقت الطلب',
+      key: 'createdAt',
+      width: '120px',
+      render: (row) => (
+        <span className="text-xs text-txt-muted">
+          {row.createdAt ? new Date(row.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '—'}
         </span>
       ),
     },
     {
       header: 'الإجمالي',
       accessorKey: 'total',
-      width: '110px',
-      render: (row) => <span className="font-bold text-txt-primary">{Number(row.total || 0).toFixed(2)} EGP</span>,
+      align: 'left',
+      width: '130px',
+      render: (row) => (
+        <span className="font-mono font-bold tabular-nums text-txt-primary text-xs">
+          {Number(row.total || 0).toFixed(2)} <span className="text-[10px] text-txt-muted font-sans">EGP</span>
+        </span>
+      ),
     },
     {
-      header: 'التفاصيل',
+      header: '',
       key: 'actions',
-      render: (row) => (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => navigate(`/orders/${row.id}`)}
-          icon={Eye}
-          className="text-txt-primary hover:text-brand-primary hover:bg-bg-surface-elevated"
-          title="عرض تفاصيل الطلب"
-        >
-          التفاصيل
-        </Button>
+      align: 'left',
+      width: '36px',
+      render: () => (
+        <div className="flex justify-end text-slate-500 group-hover:text-slate-200">
+          <ChevronLeft className="w-4 h-4 transition-colors" />
+        </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* 1. Page Header: Title on Right, Grouped Minimal Actions on Left */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <ShoppingCart className="w-6 h-6 text-brand-primary" />
+          <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2.5">
+            <ShoppingCart className="w-5 h-5 text-brand-primary" />
             <span>إدارة الطلبات</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
@@ -115,20 +150,36 @@ export const OrdersListPage = () => {
           </p>
         </div>
 
+        {/* Action Buttons Group: Secondary Phone Order + Primary New Order */}
         <PermissionGate permission="orders.create">
-          <Button variant="outline" size="sm" icon={PhoneCall} onClick={() => navigate('/phone-order')}>
-            طلب هاتف
-          </Button>
-          <Button variant="primary" size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
-            طلب جديد
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={PhoneCall}
+              onClick={() => navigate('/phone-order')}
+              className="text-xs"
+            >
+              طلب هاتف
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Plus}
+              onClick={() => setIsModalOpen(true)}
+              className="text-xs font-semibold"
+            >
+              طلب جديد
+            </Button>
+          </div>
         </PermissionGate>
       </div>
 
+      {/* 2. Orders Content Table */}
       {!activeBranchId ? (
         <EmptyState
           title="لا يوجد فرع نشط"
-          description="اختر فرعًا لعرض وإدارة طلباته."
+          description="اختر فرعًا من أعلى الشاشة لعرض وإدارة طلباته."
           icon={ShoppingCart}
         />
       ) : (
@@ -139,11 +190,12 @@ export const OrdersListPage = () => {
           isError={isError}
           error={error}
           onRetry={refetch}
+          onRowClick={(row) => navigate(`/orders/${row.id}`)}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          searchPlaceholder="ابحث برقم الطلب أو العميل أو الترابيزة..."
+          searchPlaceholder="ابحث برقم الطلب، العميل، أو الطاولة..."
           emptyTitle="لا توجد طلبات مطابقة"
-          emptyDescription="لم يتم إنشاء أي طلب بعد."
+          emptyDescription="لم يتم العثور على طلبات بالخيارات المحددة."
           pagination={{
             page,
             totalPages: ordersResponse?.pagination?.totalPages || 1,
@@ -151,20 +203,36 @@ export const OrdersListPage = () => {
             onPageChange: setPage,
           }}
           filters={
-            <div className="w-48">
-              <Select
-                options={STATUS_FILTER_OPTIONS}
-                value={statusFilter}
-                onChange={(e) => {
-                  setPage(1);
-                  setStatusFilter(e.target.value);
-                }}
-                aria-label="فلترة بالحالة"
-              />
+            <div className="flex items-center gap-2">
+              <div className="w-40">
+                <Select
+                  options={STATUS_FILTER_OPTIONS}
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setPage(1);
+                    setStatusFilter(e.target.value);
+                  }}
+                  aria-label="فلترة بالحالة"
+                />
+              </div>
+              <div className="w-36">
+                <Select
+                  options={TYPE_FILTER_OPTIONS}
+                  value={typeFilter}
+                  onChange={(e) => {
+                    setPage(1);
+                    setTypeFilter(e.target.value);
+                  }}
+                  aria-label="فلترة بالنوع"
+                />
+              </div>
             </div>
           }
           mobileCardRender={(o) => (
-            <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
+            <div
+              onClick={() => navigate(`/orders/${o.id}`)}
+              className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3 cursor-pointer hover:border-brand-primary/40 active:bg-white/[0.02] transition-colors"
+            >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <ReceiptText className={`w-4 h-4 shrink-0 ${o.status === 'CANCELLED' ? 'text-txt-muted' : 'text-brand-primary'}`} />
@@ -180,7 +248,7 @@ export const OrdersListPage = () => {
                   النوع: <strong className="text-txt-primary">{ORDER_TYPE_LABELS[o.type] || o.type}</strong>
                 </p>
                 <p>
-                  العميل/الترابيزة: <strong className="text-txt-primary">{o.customer?.phone || o.customer?.name || (o.table ? `ترابيزة ${o.table.label}` : '—')}</strong>
+                  العميل/الطاولة: <strong className="text-txt-primary">{o.customer?.phone || o.customer?.name || (o.table ? `طاولة ${o.table.label}` : 'غير محدد')}</strong>
                 </p>
                 <p>
                   المصدر: <strong className="text-txt-primary">{ORDER_SOURCE_LABELS[o.source] || o.source}</strong>
@@ -188,16 +256,20 @@ export const OrdersListPage = () => {
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-border-default">
-                <span className="text-sm font-bold text-brand-primary">{Number(o.total || 0).toFixed(2)} EGP</span>
-                <Button size="sm" variant="ghost" onClick={() => navigate(`/orders/${o.id}`)} icon={Eye} className="text-txt-primary hover:text-brand-primary">
+                <span className="text-sm font-bold text-brand-primary tabular-nums font-mono">
+                  {Number(o.total || 0).toFixed(2)} EGP
+                </span>
+                <span className="text-xs text-txt-muted flex items-center gap-1 group-hover:text-brand-primary">
                   التفاصيل
-                </Button>
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </span>
               </div>
             </div>
           )}
         />
       )}
 
+      {/* New Order Modal */}
       <OrderFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} branchId={activeBranchId} />
     </div>
   );

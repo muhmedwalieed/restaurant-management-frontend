@@ -5,7 +5,7 @@ import { DataTable } from '../../../shared/components/DataTable.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { CustomerFormModal } from '../components/CustomerFormModal.jsx';
-import { Users, Plus, Eye, Phone, Mail } from 'lucide-react';
+import { Users, Plus, ChevronLeft } from 'lucide-react';
 
 export const CustomersListPage = () => {
   const navigate = useNavigate();
@@ -26,8 +26,8 @@ export const CustomersListPage = () => {
       header: 'العميل',
       accessorKey: 'name',
       render: (row) => (
-        <div className="flex flex-col">
-          <span className="font-bold text-txt-primary">{row.name}</span>
+        <div className="flex flex-col text-xs leading-tight">
+          <span className="font-bold text-txt-primary truncate">{row.name}</span>
           {row.notes && <span className="text-[11px] text-txt-muted truncate max-w-[200px]">{row.notes}</span>}
         </div>
       ),
@@ -35,67 +35,72 @@ export const CustomersListPage = () => {
     {
       header: 'الهاتف',
       accessorKey: 'phone',
+      width: '150px',
       render: (row) => (
-        <span className="dir-ltr inline-block font-semibold text-txt-primary">
-          <Phone className="w-3.5 h-3.5 inline text-txt-muted ml-1" />
+        <span className="font-mono text-xs font-semibold text-txt-primary dir-ltr inline-block">
           {row.phone || '—'}
         </span>
       ),
     },
     {
-      header: 'البريد',
+      header: 'البريد الإلكتروني',
       accessorKey: 'email',
       render: (row) => (
-        <span className="text-txt-muted">
-          <Mail className="w-3.5 h-3.5 inline text-txt-muted ml-1" />
+        <span className="text-xs text-txt-muted">
           {row.email || '—'}
         </span>
       ),
     },
     {
-      header: 'الطلبات',
+      header: 'إجمالي الطلبات',
       accessorKey: '_count',
-      width: '90px',
-      render: (row) => <span className="font-bold text-txt-primary">{row._count?.orders ?? 0}</span>,
+      width: '120px',
+      render: (row) => (
+        <span className="font-mono font-bold tabular-nums text-txt-primary text-xs">
+          {row._count?.orders ?? 0}
+        </span>
+      ),
     },
     {
-      header: 'التفاصيل',
+      header: '',
       key: 'actions',
-      render: (row) => (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => navigate(`/customers/${row.id}`)}
-          icon={Eye}
-          className="text-txt-primary hover:text-brand-primary hover:bg-bg-surface-elevated"
-          title="عرض تفاصيل العميل"
-        >
-          التفاصيل
-        </Button>
+      align: 'left',
+      width: '36px',
+      render: () => (
+        <div className="flex justify-end text-slate-500 group-hover:text-slate-200">
+          <ChevronLeft className="w-4 h-4 transition-colors" />
+        </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* 1. Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Users className="w-6 h-6 text-brand-primary" />
-            <span>إدارة العملاء (CRM)</span>
+          <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2.5">
+            <Users className="w-5 h-5 text-brand-primary" />
+            <span>إدارة العملاء</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
-            قاعدة بيانات العملاء، العناوين، وتاريخ طلباتهم
+            قاعدة بيانات العملاء، العناوين، وسجل الطلبات
           </p>
         </div>
 
         <PermissionGate permission="customers.create">
-          <Button variant="primary" size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
+          <Button
+            size="sm"
+            icon={Plus}
+            onClick={() => setIsModalOpen(true)}
+            className="bg-white text-slate-950 hover:bg-slate-200 font-bold border-0 shadow-sm text-xs"
+          >
             إضافة عميل
           </Button>
         </PermissionGate>
       </div>
 
+      {/* 2. Customers Data Table (Matching OrdersListPage) */}
       <DataTable
         columns={columns}
         data={customers}
@@ -103,6 +108,7 @@ export const CustomersListPage = () => {
         isError={isError}
         error={error}
         onRetry={refetch}
+        onRowClick={(row) => navigate(`/customers/${row.id}`)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="ابحث بالاسم أو الهاتف أو البريد..."
@@ -115,27 +121,31 @@ export const CustomersListPage = () => {
           onPageChange: setPage,
         }}
         mobileCardRender={(c) => (
-          <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
+          <div
+            onClick={() => navigate(`/customers/${c.id}`)}
+            className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3 cursor-pointer hover:border-brand-primary/40 active:bg-white/[0.02] transition-colors"
+          >
             <div className="flex items-center justify-between gap-2">
               <span className="font-bold text-sm text-txt-primary">{c.name}</span>
-              <span className="text-xs text-txt-muted">{c._count?.orders ?? 0} طلب</span>
+              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-bg-surface-elevated text-txt-muted border border-border-subtle">
+                {c._count?.orders ?? 0} طلبات
+              </span>
             </div>
-            {c.phone && (
-              <p className="text-xs text-txt-muted dir-ltr flex items-center gap-1">
-                <Phone className="w-3 h-3" />
-                {c.phone}
-              </p>
-            )}
-            {c.email && (
-              <p className="text-xs text-txt-muted dir-ltr flex items-center gap-1">
-                <Mail className="w-3 h-3" />
-                {c.email}
-              </p>
-            )}
-            <div className="flex items-center justify-end pt-2 border-t border-border-default">
-              <Button size="sm" variant="ghost" onClick={() => navigate(`/customers/${c.id}`)} icon={Eye} className="text-txt-primary hover:text-brand-primary">
-                التفاصيل
-              </Button>
+            <div className="text-xs text-txt-muted space-y-1">
+              {c.phone && (
+                <p className="dir-ltr text-right">
+                  الهاتف: <strong className="text-txt-primary font-mono">{c.phone}</strong>
+                </p>
+              )}
+              {c.email && (
+                <p className="dir-ltr text-right">
+                  البريد: <strong className="text-txt-primary">{c.email}</strong>
+                </p>
+              )}
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-border-default text-xs text-txt-muted">
+              <span>عرض ملف العميل</span>
+              <ChevronLeft className="w-4 h-4 text-brand-primary" />
             </div>
           </div>
         )}

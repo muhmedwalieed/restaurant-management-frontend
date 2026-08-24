@@ -92,7 +92,7 @@ export const BranchesListPage = () => {
             row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'
           }`}
         >
-          {row.phone ? `${row.phone}` : '—'}
+          {row.phone ? `${row.phone}` : 'غير محدد'}
         </span>
       ),
     },
@@ -105,7 +105,7 @@ export const BranchesListPage = () => {
             row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'
           }`}
         >
-          {row.address || '—'}
+          {row.address || 'غير محدد'}
         </span>
       ),
     },
@@ -133,7 +133,7 @@ export const BranchesListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-brand-primary" />
+            <Building2 className="w-5 h-5 text-brand-primary" />
             <span>إدارة الفروع والمواقع</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
@@ -204,13 +204,13 @@ export const BranchesListPage = () => {
               <p className="font-mono">الكود: {branch.code}</p>
               {branch.phone && (
                 <p className="flex items-center gap-1">
-                  <Phone className="w-3 h-3 text-txt-muted" />
+                  <Phone className="w-4 h-4 text-txt-muted" />
                   <span>{branch.phone}</span>
                 </p>
               )}
               {branch.address && (
                 <p className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-txt-muted" />
+                  <MapPin className="w-4 h-4 text-txt-muted" />
                   <span>{branch.address}</span>
                 </p>
               )}

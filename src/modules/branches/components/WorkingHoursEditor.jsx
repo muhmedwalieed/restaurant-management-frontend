@@ -48,7 +48,7 @@ const TIMEZONE_OPTIONS = [
 ];
 
 const timeInputClass =
-  'w-24 bg-bg-base border border-border-default rounded-md py-1.5 pl-2 pr-8 text-center text-xs text-txt-primary font-mono focus-visible:outline-none focus-visible:border-brand-primary disabled:opacity-40 disabled:cursor-not-allowed';
+  'w-24 bg-bg-base border border-border-default rounded-md py-2 pl-2 pr-8 text-center text-xs text-txt-primary font-mono focus-visible:outline-none focus-visible:border-brand-primary disabled:opacity-40 disabled:cursor-not-allowed';
 
 export const WorkingHoursEditor = ({
   initialData = [],
@@ -222,7 +222,7 @@ export const WorkingHoursEditor = ({
 
                       <td className="px-4 py-3">
                         <div className="relative mx-auto w-fit">
-                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-txt-muted pointer-events-none" />
+                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
                           <input
                             type="text"
                             value={item.openTime}
@@ -230,7 +230,7 @@ export const WorkingHoursEditor = ({
                             placeholder="09:00"
                             maxLength={5}
                             disabled={!item.isOpen || is247}
-                            aria-label={`${labelAr} — ساعة البداية`}
+                            aria-label={`${labelAr}، ساعة البداية`}
                             className={timeInputClass}
                           />
                         </div>
@@ -238,7 +238,7 @@ export const WorkingHoursEditor = ({
 
                       <td className="px-4 py-3">
                         <div className="relative mx-auto w-fit">
-                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-txt-muted pointer-events-none" />
+                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
                           <input
                             type="text"
                             value={item.closeTime}
@@ -246,7 +246,7 @@ export const WorkingHoursEditor = ({
                             placeholder="23:00"
                             maxLength={5}
                             disabled={!item.isOpen || is247}
-                            aria-label={`${labelAr} — ساعة النهاية`}
+                            aria-label={`${labelAr}، ساعة النهاية`}
                             className={timeInputClass}
                           />
                         </div>

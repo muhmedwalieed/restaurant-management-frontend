@@ -7,7 +7,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { modifierFormSchema } from '../schemas/menu.schema.js';
 import { useCreateModifierMutation, useUpdateModifierMutation } from '../hooks/useMenu.js';
-import { PlusCircle, DollarSign } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 
 export const ModifierFormModal = ({
   isOpen,
@@ -96,18 +96,19 @@ export const ModifierFormModal = ({
         />
 
         <Input
-          label="الفرق في السعر (+EGP)"
+          label="الفرق في السعر الإضافي"
           type="number"
           step="0.01"
           min="0"
           placeholder="0.00"
-          helperText="0 يعني خيار بدون تكلفة إضافية"
-          icon={DollarSign}
+          helperText="0 يعني خيار مجاني بدون تكلفة إضافية"
+          prefix="+"
+          suffix="ج.م"
           error={errors.priceDelta?.message}
           {...register('priceDelta')}
         />
 
-        <div className="flex items-center justify-between p-3 bg-bg-surface-elevated/50 border border-border-default rounded-md">
+        <div className="flex items-center justify-between p-3 bg-bg-base/60 border border-border-default rounded-lg">
           <div>
             <span className="text-xs font-medium text-txt-primary block">خيار إجباري عند الطلب</span>
             <span className="text-[11px] text-txt-muted">يلزم العميل باختيار هذا الخيار قبل الإضافة للسلة</span>
@@ -127,12 +128,23 @@ export const ModifierFormModal = ({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-default">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-white/[0.06]">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isPending}
+            className="border-white/10 text-xs"
+          >
             إلغاء
           </Button>
-          <Button type="submit" variant="primary" isLoading={isPending}>
-            {isEditing ? 'حفظ الخيار' : 'إضافة الخيار'}
+          <Button
+            type="submit"
+            size="sm"
+            isLoading={isPending}
+            className="bg-white text-slate-950 font-medium hover:bg-slate-200 border-none shadow-sm text-xs"
+          >
+            {isEditing ? 'حفظ التعديل' : 'إضافة الخيار'}
           </Button>
         </div>
       </form>

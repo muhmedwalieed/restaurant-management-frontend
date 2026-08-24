@@ -72,7 +72,7 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
             <Sliders className="w-4 h-4 text-brand-primary" />
             <span>إعدادات تشغيل الفرع الحسابية</span>
           </h3>
-          <p className="text-xs text-txt-muted mt-0.5">
+          <p className="text-xs text-txt-muted mt-1">
             ضبط العملة والتوقيت المحلي الخاص بالفرع
           </p>
         </div>

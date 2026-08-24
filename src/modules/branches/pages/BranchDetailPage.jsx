@@ -113,7 +113,7 @@ export const BranchDetailPage = () => {
   if (isError) {
     return (
       <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
-        <AlertCircle className="w-8 h-8 text-status-danger mx-auto" />
+        <AlertCircle className="w-6 h-6 text-status-danger mx-auto" />
         <h3 className="text-base font-bold text-txt-primary">فشل في تحميل تفاصيل الفرع</h3>
         <p className="text-xs text-txt-muted">{error?.message || 'تعذر التواصل مع الخادم.'}</p>
         <Button size="sm" variant="outline" onClick={refetch}>
@@ -138,7 +138,7 @@ export const BranchDetailPage = () => {
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-txt-primary">{branch?.name || 'تفاصيل الفرع'}</h1>
           {branch?.isMain && branch?.status === 'ACTIVE' && (
-            <span title="الفرع الرئيسي — نشط" aria-label="الفرع الرئيسي — نشط">
+            <span title="الفرع الرئيسي، نشط" aria-label="الفرع الرئيسي، نشط">
               <BadgeCheck className="w-5 h-5 text-status-success" />
             </span>
           )}
@@ -149,7 +149,7 @@ export const BranchDetailPage = () => {
       <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
         <button
           onClick={() => setActiveTab('general')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'general'
               ? 'border-brand-primary text-brand-primary'
               : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -161,7 +161,7 @@ export const BranchDetailPage = () => {
 
         <button
           onClick={() => setActiveTab('working-hours')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'working-hours'
               ? 'border-brand-primary text-brand-primary'
               : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -173,7 +173,7 @@ export const BranchDetailPage = () => {
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'settings'
               ? 'border-brand-primary text-brand-primary'
               : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -185,7 +185,7 @@ export const BranchDetailPage = () => {
 
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+          className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'users'
               ? 'border-brand-primary text-brand-primary'
               : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -267,7 +267,7 @@ export const BranchDetailPage = () => {
               />
               <label
                 htmlFor="isMainDetail"
-                className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-1.5"
+                className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-2"
               >
                 <ShieldCheck className="w-4 h-4 text-brand-primary" />
                 <span>الفرع الرئيسي</span>

@@ -27,8 +27,8 @@ describe('WorkingHoursEditor Component Unit Tests', () => {
     fireEvent.click(switches[0]);
     expect(switches[0]).toHaveAttribute('aria-checked', 'false');
 
-    const satStart = screen.getByLabelText('السبت — ساعة البداية');
-    const satEnd = screen.getByLabelText('السبت — ساعة النهاية');
+    const satStart = screen.getByLabelText('السبت، ساعة البداية');
+    const satEnd = screen.getByLabelText('السبت، ساعة النهاية');
     expect(satStart).toBeDisabled();
     expect(satEnd).toBeDisabled();
   });

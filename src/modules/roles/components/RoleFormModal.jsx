@@ -104,7 +104,7 @@ export const RoleFormModal = ({
 
         {/* Permission Matrix */}
         <div className="space-y-4 pt-2">
-          <h4 className="text-xs font-bold text-txt-primary flex items-center gap-1.5 border-b border-border-default pb-2">
+          <h4 className="text-xs font-bold text-txt-primary flex items-center gap-2 border-b border-border-default pb-2">
             <ShieldCheck className="w-4 h-4 text-brand-primary" />
             <span>مصفوفة الصلاحيات المتاحة (Permissions Matrix)</span>
           </h4>
@@ -124,7 +124,7 @@ export const RoleFormModal = ({
                 <span className="text-xs font-bold text-brand-primary block">
                   {group.module}
                 </span>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {group.permissions.map((p) => {
                     const isChecked = selectedPermissions.includes(p.key);
                     return (

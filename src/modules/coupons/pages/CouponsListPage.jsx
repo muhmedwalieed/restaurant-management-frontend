@@ -39,7 +39,7 @@ export const CouponsListPage = () => {
       header: 'الكود',
       accessorKey: 'code',
       render: (row) => (
-        <span className="dir-ltr inline-block font-bold text-txt-primary px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary">
+        <span className="dir-ltr inline-block font-bold text-txt-primary px-2 py-1 rounded bg-brand-primary/10 text-brand-primary">
           {row.code}
         </span>
       ),
@@ -56,7 +56,7 @@ export const CouponsListPage = () => {
     {
       header: 'حد أدنى',
       accessorKey: 'minSubtotal',
-      render: (row) => <span className="text-txt-muted">{Number(row.minSubtotal) > 0 ? formatMoney(row.minSubtotal) : '—'}</span>,
+      render: (row) => <span className="text-txt-muted">{Number(row.minSubtotal) > 0 ? formatMoney(row.minSubtotal) : 'غير محدد'}</span>,
     },
     {
       header: 'الاستخدام',
@@ -73,7 +73,7 @@ export const CouponsListPage = () => {
       accessorKey: 'isActive',
       render: (row) => (
         <span
-          className={`text-[11px] px-2 py-0.5 rounded-full ${
+          className={`text-xs px-2 py-1 rounded-full ${
             row.isActive ? 'bg-status-success/10 text-status-success font-bold' : 'bg-bg-surface-elevated text-txt-muted'
           }`}
         >
@@ -111,10 +111,10 @@ export const CouponsListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <TicketPercent className="w-6 h-6 text-brand-primary" />
+            <TicketPercent className="w-5 h-5 text-brand-primary" />
             <span>كوبونات الخصم</span>
           </h1>
-          <p className="text-xs text-txt-muted mt-1">كوبونات النسبة المئوية والمبلغ الثابت بتطبق تلقائيًا على الأوردرات</p>
+          <p className="text-xs text-txt-muted mt-1">كوبونات النسبة المئوية والمبلغ الثابت بتطبق تلقائيًا على الطلبات</p>
         </div>
 
         <PermissionGate permission="coupons.manage">

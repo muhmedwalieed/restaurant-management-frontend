@@ -24,7 +24,7 @@ const NOTIFICATION_TYPES = [
 ];
 
 const formatDate = (iso) => {
-  if (!iso) return '—';
+  if (!iso) return 'غير محدد';
   const d = new Date(iso);
   return d.toLocaleString('ar-EG', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 };
@@ -62,7 +62,7 @@ export const NotificationsPage = () => {
       header: 'الإشعار',
       accessorKey: 'title',
       render: (row) => (
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col gap-1">
           <span className={`text-sm ${row.isRead ? 'text-txt-muted' : 'font-bold text-txt-primary'}`}>{row.title}</span>
           {row.body && <span className="text-xs text-txt-muted">{row.body}</span>}
         </div>
@@ -73,7 +73,7 @@ export const NotificationsPage = () => {
       accessorKey: 'isRead',
       width: '100px',
       render: (row) => (
-        <span className={`text-[11px] px-2 py-0.5 rounded-full ${row.isRead ? 'bg-bg-surface-elevated text-txt-muted' : 'bg-brand-primary/10 text-brand-primary font-bold'}`}>
+        <span className={`text-xs px-2 py-1 rounded-full ${row.isRead ? 'bg-bg-surface-elevated text-txt-muted' : 'bg-brand-primary/10 text-brand-primary font-bold'}`}>
           {row.isRead ? 'مقروء' : 'جديد'}
         </span>
       ),
@@ -102,11 +102,11 @@ export const NotificationsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Bell className="w-6 h-6 text-brand-primary" />
+            <Bell className="w-5 h-5 text-brand-primary" />
             <span>الإشعارات</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
-            {unreadQuery.data?.count ?? 0} إشعار غير مقروء — تنبيهات الأوردرات والمحادثات
+            {unreadQuery.data?.count ?? 0} إشعار غير مقروء، تنبيهات الطلبات والمحادثات
           </p>
         </div>
         <div className="flex items-center gap-2">

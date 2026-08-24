@@ -74,12 +74,12 @@ export const RolesListPage = () => {
           <div className="flex items-center gap-2">
             <span className="font-bold text-txt-primary">{row.name}</span>
             {row.isSystem && (
-              <StatusPill status="info" className="text-[10px] py-0 px-1.5">
+              <StatusPill status="info" className="text-xs py-0 px-2">
                 دور نظام
               </StatusPill>
             )}
           </div>
-          <span className="text-[11px] text-txt-muted mt-0.5">{row.description || 'بدون وصف'}</span>
+          <span className="text-xs text-txt-muted mt-1">{row.description || 'بدون وصف'}</span>
         </div>
       ),
     },
@@ -136,7 +136,7 @@ export const RolesListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-brand-primary" />
+            <ShieldCheck className="w-5 h-5 text-brand-primary" />
             <span>إدارة الأدوار والصلاحيات</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">

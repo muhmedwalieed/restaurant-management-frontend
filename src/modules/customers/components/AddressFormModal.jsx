@@ -83,7 +83,7 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
         <div className="flex items-center justify-between p-3 bg-bg-surface-elevated/50 border border-border-default rounded-md">
           <div>
             <span className="text-xs font-medium text-txt-primary block">العنوان الافتراضي</span>
-            <span className="text-[11px] text-txt-muted">يستخدم كعنوان أساسي للتوصيل</span>
+            <span className="text-xs text-txt-muted">يستخدم كعنوان أساسي للتوصيل</span>
           </div>
           <Toggle checked={isDefaultValue} onChange={(val) => setValue('isDefault', val)} label="تحديد كافتراضي" />
         </div>

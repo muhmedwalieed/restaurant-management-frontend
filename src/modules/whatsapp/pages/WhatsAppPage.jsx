@@ -148,7 +148,7 @@ export const WhatsAppPage = () => {
     {
       header: 'الرسالة',
       accessorKey: 'content',
-      render: (row) => <span className="text-txt-muted truncate max-w-[260px] inline-block">{row.content || '—'}</span>,
+      render: (row) => <span className="text-txt-muted truncate max-w-[260px] inline-block">{row.content || 'غير محدد'}</span>,
     },
     {
       header: 'الحالة',
@@ -161,7 +161,7 @@ export const WhatsAppPage = () => {
       header: 'الوقت',
       accessorKey: 'createdAt',
       width: '130px',
-      render: (row) => <span className="text-txt-muted text-[11px]">{new Date(row.createdAt).toLocaleString('ar-EG')}</span>,
+      render: (row) => <span className="text-txt-muted text-xs">{new Date(row.createdAt).toLocaleString('ar-EG')}</span>,
     },
   ];
 
@@ -171,7 +171,7 @@ export const WhatsAppPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-brand-primary" />
+            <MessageSquare className="w-5 h-5 text-brand-primary" />
             <span>الواتساب والرسائل</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">ربط حساب الواتساب وإرسال الرسائل ومتابعة حالتها</p>
@@ -210,7 +210,7 @@ export const WhatsAppPage = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+              className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === tab.key
                   ? 'border-brand-primary text-brand-primary'
                   : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -247,9 +247,9 @@ export const WhatsAppPage = () => {
 
                 <Input label="Account ID (WABA ID)" dir="ltr" icon={Phone} error={connectErrors.providerAccountId?.message} {...registerConnect('providerAccountId')} />
                 <Input label="Phone Number ID" dir="ltr" icon={Phone} error={connectErrors.providerPhoneNumberId?.message} {...registerConnect('providerPhoneNumberId')} />
-                <Input label="اسم العرض (اختياري)" icon={MessageSquare} {...registerConnect('displayName')} />
+                <Input label="اسم العرض" icon={MessageSquare} {...registerConnect('displayName')} />
                 <Input
-                  label="Webhook Secret (اختياري — 16 حرفًا على الأقل)"
+                  label="Webhook Secret (اختياري، 16 حرفًا على الأقل)"
                   dir="ltr"
                   type="password"
                   error={connectErrors.webhookSecret?.message}
@@ -273,7 +273,7 @@ export const WhatsAppPage = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-txt-muted">
                     <p>
-                      اسم العرض: <strong className="text-txt-primary">{connection.displayName || '—'}</strong>
+                      اسم العرض: <strong className="text-txt-primary">{connection.displayName || 'غير محدد'}</strong>
                     </p>
                     <p>
                       الـProvider: <strong className="text-txt-primary">{PROVIDER_LABELS[connection.provider] || connection.provider}</strong>

@@ -71,10 +71,10 @@ export const CustomerFormModal = ({ isOpen, onClose, customerToEdit = null }) =>
           error={errors.phone?.message}
           {...register('phone')}
         />
-        <Input label="البريد الإلكتروني (اختياري)" dir="ltr" icon={Mail} error={errors.email?.message} {...register('email')} />
+        <Input label="البريد الإلكتروني" dir="ltr" icon={Mail} error={errors.email?.message} {...register('email')} />
 
-        <div className="flex flex-col gap-1.5 w-full text-right">
-          <label className="text-xs font-medium text-txt-primary">ملاحظات (اختياري)</label>
+        <div className="flex flex-col gap-2 w-full text-right">
+          <label className="text-xs font-medium text-txt-primary">ملاحظات</label>
           <textarea
             rows={2}
             placeholder="مثال: عميل VIP، يفضل الاتصال مساءً..."

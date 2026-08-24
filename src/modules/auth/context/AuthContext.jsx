@@ -109,7 +109,7 @@ useEffect(() => {
       const refreshToken = res?.refreshToken;
 
       if (!accessToken) {
-        throw new Error('استجابة تسجيل الدخول غير صالحة — missing access token');
+        throw new Error('استجابة تسجيل الدخول غير صالحة، missing access token');
       }
 
       setToken(accessToken);

@@ -61,13 +61,13 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'تعديل الترابيزة' : 'إضافة ترابيزة جديدة'}
-      subtitle={isEditing ? 'تعديل اسم/رقم الترابيزة والسعة والحالة' : 'أدخل بيانات الترابيزة الجديدة لإضافتها للفرع'}
+      title={isEditing ? 'تعديل الطاولة' : 'إضافة طاولة جديدة'}
+      subtitle={isEditing ? 'تعديل اسم/رقم الطاولة والسعة والحالة' : 'أدخل بيانات الطاولة الجديدة لإضافتها للفرع'}
       size="md"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
-          label="اسم / رقم الترابيزة"
+          label="اسم / رقم الطاولة"
           placeholder="مثال: T1، طاولة 5، شباك 2..."
           required
           icon={isEditing ? Edit3 : Grid3x3}
@@ -78,16 +78,18 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="السعة (عدد الأفراد)"
+            required
             type="number"
             min="1"
-            helperText="أقصى عدد أفراد على الترابيزة"
+            helperText="أقصى عدد أفراد على الطاولة"
             icon={Users}
             error={errors.capacity?.message}
             {...register('capacity')}
           />
 
           <Select
-            label="حالة الترابيزة"
+            label="حالة الطاولة"
+            required
             options={TABLE_STATUS_OPTIONS}
             error={errors.status?.message}
             {...register('status')}
@@ -98,7 +100,7 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
             {createMutation.error?.message ||
               updateMutation.error?.message ||
-              'حدث خطأ أثناء حفظ الترابيزة، يرجى المحاولة مرة أخرى'}
+              'حدث خطأ أثناء حفظ الطاولة، يرجى المحاولة مرة أخرى'}
           </div>
         )}
 
@@ -107,7 +109,7 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
             إلغاء
           </Button>
           <Button type="submit" variant="primary" isLoading={isPending}>
-            {isEditing ? 'حفظ التعديلات' : 'إضافة الترابيزة'}
+            {isEditing ? 'حفظ التعديلات' : 'إضافة الطاولة'}
           </Button>
         </div>
       </form>

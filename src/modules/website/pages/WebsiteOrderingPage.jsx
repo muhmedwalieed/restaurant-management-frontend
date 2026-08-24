@@ -38,7 +38,7 @@ export const WebsiteOrderingPage = () => {
         const res = await getPublicMenuApi({ slug });
         if (active) setData(res);
       } catch (err) {
-        if (active) setError(err?.message || 'تعذر تحميل المنيو.');
+        if (active) setError(err?.message || 'تعذر تحميل قائمة الطعام.');
       } finally {
         if (active) setIsLoading(false);
       }
@@ -104,17 +104,17 @@ export const WebsiteOrderingPage = () => {
   if (isLoading) return (
     <div className="min-h-screen bg-bg-base flex flex-col items-center py-10 px-4">
       <div className="w-full max-w-md space-y-4">
-        <LoadingSkeleton height={90} className="w-full rounded-xl" />
-        <LoadingSkeleton height={120} className="w-full rounded-xl" />
-        <LoadingSkeleton height={120} className="w-full rounded-xl" />
+        <LoadingSkeleton height={90} className="w-full rounded-lg" />
+        <LoadingSkeleton height={120} className="w-full rounded-lg" />
+        <LoadingSkeleton height={120} className="w-full rounded-lg" />
       </div>
     </div>
   );
 
   if (error) return (
     <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
-      <div className="bg-bg-surface border border-status-danger/30 rounded-2xl p-8 text-center space-y-4 max-w-sm">
-        <AlertCircle className="w-12 h-12 text-status-danger mx-auto" />
+      <div className="bg-bg-surface border border-status-danger/30 rounded-lg p-8 text-center space-y-4 max-w-sm">
+        <AlertCircle className="w-6 h-6 text-status-danger mx-auto" />
         <h1 className="text-lg font-bold text-txt-primary">المطعم غير متاح</h1>
         <p className="text-sm text-txt-muted">{error}</p>
       </div>
@@ -124,15 +124,13 @@ export const WebsiteOrderingPage = () => {
   return (
     <div className="min-h-screen bg-bg-base">
       {/* Header */}
-      <div className="bg-gradient-to-b from-brand-primary/15 to-transparent border-b border-border-default">
+      <div className="border-b border-border-default">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
             {restaurant.logoUrl ? (
-              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-16 h-16 object-cover rounded-2xl border border-border-default shadow-lg" />
+              <img src={restaurant.logoUrl} alt={restaurant.name} className="w-16 h-16 object-cover rounded-lg border border-border-default" />
             ) : (
-              <div className="w-16 h-16 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-center shadow-lg">
-                <Store className="w-8 h-8 text-brand-primary" />
-              </div>
+              <Store className="w-8 h-8 text-brand-primary" />
             )}
             <div>
               <h1 className="text-2xl font-bold text-txt-primary">{restaurant.name || 'مطعمنا'}</h1>
@@ -152,13 +150,13 @@ export const WebsiteOrderingPage = () => {
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {tab === 'track' ? (
-          <div className="max-w-md mx-auto bg-bg-surface border border-border-default rounded-2xl p-6 space-y-4">
+          <div className="max-w-md mx-auto bg-bg-surface border border-border-default rounded-lg p-6 space-y-4">
             <h2 className="text-base font-bold text-txt-primary flex items-center gap-2"><PackageSearch className="w-5 h-5 text-brand-primary" /> تتبع الطلب</h2>
             <Input label="رقم الطلب" type="number" dir="ltr" value={trackNumber} onChange={(e) => setTrackNumber(e.target.value)} />
             <Input label="رقم الهاتف" dir="ltr" value={trackPhone} onChange={(e) => setTrackPhone(e.target.value)} />
             {trackError && <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2"><AlertCircle className="w-4 h-4 shrink-0" /><span>{trackError}</span></div>}
             {trackResult && (
-              <div className="bg-bg-base border border-border-default rounded-xl p-4 space-y-2">
+              <div className="bg-bg-base border border-border-default rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-mono font-bold text-txt-primary">#{trackResult.orderNumber}</span>
                   <StatusPill status={orderStatusPill(trackResult.status)}>{ORDER_STATUS_LABELS[trackResult.status] || trackResult.status}</StatusPill>
@@ -167,24 +165,26 @@ export const WebsiteOrderingPage = () => {
                 <p className="text-xs text-txt-muted">{new Date(trackResult.createdAt).toLocaleString('ar-EG')}</p>
               </div>
             )}
-            <Button variant="primary" className="w-full" isLoading={tracking} onClick={handleTrack}>تتبع</Button>
+            <div className="flex justify-center pt-2">
+              <Button variant="primary" isLoading={tracking} onClick={handleTrack}>تتبع</Button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Menu */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-                <button onClick={() => setSelectedCatId('ALL')} className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap ${selectedCatId === 'ALL' ? 'bg-brand-primary text-white' : 'bg-bg-surface border border-border-default text-txt-muted'}`}>الكل ({totalProducts})</button>
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+                <button onClick={() => setSelectedCatId('ALL')} className={`px-3 py-2 rounded-full font-bold whitespace-nowrap ${selectedCatId === 'ALL' ? 'bg-brand-primary text-white' : 'bg-bg-surface border border-border-default text-txt-muted'}`}>الكل ({totalProducts})</button>
                 {categories.map((c) => (
-                  <button key={c.id} onClick={() => setSelectedCatId(c.id)} className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap ${selectedCatId === c.id ? 'bg-brand-primary text-white' : 'bg-bg-surface border border-border-default text-txt-muted'}`}>{c.name} ({c.products?.length || 0})</button>
+                  <button key={c.id} onClick={() => setSelectedCatId(c.id)} className={`px-3 py-2 rounded-full font-bold whitespace-nowrap ${selectedCatId === c.id ? 'bg-brand-primary text-white' : 'bg-bg-surface border border-border-default text-txt-muted'}`}>{c.name} ({c.products?.length || 0})</button>
                 ))}
               </div>
               {filtered.map((cat) => (
                 <div key={cat.id} className="space-y-2">
-                  <h3 className="text-sm font-bold text-txt-primary flex items-center gap-1.5"><Tag className="w-4 h-4 text-brand-primary" />{cat.name}</h3>
+                  <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2"><Tag className="w-4 h-4 text-brand-primary" />{cat.name}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {cat.products?.map((p) => (
-                      <div key={p.id} className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-start justify-between gap-3">
+                      <div key={p.id} className="bg-bg-surface border border-border-default rounded-lg p-3 flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0 space-y-1">
                           <h4 className="text-sm font-bold text-txt-primary">{p.name}</h4>
                           {p.description && <p className="text-xs text-txt-muted line-clamp-2">{p.description}</p>}
@@ -200,15 +200,15 @@ export const WebsiteOrderingPage = () => {
 
             {/* Cart + Checkout */}
             <div className="space-y-4">
-              <div className="bg-bg-surface border border-border-default rounded-2xl p-4 space-y-3">
+              <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2"><ShoppingCart className="w-4 h-4 text-brand-primary" /> السلة ({cartCount})</h3>
                 {cart.length === 0 ? <p className="text-xs text-txt-muted text-center py-4">السلة فارغة.</p> : (
                   <div className="space-y-2 max-h-56 overflow-y-auto">
                     {cart.map((i) => (
-                      <div key={i.productId} className="flex items-center justify-between gap-2 bg-bg-base border border-border-default rounded-lg px-3 py-2">
+                      <div key={i.productId} className="flex items-center justify-between gap-2 bg-bg-base border border-border-default rounded-md px-3 py-2">
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-txt-primary truncate">{i.name}</p>
-                          <p className="text-[11px] text-txt-muted">{(i.unitPrice * i.quantity).toFixed(2)} EGP</p>
+                          <p className="text-xs text-txt-muted">{(i.unitPrice * i.quantity).toFixed(2)} EGP</p>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <Button variant="outline" size="sm" icon={Minus} onClick={() => changeQty(i.productId, -1)} />
@@ -225,7 +225,7 @@ export const WebsiteOrderingPage = () => {
                 </div>
               </div>
 
-              <div className="bg-bg-surface border border-border-default rounded-2xl p-4 space-y-3">
+              <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-bold text-txt-primary">إتمام الطلب</h3>
                 <Select label="نوع الطلب" options={[{ value: 'DELIVERY', label: 'توصيل' }, { value: 'PICKUP', label: 'استلام' }]} value={orderType} onChange={(e) => setOrderType(e.target.value)} />
                 <Input label="اسم العميل" value={name} onChange={(e) => setName(e.target.value)} />

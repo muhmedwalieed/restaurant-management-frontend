@@ -11,7 +11,7 @@ import { DataTable } from '../../../shared/components/DataTable.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { Utensils, FolderPlus, Plus, Eye, Tag, ExternalLink } from 'lucide-react';
+import { Utensils, FolderPlus, Plus, Eye, Tag, Edit3 } from 'lucide-react';
 
 const CATEGORY_STATUS_OPTIONS = [
   { value: 'ALL', label: 'جميع الحالات' },
@@ -99,40 +99,36 @@ export const MenuManagementPage = () => {
       accessorKey: 'name',
       render: (prod) => (
         <div className="flex items-center gap-3">
-          {prod.imageUrl ? (
+          {prod.imageUrl && (
             <img
               src={prod.imageUrl}
               alt={prod.name}
-              className={`w-10 h-10 object-cover rounded-md border border-border-default shrink-0 ${
+              className={`w-10 h-10 object-cover rounded-lg border border-border-subtle shrink-0 ${
                 prod.status !== 'ACTIVE' ? 'opacity-50' : ''
               }`}
             />
-          ) : (
-            <div
-              className={`w-10 h-10 bg-bg-surface-elevated border border-border-default rounded-md flex items-center justify-center shrink-0 ${
-                prod.status !== 'ACTIVE' ? 'text-txt-muted opacity-50' : 'text-txt-muted'
-              }`}
-            >
-              <Utensils className="w-5 h-5" />
-            </div>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-0.5">
             <NavLink
               to={`/menu/products/${prod.id}`}
-              className={`font-bold transition-colors flex items-center gap-1 ${
+              className={`font-bold transition-colors block ${
                 prod.status !== 'ACTIVE' ? 'text-txt-muted hover:text-txt-muted' : 'text-txt-primary hover:text-brand-primary'
               }`}
             >
-              <span className="truncate max-w-[160px]">{prod.name}</span>
-              <ExternalLink className="w-3 h-3 text-txt-muted shrink-0" />
+              <span className="truncate max-w-[260px] block">{prod.name}</span>
             </NavLink>
             {prod.description && (
-              <p className={`text-[11px] line-clamp-1 max-w-[200px] ${prod.status !== 'ACTIVE' ? 'text-txt-muted/70' : 'text-txt-muted'}`}>
+              <p
+                dir="auto"
+                className={`text-xs font-normal leading-relaxed line-clamp-1 max-w-[340px] text-right ${
+                  prod.status !== 'ACTIVE' ? 'text-txt-muted/70' : 'text-slate-400'
+                }`}
+              >
                 {prod.description}
               </p>
             )}
             {prod.modifiers && prod.modifiers.length > 0 && (
-              <span className="text-[10px] text-brand-primary font-medium">
+              <span className="inline-block text-[11px] text-brand-primary font-medium">
                 +{prod.modifiers.length} إضافات متوفرة
               </span>
             )}
@@ -143,8 +139,9 @@ export const MenuManagementPage = () => {
     {
       header: 'التصنيف',
       accessorKey: 'categoryId',
+      width: '140px',
       render: (prod) => (
-        <span className={`font-medium ${prod.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+        <span className={`font-medium text-xs ${prod.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
           {prod.category?.name || 'غير محدد'}
         </span>
       ),
@@ -152,27 +149,26 @@ export const MenuManagementPage = () => {
     {
       header: 'السعر',
       accessorKey: 'price',
-      width: '100px',
+      width: '110px',
       render: (prod) => (
-        <span className={`font-bold ${prod.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+        <span className={`font-mono font-bold text-xs ${prod.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
           {Number(prod.price).toFixed(2)} EGP
         </span>
       ),
     },
     {
-      header: 'التفاصيل',
+      header: 'الإجراءات',
       key: 'actions',
+      width: '80px',
       render: (prod) => (
-        <Button
-          size="sm"
-          variant="ghost"
+        <button
+          type="button"
           onClick={() => navigate(`/menu/products/${prod.id}`)}
-          icon={Eye}
-          className="text-txt-primary hover:text-brand-primary hover:bg-bg-surface-elevated"
-          title="عرض تفاصيل المنتج"
+          className="p-1.5 rounded-lg text-txt-muted hover:text-white hover:bg-white/[0.06] transition-colors"
+          title="تعديل المنتج"
         >
-          التفاصيل
-        </Button>
+          <Edit3 className="w-4 h-4" />
+        </button>
       ),
     },
   ];
@@ -194,8 +190,8 @@ export const MenuManagementPage = () => {
       header: 'الوصف',
       accessorKey: 'description',
       render: (cat) => (
-        <span className="truncate max-w-[260px] inline-block text-txt-muted">
-          {cat.description || '—'}
+        <span className="truncate max-w-[260px] inline-block text-txt-muted text-xs">
+          {cat.description || 'غير محدد'}
         </span>
       ),
     },
@@ -203,62 +199,78 @@ export const MenuManagementPage = () => {
       header: 'الأصناف',
       accessorKey: '_count',
       width: '90px',
-      render: (cat) => <span className="font-bold text-txt-primary">{cat._count?.products ?? 0}</span>,
+      render: (cat) => <span className="font-bold text-txt-primary font-mono text-xs">{cat._count?.products ?? 0}</span>,
     },
     {
       header: 'الترتيب',
       accessorKey: 'sortOrder',
       width: '90px',
       render: (cat) => (
-        <span className={`font-medium ${cat.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+        <span className={`font-mono font-medium text-xs ${cat.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
           {cat.sortOrder ?? 0}
         </span>
       ),
     },
     {
-      header: 'التفاصيل',
+      header: 'الإجراءات',
       key: 'actions',
+      width: '90px',
       render: (cat) => (
         <Button
           size="sm"
-          variant="ghost"
+          variant="outline"
           onClick={() => navigate(`/menu?tab=products&category=${cat.id}`)}
-          icon={Eye}
-          className="text-txt-primary hover:text-brand-primary hover:bg-bg-surface-elevated"
-          title="عرض منتجات التصنيف"
+          className="border-white/10 hover:bg-white/[0.06] text-xs h-7 px-2.5"
+          title="عرض منتجات هذا التصنيف"
         >
-          التفاصيل
+          المنتجات
         </Button>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header section (consistent with Branches) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Header section with clean aligned actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Utensils className="w-6 h-6 text-brand-primary" />
-            <span>إدارة المنيو والمنتجات</span>
+            <Utensils className="w-5 h-5 text-brand-primary" />
+            <span>إدارة قائمة الطعام والمنتجات</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
-            إدارة التصنيفات، أصناف المأكولات، التوافر الفوري للمطبخ، وخيارات الإضافات
+            إدارة التصنيفات، أصناف المأكولات، التوافر الفوري للمطبخ، وخيارات الإضافات.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" icon={Eye} onClick={() => setIsPreviewModalOpen(true)}>
-            معاينة المنيو العام (QR)
+          <Button
+            variant="outline"
+            size="sm"
+            icon={Eye}
+            onClick={() => setIsPreviewModalOpen(true)}
+            className="border-white/10 text-xs"
+          >
+            معاينة المنيو الرقمي
           </Button>
 
           <PermissionGate permission="menu.manage">
             {activeTab === 'products' ? (
-              <Button variant="primary" size="sm" icon={Plus} onClick={() => handleOpenProductModal()}>
+              <Button
+                size="sm"
+                icon={Plus}
+                onClick={() => handleOpenProductModal()}
+                className="bg-white text-slate-950 font-medium hover:bg-slate-200 border-none shadow-sm text-xs"
+              >
                 إضافة منتج
               </Button>
             ) : (
-              <Button variant="primary" size="sm" icon={FolderPlus} onClick={() => handleOpenCategoryModal()}>
+              <Button
+                size="sm"
+                icon={FolderPlus}
+                onClick={() => handleOpenCategoryModal()}
+                className="bg-white text-slate-950 font-medium hover:bg-slate-200 border-none shadow-sm text-xs"
+              >
                 إضافة تصنيف
               </Button>
             )}
@@ -266,14 +278,15 @@ export const MenuManagementPage = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs Bar */}
-      <div className="flex items-center gap-2 border-b border-border-default pb-2">
+      {/* Modern Underline Tabs Bar */}
+      <div className="flex items-center gap-2 border-b border-border-default">
         <button
+          type="button"
           onClick={() => setActiveTab('products')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === 'products'
-              ? 'bg-brand-primary text-white'
-              : 'text-txt-muted hover:text-txt-primary hover:bg-bg-surface'
+              ? 'border-white text-white'
+              : 'border-transparent text-txt-muted hover:text-txt-primary'
           }`}
         >
           <Utensils className="w-4 h-4" />
@@ -281,11 +294,12 @@ export const MenuManagementPage = () => {
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('categories')}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 transition-colors ${
             activeTab === 'categories'
-              ? 'bg-brand-primary text-white'
-              : 'text-txt-muted hover:text-txt-primary hover:bg-bg-surface'
+              ? 'border-white text-white'
+              : 'border-transparent text-txt-muted hover:text-txt-primary'
           }`}
         >
           <Tag className="w-4 h-4" />
@@ -306,7 +320,7 @@ export const MenuManagementPage = () => {
           onSearchChange={(v) => onProductsFilterChange(setSearchTerm)(v)}
           searchPlaceholder="ابحث باسم المنتج أو الوصف..."
           emptyTitle="لا توجد منتجات مطابقة"
-          emptyDescription="لم يتم العثور على أي صنف في المنيو. يمكنك إضافة منتج جديد الآن."
+          emptyDescription="لم يتم العثور على أي صنف في قائمة الطعام. يمكنك إضافة منتج جديد الآن."
           pagination={{
             page: productPage,
             totalPages: productsQuery.data?.pagination?.totalPages || 1,

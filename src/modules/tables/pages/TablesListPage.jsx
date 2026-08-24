@@ -10,7 +10,7 @@ import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
-import { Grid3x3, Plus, Users, Eye } from 'lucide-react';
+import { Grid3x3, Plus, Users, ArrowUpRight } from 'lucide-react';
 
 const STATUS_FILTER_OPTIONS = [
   { value: 'ALL', label: 'جميع الحالات' },
@@ -32,7 +32,7 @@ const statusPill = (status) => {
 
 export const TablesListPage = () => {
   const navigate = useNavigate();
-  const { activeBranchId, activeBranch } = useBranch();
+  const { activeBranchId } = useBranch();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [page, setPage] = useState(1);
@@ -55,7 +55,7 @@ export const TablesListPage = () => {
 
   const columns = [
     {
-      header: 'الترابيزة',
+      header: 'الطاولة',
       accessorKey: 'label',
       render: (row) => (
         <div className="flex items-center gap-2">
@@ -69,32 +69,33 @@ export const TablesListPage = () => {
     {
       header: 'السعة',
       accessorKey: 'capacity',
-      width: '100px',
+      width: '120px',
       render: (row) => (
-        <span className={`flex items-center gap-1 ${row.status === 'MAINTENANCE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
-          <Users className="w-3.5 h-3.5 text-txt-muted" />
-          <span className="font-semibold">{row.capacity}</span>
+        <span className={`flex items-center gap-1.5 ${row.status === 'MAINTENANCE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+          <Users className="w-4 h-4 text-txt-muted" />
+          <span className="font-semibold text-xs">{row.capacity} أفراد</span>
         </span>
       ),
     },
     {
       header: 'الحالة',
       accessorKey: 'status',
+      width: '120px',
       render: (row) => (
         <StatusPill status={statusPill(row.status)}>{TABLE_STATUS_LABELS[row.status] || row.status}</StatusPill>
       ),
     },
     {
-      header: 'التفاصيل',
+      header: 'الإجراءات',
       key: 'actions',
+      width: '100px',
       render: (row) => (
         <Button
           size="sm"
-          variant="ghost"
+          variant="outline"
           onClick={() => navigate(`/tables/${row.id}`)}
-          icon={Eye}
-          className="text-txt-primary hover:text-brand-primary hover:bg-bg-surface-elevated"
-          title="عرض تفاصيل الترابيزة"
+          icon={ArrowUpRight}
+          className="border-white/10 hover:bg-white/[0.06] text-xs"
         >
           التفاصيل
         </Button>
@@ -103,38 +104,35 @@ export const TablesListPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* 1. Header section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Grid3x3 className="w-6 h-6 text-brand-primary" />
-            <span>إدارة الترابيزات ورمز QR</span>
+            <Grid3x3 className="w-5 h-5 text-brand-primary" />
+            <span>إدارة الطاولات ورمز QR</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
-            إضافة الترابيزات وتحديد سعتها وحالتها ورموز QR الخاصة بكل ترابيزة
+            إضافة الطاولات وتحديد سعتها وحالتها وإدارة رموز QR الخاصة بالطلب الذاتي.
           </p>
         </div>
 
         <PermissionGate permission="tables.manage">
-          <Button variant="primary" size="sm" icon={Plus} onClick={() => setIsModalOpen(true)}>
-            إضافة ترابيزة
+          <Button
+            size="sm"
+            icon={Plus}
+            onClick={() => setIsModalOpen(true)}
+            className="bg-white text-slate-950 font-medium hover:bg-slate-200 border-none shadow-sm text-xs"
+          >
+            إضافة طاولة
           </Button>
         </PermissionGate>
       </div>
 
-      {activeBranch && (
-        <div className="flex items-center gap-2 text-xs text-txt-muted">
-          <span className="font-semibold text-txt-primary">الفرع الحالي:</span>
-          <span>{activeBranch.name}</span>
-          <span className="font-mono text-[10px]">({activeBranch.code})</span>
-        </div>
-      )}
-
       {!activeBranchId ? (
         <EmptyState
           title="لا يوجد فرع نشط"
-          description="اختر فرعًا من القائمة لعرض وإدارة الترابيزات الخاصة به."
+          description="اختر فرعًا من القائمة لعرض وإدارة الطاولات الخاصة به."
           icon={Grid3x3}
         />
       ) : (
@@ -147,9 +145,9 @@ export const TablesListPage = () => {
           onRetry={refetch}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          searchPlaceholder="ابحث باسم / رقم الترابيزة..."
-          emptyTitle="لا توجد ترابيزات مطابقة"
-          emptyDescription="لم يتم إضافة أي ترابيزة لهذا الفرع بعد."
+          searchPlaceholder="ابحث باسم / رقم الطاولة..."
+          emptyTitle="لا توجد طاولات مطابقة"
+          emptyDescription="لم يتم إضافة أي طاولة لهذا الفرع بعد."
           pagination={{
             page,
             totalPages: tablesResponse?.pagination?.totalPages || 1,
@@ -182,7 +180,7 @@ export const TablesListPage = () => {
               </div>
 
               <div className="flex items-center gap-1 text-xs text-txt-muted">
-                <Users className="w-3.5 h-3.5" />
+                <Users className="w-4 h-4" />
                 <span>
                   السعة: <strong className="text-txt-primary">{t.capacity}</strong> أفراد
                 </span>
@@ -191,11 +189,10 @@ export const TablesListPage = () => {
               <div className="flex items-center justify-end pt-2 border-t border-border-default">
                 <Button
                   size="sm"
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => navigate(`/tables/${t.id}`)}
-                  icon={Eye}
-                  className="text-txt-primary hover:text-brand-primary"
-                  title="عرض تفاصيل الترابيزة"
+                  icon={ArrowUpRight}
+                  className="border-white/10 hover:bg-white/[0.06] text-xs"
                 >
                   التفاصيل
                 </Button>

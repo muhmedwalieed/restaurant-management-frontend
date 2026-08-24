@@ -113,7 +113,7 @@ export const RestaurantSettingsPage = () => {
   if (isError) {
     return (
       <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
-        <ShieldAlert className="w-8 h-8 text-status-danger mx-auto" />
+        <ShieldAlert className="w-6 h-6 text-status-danger mx-auto" />
         <h3 className="text-base font-bold text-txt-primary">فشل في تحميل بيانات المطعم</h3>
         <p className="text-xs text-txt-muted">{error?.message || 'تعذر الاتصال بالسيرفر.'}</p>
         <Button size="sm" variant="outline" onClick={refetch}>
@@ -132,7 +132,7 @@ export const RestaurantSettingsPage = () => {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-              <Store className="w-6 h-6 text-brand-primary" />
+              <Store className="w-5 h-5 text-brand-primary" />
               <span>إعدادات المطعم الرئيسية</span>
             </h1>
             <StatusPill status={isStatusActive ? 'success' : 'neutral'}>

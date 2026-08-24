@@ -52,7 +52,7 @@ export const BranchUsersPanel = ({ branchId }) => {
             <div key={u.id} className="flex items-center justify-between px-4 py-3">
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-txt-primary">{u.name}</span>
-                <span className="text-[11px] text-txt-muted">
+                <span className="text-xs text-txt-muted">
                   {u.roleName || 'بدون دور'}
                   {u.isHomeBranch && <span className="mr-1 text-brand-primary font-bold">(الفرع الرئيسي)</span>}
                 </span>
