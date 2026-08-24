@@ -4,45 +4,46 @@
 
 @layer base {
   :root {
-    /* Backgrounds */
-    --bg-base: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-surface-elevated: #334155;
+    /* Backgrounds — unified single cool grey family */
+    --bg-base: #0b0f17;
+    --bg-surface: #0f172a;
+    --bg-surface-elevated: #1e293b;
 
-    /* Brand & Accent Colors */
-    --color-primary: #f59e0b;
-    --color-primary-hover: #d97706;
-    --color-accent: #38bdf8;
+    /* Brand Color (single accent — enterprise sky blue #38BDF8, target < 10% surface) */
+    --color-primary: #38bdf8;
+    --color-primary-hover: #0284c7;
 
     /* Text Colors */
     --text-primary: #f8fafc;
     --text-muted: #94a3b8;
-    --text-inverted: #0f172a;
+    --text-dim: #64748b;
+    --text-inverted: #0b0f17;
 
-    /* Borders */
-    --border-default: #334155;
-    --border-subtle: #1e293b;
+    /* Crisp, clean, fine 1px borders */
+    --border-default: rgba(255, 255, 255, 0.07);
+    --border-subtle: rgba(255, 255, 255, 0.04);
 
-    /* Status Colors & Backgrounds */
+    /* Status Colors & Backgrounds (semantic only: success / warning / danger) */
     --status-success: #10b981;
     --status-success-bg: rgba(16, 185, 129, 0.12);
-    
+
     --status-warning: #f59e0b;
     --status-warning-bg: rgba(245, 158, 11, 0.12);
-    
+
     --status-danger: #ef4444;
     --status-danger-bg: rgba(239, 68, 68, 0.12);
-    
-    --status-info: #3b82f6;
-    --status-info-bg: rgba(59, 130, 246, 0.12);
-    
+
+    /* Info and neutral */
+    --status-info: #94a3b8;
+    --status-info-bg: rgba(148, 163, 184, 0.12);
+
     --status-neutral: #64748b;
     --status-neutral-bg: rgba(100, 116, 139, 0.12);
 
-    /* Border Radius Scale (Section 6.12) */
+    /* Unified border-radius (rounded-md / 8px across the system) */
     --radius-sm: 6px;
     --radius-md: 8px;
-    --radius-lg: 12px;
+    --radius-lg: 8px;
     --radius-pill: 9999px;
   }
 
@@ -58,6 +59,23 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
+
+  /* Respect reduced-motion preferences: disable non-essential animation */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Unified icon stroke weight (single library, outline, consistent weight) */
+svg.lucide {
+  stroke-width: 1.75;
 }
 
 /* Custom Scrollbar for Operational Tables & Views */

@@ -9,7 +9,6 @@ export const COLOR_TOKENS = {
   bgSurfaceElevated: 'var(--bg-surface-elevated)',
   colorPrimary: 'var(--color-primary)',
   colorPrimaryHover: 'var(--color-primary-hover)',
-  colorAccent: 'var(--color-accent)',
   textPrimary: 'var(--text-primary)',
   textMuted: 'var(--text-muted)',
   textInverted: 'var(--text-inverted)',
@@ -41,9 +40,9 @@ export const STATUS_TOKENS = {
 };
 
 export const RADIUS_TOKENS = {
-  sm: '6px',
+  sm: '8px',
   md: '8px',
-  lg: '12px',
+  lg: '8px',
   pill: '9999px',
 };
 
