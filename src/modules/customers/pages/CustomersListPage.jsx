@@ -37,18 +37,16 @@ export const CustomersListPage = () => {
       accessorKey: 'phone',
       width: '150px',
       render: (row) => (
-        <span className="font-mono text-xs font-semibold text-txt-primary dir-ltr inline-block">
-          {row.phone || '—'}
-        </span>
-      ),
-    },
-    {
-      header: 'البريد الإلكتروني',
-      accessorKey: 'email',
-      render: (row) => (
-        <span className="text-xs text-txt-muted">
-          {row.email || '—'}
-        </span>
+        <div className="flex flex-col text-xs leading-tight">
+          <span className="font-mono font-semibold text-txt-primary dir-ltr inline-block">
+            {row.phone || '—'}
+          </span>
+          {(row.phones?.length || 0) > 1 && (
+            <span className="text-[11px] text-txt-muted">
+              {row.phones.length} أرقام
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -111,7 +109,7 @@ export const CustomersListPage = () => {
         onRowClick={(row) => navigate(`/customers/${row.id}`)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="ابحث بالاسم أو الهاتف أو البريد..."
+        searchPlaceholder="ابحث بالاسم أو الهاتف..."
         emptyTitle="لا توجد عملاء مطابقين"
         emptyDescription="لم يتم إضافة أي عميل بهذه البيانات بعد."
         pagination={{
@@ -137,9 +135,9 @@ export const CustomersListPage = () => {
                   الهاتف: <strong className="text-txt-primary font-mono">{c.phone}</strong>
                 </p>
               )}
-              {c.email && (
-                <p className="dir-ltr text-right">
-                  البريد: <strong className="text-txt-primary">{c.email}</strong>
+              {(c.phones?.length || 0) > 1 && (
+                <p className="text-right">
+                  أرقام إضافية: <strong className="text-txt-primary">{c.phones.length - 1}</strong>
                 </p>
               )}
             </div>

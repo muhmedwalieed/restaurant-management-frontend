@@ -20,7 +20,6 @@ import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   User,
   ChevronRight,
-  Mail,
   Phone,
   MapPin,
   StickyNote,
@@ -267,7 +266,23 @@ export const CustomerDetailPage = () => {
 
             <div className="space-y-1 text-xs">
               <InfoRow icon={Phone} label="رقم الهاتف" value={customer?.phone} isPhone />
-              <InfoRow icon={Mail} label="البريد الإلكتروني" value={customer?.email} />
+              {(customer?.phones?.length || 0) > 1 && (
+                <div className="py-2.5 border-b border-border-subtle/40 last:border-b-0">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Phone className="w-4 h-4 text-brand-primary shrink-0" />
+                    <span className="font-medium text-txt-muted">أرقام إضافية:</span>
+                  </div>
+                  <div className="space-y-1">
+                    {customer.phones
+                      .filter((p) => p.phone !== customer.phone)
+                      .map((p) => (
+                        <span key={p.id} className="block font-mono dir-ltr text-right text-txt-primary text-xs">
+                          {p.phone}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
               {customer?.notes && <InfoRow icon={StickyNote} label="ملاحظات الحساب" value={customer?.notes} />}
               <InfoRow icon={ReceiptText} label="إجمالي الطلبات" value={`${customer?._count?.orders ?? 0} طلبات`} />
             </div>
