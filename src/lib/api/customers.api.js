@@ -19,7 +19,7 @@ export const getCustomerByIdApi = async (id) => {
 /**
  * Create a customer
  * POST /customers
- * Payload: { name, phone, email?, notes? }
+ * Payload: { firstName, lastName?, phone, phones?, notes? }
  */
 export const createCustomerApi = async (payload) => {
   return apiClient.post('/customers', payload);
@@ -28,7 +28,7 @@ export const createCustomerApi = async (payload) => {
 /**
  * Update a customer
  * PATCH /customers/:id
- * Payload: { name?, phone?, email?, notes? }
+ * Payload: { firstName?, lastName?, phone?, phones?, notes? }
  */
 export const updateCustomerApi = async (id, payload) => {
   return apiClient.patch(`/customers/${id}`, payload);

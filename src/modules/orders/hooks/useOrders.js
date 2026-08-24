@@ -120,7 +120,6 @@ export const useKdsOrdersQuery = (branchId, params = {}) => {
     queryKey: ['kds', branchId, params],
     queryFn: () => getKdsOrdersApi(branchId, params),
     enabled: Boolean(branchId),
-    refetchInterval: 30000,
   });
 };
 

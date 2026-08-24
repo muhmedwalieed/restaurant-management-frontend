@@ -1,18 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getMyBranchesApi,
   getBranchUsersApi,
   grantBranchAccessApi,
   revokeBranchAccessApi,
 } from '../../../lib/api/multi-branch.api.js';
-
-export const useMyBranchesQuery = () => {
-  return useQuery({
-    queryKey: ['my-branches'],
-    queryFn: () => getMyBranchesApi(),
-    staleTime: 1000 * 60 * 5,
-  });
-};
 
 export const useBranchUsersQuery = (branchId) => {
   return useQuery({

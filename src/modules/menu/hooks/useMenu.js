@@ -1,15 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getCategoriesApi,
-  getCategoryByIdApi,
   createCategoryApi,
   updateCategoryApi,
-  deleteCategoryApi,
   getProductsApi,
   getProductByIdApi,
   createProductApi,
   updateProductApi,
-  deleteProductApi,
   getModifiersApi,
   createModifierApi,
   updateModifierApi,
@@ -23,14 +20,6 @@ export const useCategoriesQuery = (params = {}) => {
   return useQuery({
     queryKey: ['categories', params],
     queryFn: () => getCategoriesApi(params),
-  });
-};
-
-export const useCategoryQuery = (id) => {
-  return useQuery({
-    queryKey: ['category', id],
-    queryFn: () => getCategoryByIdApi(id),
-    enabled: Boolean(id),
   });
 };
 
@@ -52,18 +41,6 @@ export const useUpdateCategoryMutation = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['category', id] });
-      queryClient.invalidateQueries({ queryKey: ['public-menu'] });
-    },
-  });
-};
-
-export const useDeleteCategoryMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id) => deleteCategoryApi(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['public-menu'] });
     },
   });
@@ -105,30 +82,6 @@ export const useUpdateProductMutation = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      queryClient.invalidateQueries({ queryKey: ['public-menu'] });
-    },
-  });
-};
-
-export const useToggleProductAvailabilityMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, isAvailable }) => updateProductApi(id, { isAvailable }),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['public-menu'] });
-    },
-  });
-};
-
-export const useDeleteProductMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id) => deleteProductApi(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       queryClient.invalidateQueries({ queryKey: ['public-menu'] });
     },
