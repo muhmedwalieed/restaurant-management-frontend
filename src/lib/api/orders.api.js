@@ -9,6 +9,14 @@ export const getOrdersApi = async (branchId, params = {}) => {
 };
 
 /**
+ * List ALL tenant orders (every branch, every source) with filters & pagination
+ * GET /orders?page=&limit=&status=&type=&source=&branchId=&tableId=
+ */
+export const getAllOrdersApi = async (params = {}) => {
+  return apiClient.get('/orders', { params });
+};
+
+/**
  * Get single order by id
  * GET /branches/:branchId/orders/:id
  */
