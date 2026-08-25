@@ -448,16 +448,22 @@ export const TableDetailPage = () => {
             <div className="flex flex-col items-center justify-center p-5 bg-bg-base/60 border border-border-subtle rounded-xl">
               <div id="table-qr-print-area" className="p-4 bg-white rounded-xl ring-1 ring-border-default shadow-sm inline-block">
                 {table?.qrUrl ? (
-                  <QRCode
-                    id="table-qr-code"
-                    value={table.qrUrl}
-                    size={180}
-                    bgColor="#ffffff"
-                    fgColor="#0f172a"
-                    level="H"
-                    imageSettings={{ src: QR_LOGO_DATA_URL, height: 36, width: 36, excavate: true }}
-                    className="rounded-md"
-                  />
+                  <div className="relative inline-block">
+                    <QRCode
+                      id="table-qr-code"
+                      value={table.qrUrl}
+                      size={180}
+                      bgColor="#ffffff"
+                      fgColor="#0f172a"
+                      level="H"
+                      className="rounded-md"
+                    />
+                    <img
+                      src={QR_LOGO_DATA_URL}
+                      alt=""
+                      className="absolute inset-0 m-auto w-9 h-9 rounded-md pointer-events-none"
+                    />
+                  </div>
                 ) : (
                   <div className="w-[180px] h-[180px] flex items-center justify-center">
                     <QrCode className="w-12 h-12 text-txt-muted" />

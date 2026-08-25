@@ -45,6 +45,10 @@ export const RolesListPage = () => {
   };
 
   const handleSaveRole = async (formData) => {
+    if (selectedRole?.isSystem) {
+      setPageError('أدوار النظام لا يمكن تعديلها.');
+      return;
+    }
     const ok = await runMutation(() =>
       selectedRole
         ? updateMutation.mutateAsync({ id: selectedRole.id, payload: formData })
@@ -99,16 +103,25 @@ export const RolesListPage = () => {
       render: (row) => (
         <div className="flex items-center gap-1">
           <PermissionGate permission="employees.manage_roles">
-            <button
-              onClick={() => {
-                setSelectedRole(row);
-                setIsRoleModalOpen(true);
-              }}
-              className="p-1.5 text-txt-muted hover:text-brand-primary hover:bg-bg-surface-elevated rounded transition-colors"
-              title="تعديل الصلاحيات"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
+            {!row.isSystem ? (
+              <button
+                onClick={() => {
+                  setSelectedRole(row);
+                  setIsRoleModalOpen(true);
+                }}
+                className="p-1.5 text-txt-muted hover:text-brand-primary hover:bg-bg-surface-elevated rounded transition-colors"
+                title="تعديل الصلاحيات"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            ) : (
+              <span
+                className="p-1.5 text-txt-muted/40 cursor-not-allowed rounded"
+                title="أدوار النظام لا يمكن تعديلها"
+              >
+                <Edit3 className="w-4 h-4" />
+              </span>
+            )}
           </PermissionGate>
 
           {!row.isSystem && (
