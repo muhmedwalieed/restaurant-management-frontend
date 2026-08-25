@@ -6,7 +6,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { ORDER_SOURCE_LABELS } from '../schemas/order.schema.js';
+import { ORDER_SOURCE_LABELS, ORDER_TYPE_LABELS } from '../schemas/order.schema.js';
 import { ChefHat, Clock, Timer, ArrowLeftRight, Grid3x3, StickyNote } from 'lucide-react';
 
 const elapsedColor = (minutes) => {
@@ -132,7 +132,7 @@ export const KdsPage = () => {
                   </span>
                 )}
                 <span>{ORDER_SOURCE_LABELS[order.source] || order.source}</span>
-                <span>{order.type === 'DINE_IN' ? 'داخل المطعم' : order.type === 'DELIVERY' ? 'توصيل' : 'استلام'}</span>
+                <span>{ORDER_TYPE_LABELS[order.type] || order.type}</span>
               </div>
 
               {/* Items */}

@@ -113,7 +113,7 @@ export const ORDER_STATUS_OPTIONS = Object.entries(ORDER_STATUS_LABELS).map(([va
 }));
 
 export const ORDER_TYPE_LABELS = {
-  DINE_IN: 'داخل المطعم',
+  DINE_IN: 'صالة',
   DELIVERY: 'توصيل',
   PICKUP: 'استلام',
 };

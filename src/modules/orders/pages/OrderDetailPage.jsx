@@ -24,10 +24,10 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { Input } from '../../../shared/components/Input.jsx';
-import { Select } from '../../../shared/components/Select.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
+import { ReceiptPrintTemplate } from '../components/ReceiptPrintTemplate.jsx';
 import {
   ReceiptText,
   ChevronRight,
@@ -35,7 +35,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Ban,
-  User,
   Tag,
   Wallet,
   Banknote,
@@ -136,7 +135,7 @@ const parseHistoryMetadata = (h) => {
 export const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { activeBranchId } = useBranch();
+  const { activeBranchId, activeBranch } = useBranch();
   const [actionSuccess, setActionSuccess] = useAutoDismiss();
   const [actionError, setActionError] = useState(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
@@ -150,6 +149,7 @@ export const OrderDetailPage = () => {
   const [refundError, setRefundError] = useState(null);
   const [cancelAlso, setCancelAlso] = useState(true);
   const [isCopiedPhone, setIsCopiedPhone] = useState(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   const branchId = activeBranchId;
   const { data: order, isLoading, isError, error, refetch } = useOrderQuery(branchId, id);
@@ -287,7 +287,8 @@ export const OrderDetailPage = () => {
       : null);
 
   return (
-    <div className="space-y-5">
+    <>
+      <div className="space-y-5 print:hidden">
       {/* 1. Page Top Bar: Back button, Order title, Single Status badge on Right; Quick Flat Actions on Left */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div className="flex items-center gap-3 min-w-0">
@@ -320,7 +321,7 @@ export const OrderDetailPage = () => {
             size="sm"
             variant="outline"
             icon={Printer}
-            onClick={() => window.print()}
+            onClick={() => setIsPrintModalOpen(true)}
             className="text-xs"
           >
             طباعة الفاتورة
@@ -492,19 +493,40 @@ export const OrderDetailPage = () => {
 
         {/* B. Left Context & Actions Sidebar (32% / space-y-5) */}
         <div className="space-y-5">
-          {/* Card 1: Order & Customer Details */}
-          <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-sm">
-            {/* Customer Section */}
-            <div className="p-4 space-y-3 border-b border-white/[0.06]">
-              <div className="flex items-center gap-2 pb-1 border-b border-border-subtle/60">
-                <User className="w-4 h-4 text-brand-primary shrink-0" />
-                <h3 className="text-xs font-bold text-txt-primary">بيانات العميل</h3>
+          {/* Unified Card 1: Order & Customer Details */}
+          <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3.5 shadow-sm">
+            <div className="flex items-center gap-2 pb-2 border-b border-border-subtle">
+              <Tag className="w-4 h-4 text-brand-primary shrink-0" />
+              <h3 className="text-xs font-bold text-txt-primary">بيانات الطلب والعميل</h3>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-txt-muted">نوع الطلب:</span>
+                <span className="font-semibold text-txt-primary">
+                  {ORDER_TYPE_LABELS[order?.type] || order?.type}
+                </span>
               </div>
-              <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-txt-muted">المصدر:</span>
+                <span className="font-semibold text-txt-primary">
+                  {ORDER_SOURCE_LABELS[order?.source] || order?.source}
+                </span>
+              </div>
+              {order?.table && (
+                <div className="flex items-center justify-between">
+                  <span className="text-txt-muted">الطاولة:</span>
+                  <span className="font-bold text-brand-primary">
+                    طاولة {order.table.label}
+                  </span>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-border-subtle/50 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-txt-muted">الاسم:</span>
                   <span className="font-semibold text-txt-primary truncate max-w-[170px]">
-                    {order?.customer?.name || (order?.customer?.phone ? 'عميل مسجل' : (order?.table ? `طاولة ${order.table.label}` : 'عميل مباشر'))}
+                    {order?.customer?.name || (order?.customer?.phone ? 'عميل مسجل' : 'عميل مباشر')}
                   </span>
                 </div>
                 {order?.customer?.phone && (
@@ -530,36 +552,6 @@ export const OrderDetailPage = () => {
                     <span className="text-txt-muted shrink-0">العنوان:</span>
                     <span className="text-txt-primary text-right font-medium leading-relaxed">
                       {customerAddress}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Order Details Section */}
-            <div className="p-4 space-y-3">
-              <div className="flex items-center gap-2 pb-1 border-b border-border-subtle/60">
-                <Tag className="w-4 h-4 text-brand-primary shrink-0" />
-                <h3 className="text-xs font-bold text-txt-primary">بيانات الطلب</h3>
-              </div>
-              <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-txt-muted">نوع الطلب:</span>
-                  <span className="font-semibold text-txt-primary">
-                    {ORDER_TYPE_LABELS[order?.type] || order?.type}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-txt-muted">المصدر:</span>
-                  <span className="font-semibold text-txt-primary">
-                    {ORDER_SOURCE_LABELS[order?.source] || order?.source}
-                  </span>
-                </div>
-                {order?.table && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-txt-muted">الطاولة:</span>
-                    <span className="font-bold text-brand-primary">
-                      طاولة {order.table.label}
                     </span>
                   </div>
                 )}
@@ -745,13 +737,31 @@ export const OrderDetailPage = () => {
             استلام دفعة الطلب <span className="font-bold text-txt-primary font-mono">#{order?.orderNumber}</span> بمبلغ{' '}
             <span className="font-bold text-brand-primary font-mono">{Number(order?.total || 0).toFixed(2)} EGP</span>
           </p>
-          <Select
-            label="طريقة الدفع"
-            options={PAYMENT_METHOD_OPTIONS}
-            value={paymentMethod}
-            placeholder=""
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          />
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-txt-primary block">طريقة الدفع</label>
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-bg-base/80 border border-border-default rounded-lg">
+              {PAYMENT_METHOD_OPTIONS.map((opt) => {
+                const isSelected = paymentMethod === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setPaymentMethod(opt.value)}
+                    className={`py-2 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                      isSelected
+                        ? 'bg-brand-primary text-slate-950 shadow-sm'
+                        : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    {opt.value === 'CASH' && <Banknote className="w-3.5 h-3.5" />}
+                    {opt.value === 'CARD' && <Wallet className="w-3.5 h-3.5" />}
+                    {opt.value === 'ONLINE' && <Tag className="w-3.5 h-3.5" />}
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <Input
             label="المبلغ المستلم"
             type="number"
@@ -856,6 +866,45 @@ export const OrderDetailPage = () => {
           </div>
         </div>
       </Modal>
-    </div>
+
+      {/* Receipt Preview Modal (Screen Preview) */}
+      <Modal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        title={`معاينة فاتورة الطلب #${order?.orderNumber}`}
+        size="md"
+      >
+        <div className="space-y-4 text-center">
+          <div className="bg-bg-base/80 p-4 rounded-xl border border-border-subtle overflow-y-auto max-h-[60vh] custom-scrollbar">
+            <ReceiptPrintTemplate order={order} activeBranch={activeBranch} isPreview={true} />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border border-white/10 text-slate-300 hover:bg-white/[0.04]"
+              onClick={() => setIsPrintModalOpen(false)}
+            >
+              إغلاق
+            </Button>
+            <Button
+              size="sm"
+              icon={Printer}
+              className="bg-brand-primary text-slate-950 font-semibold hover:bg-sky-400 border-none px-4"
+              onClick={() => {
+                window.print();
+              }}
+            >
+              طباعة الآن
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      </div>
+
+      {/* Pure Thermal/A4 Receipt Print Template (Rendered only on window.print()) */}
+      <ReceiptPrintTemplate order={order} activeBranch={activeBranch} />
+    </>
   );
 };

@@ -13,6 +13,7 @@ import { Select } from '../../../shared/components/Select.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { TableSessionPanel } from '../components/TableSessionPanel.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   Grid3x3,
@@ -420,6 +421,9 @@ export const TableDetailPage = () => {
               </div>
             )}
           </div>
+
+          {/* Card 3: Table Ordering Session */}
+          {table?.id && <TableSessionPanel tableId={table.id} />}
         </div>
 
         {/* ================= LEFT COLUMN (40% / lg:col-span-5): QR Code, Link & Print/Download Tools ================= */}

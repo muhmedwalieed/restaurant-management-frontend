@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAllOrdersQuery } from '../hooks/useOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
@@ -14,12 +14,7 @@ import {
   ORDER_SOURCE_LABELS,
   orderStatusPill,
 } from '../schemas/order.schema.js';
-import { ShoppingCart, Plus, ReceiptText, ChevronLeft, Building2 } from 'lucide-react';
-
-const STATUS_FILTER_OPTIONS = [
-  { value: 'ALL', label: 'جميع الحالات' },
-  ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label })),
-];
+import { ShoppingCart, Plus, ReceiptText, ChevronLeft, Building2, Layers, CheckCircle2, Clock, XCircle, Store } from 'lucide-react';
 
 const TYPE_FILTER_OPTIONS = [
   { value: 'ALL', label: 'جميع الأنواع' },
@@ -31,41 +26,81 @@ const SOURCE_FILTER_OPTIONS = [
   ...Object.entries(ORDER_SOURCE_LABELS).map(([value, label]) => ({ value, label })),
 ];
 
+const STATUS_TAB_GROUPS = [
+  { id: 'ALL', label: 'الكل', icon: Layers },
+  { id: 'ACTIVE', label: 'قيد التنفيذ', icon: Clock, statuses: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'] },
+  { id: 'DELIVERED', label: 'تم التسليم', icon: CheckCircle2, statuses: ['DELIVERED'] },
+  { id: 'CANCELLED', label: 'ملغي', icon: XCircle, statuses: ['CANCELLED'] },
+];
+
 export const OrdersListPage = () => {
   const navigate = useNavigate();
-  const { activeBranchId, branches } = useBranch();
+  const { activeBranchId, activeBranch, branches } = useBranch();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [activeStatusTab, setActiveStatusTab] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [sourceFilter, setSourceFilter] = useState('ALL');
   const [branchFilter, setBranchFilter] = useState('ALL');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Unified view: every order in the tenant, whatever the branch or the source (POS/phone/website/QR/whatsapp/cashier).
+  // Map active status tab to API query status filter parameter
+  const apiStatusParam = useMemo(() => {
+    if (activeStatusTab === 'ALL' || activeStatusTab === 'ACTIVE') return undefined;
+    return activeStatusTab;
+  }, [activeStatusTab]);
+
   const { data: ordersResponse, isLoading, isError, error, refetch } = useAllOrdersQuery({
     page,
     limit: 20,
-    status: statusFilter === 'ALL' ? undefined : statusFilter,
+    status: apiStatusParam,
     type: typeFilter === 'ALL' ? undefined : typeFilter,
     source: sourceFilter === 'ALL' ? undefined : sourceFilter,
     branchId: branchFilter === 'ALL' ? undefined : branchFilter,
   });
 
-  const ordersList = ordersResponse?.items || [];
+  const ordersList = useMemo(() => ordersResponse?.items || [], [ordersResponse]);
 
-  const filteredOrders = ordersList.filter((o) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      String(o.orderNumber || '').includes(q) ||
-      o.customer?.name?.toLowerCase().includes(q) ||
-      o.customer?.phone?.toLowerCase().includes(q) ||
-      (o.table && o.table.label?.toLowerCase().includes(q))
-    );
-  });
+  // Client-side filtering for active tab sub-statuses & search query
+  const filteredOrders = useMemo(() => {
+    return ordersList.filter((o) => {
+      // 1. Status Tab filter
+      if (activeStatusTab === 'ACTIVE') {
+        const activeStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'];
+        if (!activeStatuses.includes(o.status)) return false;
+      }
 
-  const columns = [
+      // 2. Search query match
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        String(o.orderNumber || '').includes(q) ||
+        o.customer?.name?.toLowerCase().includes(q) ||
+        o.customer?.phone?.toLowerCase().includes(q) ||
+        (o.table && o.table.label?.toLowerCase().includes(q))
+      );
+    });
+  }, [ordersList, activeStatusTab, searchQuery]);
+
+  // Calculate live tab counts for fast visual feedback
+  const tabCounts = useMemo(() => {
+    const counts = { ALL: ordersList.length, ACTIVE: 0, DELIVERED: 0, CANCELLED: 0 };
+    ordersList.forEach((o) => {
+      if (['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'].includes(o.status)) {
+        counts.ACTIVE += 1;
+      } else if (o.status === 'DELIVERED') {
+        counts.DELIVERED += 1;
+      } else if (o.status === 'CANCELLED') {
+        counts.CANCELLED += 1;
+      }
+    });
+    return counts;
+  }, [ordersList]);
+
+  // Determine if branch column should be displayed (Hide by default when viewing single active branch)
+  const showBranchColumn = branchFilter === 'ALL' && branches.length > 1;
+
+  const baseColumns = [
     {
       header: 'رقم الطلب',
       accessorKey: 'orderNumber',
@@ -76,17 +111,21 @@ export const OrdersListPage = () => {
         </span>
       ),
     },
-    {
-      header: 'الفرع',
-      key: 'branch',
-      width: '150px',
-      render: (row) => (
-        <span className="flex items-center gap-1.5 text-xs text-txt-muted min-w-0">
-          <Building2 className="w-4 h-4 shrink-0" />
-          <span className="truncate">{row.branch?.name || 'غير محدد'}</span>
-        </span>
-      ),
-    },
+    ...(showBranchColumn
+      ? [
+          {
+            header: 'الفرع',
+            key: 'branch',
+            width: '150px',
+            render: (row) => (
+              <span className="flex items-center gap-1.5 text-xs text-txt-muted min-w-0">
+                <Building2 className="w-4 h-4 shrink-0 text-brand-primary/70" />
+                <span className="truncate">{row.branch?.name || 'غير محدد'}</span>
+              </span>
+            ),
+          },
+        ]
+      : []),
     {
       header: 'الحالة',
       accessorKey: 'status',
@@ -146,7 +185,7 @@ export const OrdersListPage = () => {
       key: 'createdAt',
       width: '110px',
       render: (row) => (
-        <span className="text-xs text-txt-muted">
+        <span className="text-xs text-txt-muted font-mono">
           {row.createdAt ? new Date(row.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '—'}
         </span>
       ),
@@ -181,20 +220,29 @@ export const OrdersListPage = () => {
   ];
 
   return (
-    <div className="space-y-5">
-      {/* 1. Page Header: Title on Right, Grouped Minimal Actions on Left */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2.5">
-            <ShoppingCart className="w-5 h-5 text-brand-primary" />
-            <span>إدارة الطلبات</span>
-          </h1>
-          <p className="text-xs text-txt-muted mt-1">
-            كل الطلبات في مكان واحد، من كل الفروع وكل القنوات (كاشير، POS، هاتف، موقع، QR، واتساب)
-          </p>
+    <div className="space-y-4">
+      {/* 1. Page Header: Streamlined Title & Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border-default/60">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
+            <ShoppingCart className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-txt-primary leading-tight">
+              إدارة الطلبات
+            </h1>
+            <div className="flex items-center gap-2 text-xs text-txt-muted mt-0.5">
+              <span className="flex items-center gap-1 font-medium text-slate-300">
+                <Store className="w-3.5 h-3.5 text-brand-primary" />
+                {activeBranch?.name || 'جميع الفروع'}
+              </span>
+              <span>•</span>
+              <span>إجمالي الطلبات المسجلة ({ordersResponse?.pagination?.total || ordersList.length})</span>
+            </div>
+          </div>
         </div>
 
-        {/* Action Buttons Group: Secondary Phone Order + Primary New Order */}
+        {/* Action Button: Primary New Order */}
         <PermissionGate permission="orders.create">
           <div className="flex items-center gap-2 shrink-0">
             <Button
@@ -202,7 +250,7 @@ export const OrdersListPage = () => {
               size="sm"
               icon={Plus}
               onClick={() => setIsModalOpen(true)}
-              className="text-xs font-semibold"
+              className="text-xs font-semibold h-8"
             >
               طلب جديد
             </Button>
@@ -210,9 +258,39 @@ export const OrdersListPage = () => {
         </PermissionGate>
       </div>
 
-      {/* 2. Unified Orders Table */}
+      {/* 2. 1-Click Status Quick Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+        {STATUS_TAB_GROUPS.map((tab) => {
+          const Icon = tab.icon;
+          const isSelected = activeStatusTab === tab.id;
+          const count = tabCounts[tab.id] || 0;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                setActiveStatusTab(tab.id);
+                setPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                isSelected
+                  ? 'bg-brand-primary text-slate-950 shadow-sm'
+                  : 'bg-bg-surface text-txt-muted border border-border-default hover:text-txt-primary hover:border-white/10'
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isSelected ? 'bg-slate-950/20 text-slate-950' : 'bg-white/[0.08] text-txt-muted'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 3. Orders DataTable with Streamlined Filter Row */}
       <DataTable
-        columns={columns}
+        columns={baseColumns}
         data={filteredOrders}
         isLoading={isLoading}
         isError={isError}
@@ -223,7 +301,7 @@ export const OrdersListPage = () => {
         onSearchChange={setSearchQuery}
         searchPlaceholder="ابحث برقم الطلب، العميل، أو الطاولة..."
         emptyTitle="لا توجد طلبات"
-        emptyDescription="لم يتم العثور على طلبات بالخيارات المحددة. الطلبات من كل الفروع والقنوات بتظهر هنا."
+        emptyDescription="لم يتم العثور على طلبات بالخيارات المحددة."
         pagination={{
           page,
           totalPages: ordersResponse?.pagination?.totalPages || 1,
@@ -232,28 +310,19 @@ export const OrdersListPage = () => {
         }}
         filters={
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="w-44">
-              <Select
-                options={branchOptions}
-                value={branchFilter}
-                onChange={(e) => {
-                  setPage(1);
-                  setBranchFilter(e.target.value);
-                }}
-                aria-label="فلترة بالفرع"
-              />
-            </div>
-            <div className="w-40">
-              <Select
-                options={STATUS_FILTER_OPTIONS}
-                value={statusFilter}
-                onChange={(e) => {
-                  setPage(1);
-                  setStatusFilter(e.target.value);
-                }}
-                aria-label="فلترة بالحالة"
-              />
-            </div>
+            {branches.length > 1 && (
+              <div className="w-44">
+                <Select
+                  options={branchOptions}
+                  value={branchFilter}
+                  onChange={(e) => {
+                    setPage(1);
+                    setBranchFilter(e.target.value);
+                  }}
+                  aria-label="فلترة بالفرع"
+                />
+              </div>
+            )}
             <div className="w-36">
               <Select
                 options={TYPE_FILTER_OPTIONS}
@@ -281,12 +350,12 @@ export const OrdersListPage = () => {
         mobileCardRender={(o) => (
           <div
             onClick={() => navigate(`/orders/${o.id}`)}
-            className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3 cursor-pointer hover:border-brand-primary/40 active:bg-white/[0.02] transition-colors"
+            className="bg-bg-surface border border-border-default rounded-lg p-3 space-y-2.5 cursor-pointer hover:border-brand-primary/40 active:bg-white/[0.02] transition-colors"
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <ReceiptText className={`w-4 h-4 shrink-0 ${o.status === 'CANCELLED' ? 'text-txt-muted' : 'text-brand-primary'}`} />
-                <span className={`font-mono font-bold text-sm ${o.status === 'CANCELLED' ? 'text-txt-muted' : 'text-txt-primary'}`}>
+                <span className={`font-mono font-bold text-xs ${o.status === 'CANCELLED' ? 'text-txt-muted' : 'text-txt-primary'}`}>
                   #{o.orderNumber}
                 </span>
               </div>
@@ -294,10 +363,12 @@ export const OrdersListPage = () => {
             </div>
 
             <div className="text-xs text-txt-muted space-y-1">
-              <p className="flex items-center gap-1">
-                <Building2 className="w-4 h-4 shrink-0" />
-                <strong className="text-txt-primary">{o.branch?.name || 'غير محدد'}</strong>
-              </p>
+              {showBranchColumn && (
+                <p className="flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 shrink-0 text-brand-primary" />
+                  <strong className="text-txt-primary">{o.branch?.name || 'غير محدد'}</strong>
+                </p>
+              )}
               <p>
                 النوع: <strong className="text-txt-primary">{ORDER_TYPE_LABELS[o.type] || o.type}</strong>
                 {' · '}
@@ -312,7 +383,7 @@ export const OrdersListPage = () => {
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-border-default">
-              <span className="text-sm font-bold text-brand-primary tabular-nums font-mono">
+              <span className="text-xs font-bold text-brand-primary tabular-nums font-mono">
                 {Number(o.total || 0).toFixed(2)} EGP
               </span>
               <span className="text-xs text-txt-muted flex items-center gap-1">
@@ -324,7 +395,7 @@ export const OrdersListPage = () => {
         )}
       />
 
-      {/* New Order Modal — created in the active branch */}
+      {/* New Order Modal */}
       <OrderFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} branchId={activeBranchId} />
     </div>
   );

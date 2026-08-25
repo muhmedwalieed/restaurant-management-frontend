@@ -96,3 +96,62 @@ svg.lucide {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+@media print {
+  /* 1. Thermal paper declaration (80mm width + dynamic vertical height) */
+  @page {
+    size: 80mm auto;
+    margin: 0 !important;
+  }
+
+  /* 2. Reset root, body, app shell, and main containers to clean white background & dynamic height */
+  html, 
+  body, 
+  #root, 
+  #root > div,
+  main,
+  .app-shell,
+  .content-container {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+
+  /* 3. Completely hide non-receipt elements, headers, sidebars, modals, backdrops, and buttons */
+  header, 
+  nav, 
+  aside, 
+  sidebar,
+  button,
+  .print\:hidden,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* 4. Render ONLY the thermal receipt cleanly bounded to 80mm thermal roll */
+  .printable-receipt {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 3mm 2mm !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    font-family: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    direction: rtl !important;
+    text-align: right !important;
+  }
+}

@@ -48,6 +48,7 @@ const EVENT_INVALIDATIONS = {
   'conversation.assigned': ['whatsapp-conversations', 'whatsapp-conversation'],
   'conversation.updated': ['whatsapp-conversations', 'whatsapp-conversation'],
   'customer.updated': ['customers', 'customer', 'customer-orders', 'customer-addresses'],
+  'tableSession.updated': ['table-session'],
 };
 
 export const SocketProvider = ({ children }) => {

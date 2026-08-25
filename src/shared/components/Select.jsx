@@ -12,7 +12,7 @@ export const Select = forwardRef(
       id,
       name,
       options = [],
-      placeholder = 'اختر من القائمة...',
+      placeholder = null,
       className = '',
       required = false,
       ...props
