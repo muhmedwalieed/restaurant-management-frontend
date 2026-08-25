@@ -13,7 +13,7 @@ import {
   useUpdateSessionItem,
   useRemoveSessionItem,
 } from '../hooks/useTableSessions.js';
-import { KeyRound, Users, CheckCircle2, XCircle, Plus, Minus, Trash2, Receipt } from 'lucide-react';
+import { KeyRound, Users, CheckCircle2, XCircle, Plus, Minus, Trash2, Receipt, Eye, Copy, Check } from 'lucide-react';
 
 const SESSION_STATUS = {
   ACTIVE: { pill: 'warning', label: 'جلسة نشطة' },
@@ -61,6 +61,7 @@ export const TableSessionPanel = ({ tableId }) => {
   const [showPin, setShowPin] = useState(null);
   const [startError, setStartError] = useState(null);
   const [startLoading, setStartLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const startMutation = useStartTableSession();
   const { data: session, isLoading } = useActiveTableSessionQuery(tableId, true);
@@ -85,6 +86,17 @@ export const TableSessionPanel = ({ tableId }) => {
       setStartError(err?.message || 'تعذر بدء الجلسة.');
     } finally {
       setStartLoading(false);
+    }
+  };
+
+  const handleCopyPin = async () => {
+    if (!showPin) return;
+    try {
+      await navigator.clipboard.writeText(showPin);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -212,6 +224,16 @@ export const TableSessionPanel = ({ tableId }) => {
             <PermissionGate permission="orders.create">
               <Button
                 size="sm"
+                variant="outline"
+                icon={Eye}
+                onClick={() => setShowPin(session.pin)}
+                disabled={!session.pin}
+                title="عرض رمز الـ PIN الخاص بالجلسة الحالية"
+              >
+                عرض الـ PIN
+              </Button>
+              <Button
+                size="sm"
                 variant="primary"
                 icon={CheckCircle2}
                 isLoading={confirmMutation.isPending || submitMutation.isPending}
@@ -243,7 +265,12 @@ export const TableSessionPanel = ({ tableId }) => {
           <div className="text-4xl font-bold tracking-[0.4em] text-brand-primary font-mono" dir="ltr">
             {showPin}
           </div>
-          <Button variant="primary" onClick={() => setShowPin(null)}>تمام</Button>
+          <div className="flex items-center justify-center gap-2">
+            <Button size="sm" variant="outline" icon={copied ? Check : Copy} onClick={handleCopyPin}>
+              {copied ? 'تم النسخ' : 'نسخ الرمز'}
+            </Button>
+            <Button size="sm" variant="primary" onClick={() => setShowPin(null)}>تمام</Button>
+          </div>
         </div>
       </Modal>
     </div>
