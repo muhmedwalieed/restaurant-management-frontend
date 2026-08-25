@@ -1,8 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useRolesQuery,
-  useCreateRoleMutation,
-  useUpdateRoleMutation,
   useDeleteRoleMutation,
 } from '../hooks/useRoles.js';
 import { DataTable } from '../../../shared/components/DataTable.jsx';
@@ -10,62 +9,33 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { RoleFormModal } from '../components/RoleFormModal.jsx';
 import { ShieldCheck, Plus, Edit3, Trash2, AlertTriangle } from 'lucide-react';
 
 export const RolesListPage = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [pageError, setPageError] = useState(null);
 
-  // Modal State
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
-
+  // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
 
   // React Query
   const { data, isLoading, isError, error, refetch } = useRolesQuery({ search, limit: 100 });
-  const createMutation = useCreateRoleMutation();
-  const updateMutation = useUpdateRoleMutation();
   const deleteMutation = useDeleteRoleMutation();
 
   const rolesList = data?.items || (Array.isArray(data) ? data : []);
   const pagination = data?.pagination || { page: 1, totalPages: 1, total: 0 };
 
-  const runMutation = async (fn) => {
-    setPageError(null);
-    try {
-      await fn();
-      return true;
-    } catch (err) {
-      setPageError(err?.message || 'حدث خطأ أثناء تنفيذ العملية.');
-      return false;
-    }
-  };
-
-  const handleSaveRole = async (formData) => {
-    if (selectedRole?.isSystem) {
-      setPageError('أدوار النظام لا يمكن تعديلها.');
-      return;
-    }
-    const ok = await runMutation(() =>
-      selectedRole
-        ? updateMutation.mutateAsync({ id: selectedRole.id, payload: formData })
-        : createMutation.mutateAsync(formData)
-    );
-    if (ok) {
-      setIsRoleModalOpen(false);
-      setSelectedRole(null);
-    }
-  };
-
   const handleConfirmDelete = async () => {
     if (!roleToDelete) return;
-    const ok = await runMutation(() => deleteMutation.mutateAsync(roleToDelete.id));
-    if (ok) {
+    setPageError(null);
+    try {
+      await deleteMutation.mutateAsync(roleToDelete.id);
       setIsDeleteModalOpen(false);
       setRoleToDelete(null);
+    } catch (err) {
+      setPageError(err?.message || 'حدث خطأ أثناء تنفيذ الحذف.');
     }
   };
 
@@ -92,8 +62,17 @@ export const RolesListPage = () => {
       accessorKey: 'permissions',
       render: (row) => {
         const perms = row.permissions || [];
+        if (row.isSystem || row.name === 'owner') {
+          return (
+            <StatusPill status="success" className="text-xs py-0.5 px-2.5 font-bold">
+              وصول كامل (Super Admin)
+            </StatusPill>
+          );
+        }
         return (
-          <span className="text-xs font-semibold text-txt-primary">{perms.length} صلاحيات</span>
+          <span className="text-xs font-semibold text-txt-primary">
+            {perms.length} صلاحيات محددة
+          </span>
         );
       },
     },
@@ -105,10 +84,7 @@ export const RolesListPage = () => {
           <PermissionGate permission="employees.manage_roles">
             {!row.isSystem ? (
               <button
-                onClick={() => {
-                  setSelectedRole(row);
-                  setIsRoleModalOpen(true);
-                }}
+                onClick={() => navigate(`/settings/roles/${row.id}/edit`)}
                 className="p-1.5 text-txt-muted hover:text-brand-primary hover:bg-bg-surface-elevated rounded transition-colors"
                 title="تعديل الصلاحيات"
               >
@@ -161,10 +137,7 @@ export const RolesListPage = () => {
           <Button
             variant="primary"
             icon={Plus}
-            onClick={() => {
-              setSelectedRole(null);
-              setIsRoleModalOpen(true);
-            }}
+            onClick={() => navigate('/settings/roles/new')}
           >
             إنشاء دور جديد
           </Button>
@@ -197,15 +170,6 @@ export const RolesListPage = () => {
           total: pagination.total,
           onPageChange: () => {},
         }}
-      />
-
-      {/* Create / Edit Role Modal */}
-      <RoleFormModal
-        isOpen={isRoleModalOpen}
-        onClose={() => setIsRoleModalOpen(false)}
-        initialValues={selectedRole}
-        onSubmit={handleSaveRole}
-        isLoading={createMutation.isPending || updateMutation.isPending}
       />
 
       {/* Delete Confirmation Modal */}

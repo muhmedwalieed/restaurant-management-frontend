@@ -145,7 +145,7 @@ export const MobileNav = ({ isOpen, onClose }) => {
       <div className="relative flex flex-col w-5/6 max-w-xs bg-bg-surface border-l border-white/[0.07] h-[100dvh] max-h-[100dvh] z-10 shadow-2xl overflow-hidden">
         {/* 1. Header with 2 Distinct Levels */}
         <div className="p-3 border-b border-white/[0.07] shrink-0">
-          {/* Level 1: Brand & Close Button ✕ */}
+          {/* Level 1: Brand & Close Button */}
           <div className="flex items-center justify-between h-11">
             <div className="flex items-center gap-2 min-w-0">
               <Store className="w-5 h-5 text-brand-primary shrink-0" />

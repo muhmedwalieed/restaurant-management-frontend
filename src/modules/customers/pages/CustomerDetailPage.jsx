@@ -13,7 +13,7 @@ import { ADDRESS_LABELS } from '../schemas/customer.schema.js';
 import { ORDER_STATUS_LABELS, orderStatusPill } from '../../orders/schemas/order.schema.js';
 import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
-import { Modal } from '../../../shared/components/Modal.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
@@ -69,6 +69,7 @@ export const CustomerDetailPage = () => {
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [addressToEdit, setAddressToEdit] = useState(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
 
   const { data: customer, isLoading, isError, error, refetch } = useCustomerQuery(id);
   const { data: addresses, isLoading: isAddrLoading } = useCustomerAddressesQuery(id);
@@ -97,9 +98,10 @@ export const CustomerDetailPage = () => {
     }
   };
 
-  const handleDeleteAddress = async (addressId, label) => {
-    if (!window.confirm(`هل أنت متأكد من حذف العنوان (${ADDRESS_LABELS[label] || label})؟`)) return;
-    await runAction(() => deleteAddressMutation.mutateAsync({ customerId: id, addressId }));
+  const handleDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    await runAction(() => deleteAddressMutation.mutateAsync({ customerId: id, addressId: addressToDelete.id }));
+    setAddressToDelete(null);
   };
 
   const openAddAddress = () => {
@@ -349,7 +351,7 @@ export const CustomerDetailPage = () => {
                         </PermissionGate>
                         <PermissionGate permission="customers.delete">
                           <button
-                            onClick={() => handleDeleteAddress(addr.id, addr.label)}
+                            onClick={() => setAddressToDelete(addr)}
                             className="p-1 text-txt-muted hover:text-red-400 transition-colors rounded"
                             title="حذف العنوان"
                           >
@@ -376,21 +378,33 @@ export const CustomerDetailPage = () => {
       <CustomerFormModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} customerToEdit={customer} />
       <AddressFormModal isOpen={isAddressOpen} onClose={() => setIsAddressOpen(false)} customerId={id} addressToEdit={addressToEdit} />
 
-      <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="تأكيد حذف العميل" size="sm">
-        <div className="space-y-4 text-right">
-          <p className="text-xs text-txt-muted">
-            هل أنت متأكد من حذف العميل <span className="font-bold text-txt-primary">{customer?.name}</span>؟ سيتم إخفاؤه من القائمة مع الحفاظ على طلباته السابقة.
-          </p>
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
-            <Button variant="outline" size="sm" onClick={() => setIsDeleteOpen(false)} disabled={deleteMutation.isPending}>
-              تراجع
-            </Button>
-            <Button variant="danger" size="sm" isLoading={deleteMutation.isPending} onClick={handleDeleteCustomer}>
-              حذف العميل
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      <ConfirmDialog
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        title="حذف العميل"
+        message={
+          <>
+            هل أنت متأكد من حذف العميل{' '}
+            <span className="font-bold text-txt-primary">{customer?.name}</span>؟ سيتم إخفاؤه من القائمة مع الحفاظ على
+            طلباته السابقة.
+          </>
+        }
+        confirmLabel="حذف العميل"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+        onConfirm={handleDeleteCustomer}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(addressToDelete)}
+        onClose={() => setAddressToDelete(null)}
+        title="حذف العنوان"
+        message={`هل أنت متأكد من حذف العنوان (${ADDRESS_LABELS[addressToDelete?.label] || addressToDelete?.label})؟`}
+        confirmLabel="حذف"
+        variant="danger"
+        isLoading={deleteAddressMutation.isPending}
+        onConfirm={handleDeleteAddress}
+      />
     </div>
   );
 };

@@ -26,6 +26,7 @@ import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   MessageSquare,
@@ -47,6 +48,7 @@ export const WhatsAppPage = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [messagesPage, setMessagesPage] = useState(1);
   const [directionFilter, setDirectionFilter] = useState('ALL');
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
 
   const { data: connection, isLoading: isConnLoading, isError: isConnError, error: connError, refetch: refetchConn } = useConnectionQuery();
   const connectMutation = useConnectConnectionMutation();
@@ -104,9 +106,11 @@ export const WhatsAppPage = () => {
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('هل تريد فصل اتصال الواتساب؟')) return;
     const ok = await runAction(() => disconnectMutation.mutateAsync());
-    if (ok) setSuccessMsg('تم فصل الاتصال.');
+    if (ok) {
+      setSuccessMsg('تم فصل الاتصال.');
+      setConfirmDisconnect(false);
+    }
   };
 
   const handleReconnect = async () => {
@@ -290,7 +294,7 @@ export const WhatsAppPage = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   <PermissionGate permission="whatsapp.manage">
                     {connection.status === 'ACTIVE' ? (
-                      <Button variant="danger" size="sm" icon={LogOut} isLoading={disconnectMutation.isPending} onClick={handleDisconnect}>
+                      <Button variant="danger" size="sm" icon={LogOut} isLoading={disconnectMutation.isPending} onClick={() => setConfirmDisconnect(true)}>
                         فصل الاتصال
                       </Button>
                     ) : (
@@ -368,6 +372,17 @@ export const WhatsAppPage = () => {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDisconnect}
+        onClose={() => setConfirmDisconnect(false)}
+        title="فصل اتصال الواتساب"
+        message="هل تريد فصل اتصال الواتساب؟ لن تستقبل أو ترسل رسائل من الواتساب بعد الفصل."
+        confirmLabel="فصل الاتصال"
+        variant="danger"
+        isLoading={disconnectMutation.isPending}
+        onConfirm={handleDisconnect}
+      />
     </div>
   );
 };

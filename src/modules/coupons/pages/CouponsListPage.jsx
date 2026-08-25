@@ -5,6 +5,7 @@ import { DataTable } from '../../../shared/components/DataTable.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { CouponFormModal } from '../components/CouponFormModal.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 
 const formatMoney = (v) => `${Number(v || 0).toLocaleString('ar-EG')} ج.م`;
 
@@ -14,6 +15,7 @@ export const CouponsListPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [couponToEdit, setCouponToEdit] = useState(null);
+  const [couponToDelete, setCouponToDelete] = useState(null);
 
   const { data: couponsResponse, isLoading, isError, error, refetch } = useCouponsQuery({
     page,
@@ -96,9 +98,7 @@ export const CouponsListPage = () => {
               icon={Trash2}
               className="text-status-danger hover:text-status-danger"
               title="حذف الكوبون"
-              onClick={() => {
-                if (window.confirm(`متأكد إنك عايز تعطّل كوبون ${row.code}؟`)) deleteMutation.mutate(row.id);
-              }}
+              onClick={() => setCouponToDelete(row)}
             >
               حذف
             </Button>
@@ -166,6 +166,21 @@ export const CouponsListPage = () => {
       />
 
       <CouponFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} couponToEdit={couponToEdit} />
+
+      <ConfirmDialog
+        isOpen={Boolean(couponToDelete)}
+        onClose={() => setCouponToDelete(null)}
+        title="حذف الكوبون"
+        message={`متأكد إنك عايز تحذف كوبون "${couponToDelete?.code}"؟`}
+        confirmLabel="حذف"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => {
+          deleteMutation.mutate(couponToDelete.id, {
+            onSettled: () => setCouponToDelete(null),
+          });
+        }}
+      />
     </div>
   );
 };

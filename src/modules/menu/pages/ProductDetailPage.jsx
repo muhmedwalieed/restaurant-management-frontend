@@ -17,6 +17,7 @@ import { Select } from '../../../shared/components/Select.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import {
@@ -38,6 +39,7 @@ export const ProductDetailPage = () => {
   const [actionError, setActionError] = useState(null);
   const [isModifierModalOpen, setIsModifierModalOpen] = useState(false);
   const [modifierToEdit, setModifierToEdit] = useState(null);
+  const [modifierToDelete, setModifierToDelete] = useState(null);
 
   // Queries & Mutations
   const { data: product, isLoading, isError, error, refetch } = useProductQuery(id);
@@ -91,11 +93,12 @@ export const ProductDetailPage = () => {
     setIsModifierModalOpen(true);
   };
 
-  const handleDeleteModifier = async (mod) => {
+  const handleDeleteModifier = async () => {
+    if (!modifierToDelete) return;
     setActionError(null);
-    if (!window.confirm(`هل أنت متأكد من حذف الإضافة "${mod.name}"؟`)) return;
     try {
-      await deleteModifierMutation.mutateAsync({ productId: id, modifierId: mod.id });
+      await deleteModifierMutation.mutateAsync({ productId: id, modifierId: modifierToDelete.id });
+      setModifierToDelete(null);
     } catch (err) {
       setActionError(err?.message || 'حدث خطأ أثناء حذف الإضافة.');
     }
@@ -370,7 +373,7 @@ export const ProductDetailPage = () => {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleDeleteModifier(mod)}
+                                onClick={() => setModifierToDelete(mod)}
                                 className="p-1 rounded-md text-txt-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
                                 title="حذف الإضافة"
                               >
@@ -398,6 +401,17 @@ export const ProductDetailPage = () => {
         }}
         productId={id}
         modifierToEdit={modifierToEdit}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(modifierToDelete)}
+        onClose={() => setModifierToDelete(null)}
+        title="حذف الإضافة"
+        message={`هل أنت متأكد من حذف الإضافة "${modifierToDelete?.name}"؟`}
+        confirmLabel="حذف"
+        variant="danger"
+        isLoading={deleteModifierMutation.isPending}
+        onConfirm={handleDeleteModifier}
       />
     </div>
   );

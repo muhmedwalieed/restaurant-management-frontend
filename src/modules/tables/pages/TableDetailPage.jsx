@@ -13,6 +13,7 @@ import { Select } from '../../../shared/components/Select.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { TableSessionPanel } from '../components/TableSessionPanel.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
@@ -72,6 +73,7 @@ export const TableDetailPage = () => {
   const [generalError, setGeneralError] = useState(null);
   const [qrMessage, setQrMessage] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [confirmRegen, setConfirmRegen] = useState(false);
 
   const branchId = activeBranchId;
 
@@ -111,9 +113,9 @@ export const TableDetailPage = () => {
 
   const handleRegenerateQr = async () => {
     setQrMessage(null);
-    if (!window.confirm('سيتم توليد رمز QR جديد وإلغاء الرمز القديم. هل أنت متأكد؟')) return;
     try {
       await regenerateMutation.mutateAsync({ branchId, id });
+      setConfirmRegen(false);
       setQrMessage('تم توليد رمز QR جديد بنجاح.');
     } catch (err) {
       setQrMessage(err?.message || 'حدث خطأ أثناء توليد رمز QR.');
@@ -525,7 +527,7 @@ export const TableDetailPage = () => {
                   variant="ghost"
                   icon={RefreshCw}
                   isLoading={regenerateMutation.isPending}
-                  onClick={handleRegenerateQr}
+                  onClick={() => setConfirmRegen(true)}
                   className="w-full text-xs text-txt-muted hover:text-red-400 hover:bg-red-500/10"
                 >
                   توليد رمز QR جديد
@@ -535,6 +537,16 @@ export const TableDetailPage = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmRegen}
+        onClose={() => setConfirmRegen(false)}
+        title="توليد رمز QR جديد"
+        message="سيتم توليد رمز QR جديد وإلغاء الرمز القديم. هل أنت متأكد؟"
+        confirmLabel="توليد الرمز"
+        isLoading={regenerateMutation.isPending}
+        onConfirm={handleRegenerateQr}
+      />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { LoginPage } from '../modules/auth/pages/LoginPage.jsx';
 import { EmployeesListPage } from '../modules/employees/pages/EmployeesListPage.jsx';
 import { EmployeeDetailPage } from '../modules/employees/pages/EmployeeDetailPage.jsx';
 import { RolesListPage } from '../modules/roles/pages/RolesListPage.jsx';
+import { RoleEditPage } from '../modules/roles/pages/RoleEditPage.jsx';
 import { RestaurantSettingsPage } from '../modules/restaurant/pages/RestaurantSettingsPage.jsx';
 import { BranchesListPage } from '../modules/branches/pages/BranchesListPage.jsx';
 import { BranchDetailPage } from '../modules/branches/pages/BranchDetailPage.jsx';
@@ -303,8 +304,24 @@ export const router = createBrowserRouter(
       {
         path: 'settings/roles',
         element: (
-          <RequirePermission permission="employees.view">
+          <RequirePermission permission="employees.manage_roles">
             <RolesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/roles/new',
+        element: (
+          <RequirePermission permission="employees.manage_roles">
+            <RoleEditPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/roles/:id/edit',
+        element: (
+          <RequirePermission permission="employees.manage_roles">
+            <RoleEditPage />
           </RequirePermission>
         ),
       },
