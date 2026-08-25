@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { CartDrawer } from '../components/CartDrawer.jsx';
 import { FloatingCartBar } from '../components/FloatingCartBar.jsx';
+import { SessionOrdersList } from '../components/SessionOrdersList.jsx';
 
 const SESSION_KEY_PREFIX = 'ts_session_';
 
@@ -371,11 +372,6 @@ export const PublicTableMenuPage = () => {
             أوردرك اتبعت للويتر للمراجعة، هييجي عندكم قريباً.
           </StatusBanner>
         )}
-        {isConfirmed && (
-          <StatusBanner tone="success" icon={CheckCircle2}>
-            تم تأكيد أوردرك وهو في الطريق للمطبخ. شكراً لكم!
-          </StatusBanner>
-        )}
         {isClosed && (
           <StatusBanner tone="info" icon={ShieldCheck}>
             الجلسة انتهت، شكراً لزيارتكم.
@@ -532,6 +528,12 @@ export const PublicTableMenuPage = () => {
                       </div>
                     </div>
                   ))
+                )}
+
+                {(session?.orders || []).length > 0 && (
+                  <div className="pt-3 border-t border-border-subtle">
+                    <SessionOrdersList orders={session.orders} currency={currency} />
+                  </div>
                 )}
               </div>
 

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Users, X, ShoppingCart, Minus, Plus, Bell, Send } from 'lucide-react';
 import { Button } from '../../../shared/components/Button.jsx';
+import { SessionOrdersList } from './SessionOrdersList.jsx';
 
 export const CartDrawer = ({
   isOpen,
@@ -153,6 +154,13 @@ export const CartDrawer = ({
                 )}
               </div>
             ))
+          )}
+
+          {/* Past & pending order rounds with per-member bill */}
+          {(session?.orders || []).length > 0 && (
+            <div className="pt-3 border-t border-border-subtle">
+              <SessionOrdersList orders={session.orders} currency={currency} />
+            </div>
           )}
         </div>
 
