@@ -169,7 +169,7 @@ export const router = createBrowserRouter(
       {
         path: 'tables/:id',
         element: (
-          <RequirePermission permission="tables.manage">
+          <RequirePermission permission={['tables.view', 'tables.manage']}>
             <TableDetailPage />
           </RequirePermission>
         ),
