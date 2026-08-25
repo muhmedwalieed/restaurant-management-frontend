@@ -65,12 +65,12 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
       size="lg"
     >
       <div className="flex flex-col items-center justify-center space-y-4">
-        {/* Simulator Frame */}
+        {}
         <div className="w-full max-w-sm bg-bg-base border-4 border-border-default rounded-[32px] p-4 shadow-lg overflow-hidden relative min-h-[580px] flex flex-col">
-          {/* Mobile Camera Notch */}
+          {}
           <div className="w-24 h-3.5 bg-border-default rounded-b-xl mx-auto mb-3 shrink-0" />
 
-          {/* Loading state */}
+          {}
           {(isProfileLoading || isMenuLoading) && (
             <div className="p-4 space-y-4 flex-1">
               <LoadingSkeleton height={80} className="w-full rounded-lg" />
@@ -84,7 +84,7 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Error state */}
+          {}
           {(profileError || isMenuError) && !isProfileLoading && !isMenuLoading && (
             <div className="p-6 text-center space-y-3 flex-1 flex flex-col items-center justify-center">
               <Store className="w-6 h-6 text-status-danger mx-auto" />
@@ -100,10 +100,10 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Success state */}
+          {}
           {!isProfileLoading && !isMenuLoading && !profileError && !isMenuError && (
             <div className="flex-1 flex flex-col space-y-3 overflow-y-auto text-right custom-scrollbar">
-              {/* Header Restaurant Banner */}
+              {}
               <div className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center gap-3">
                 {restaurantInfo?.logoUrl ? (
                   <img
@@ -134,7 +134,7 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Calm Horizontal Category Nav Pills */}
+              {}
               {categories.length > 0 && (
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs shrink-0 custom-scrollbar">
                   <button
@@ -165,7 +165,7 @@ export const PublicMenuPreviewModal = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Categories & Products Feed */}
+              {}
               {categories.length === 0 ? (
                 <EmptyState
                   title="قائمة الطعام فارغة حالياً"

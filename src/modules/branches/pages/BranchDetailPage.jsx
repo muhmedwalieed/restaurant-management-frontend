@@ -43,11 +43,10 @@ const STATUS_OPTIONS = [
 export const BranchDetailPage = () => {
   const { id: branchId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'working-hours' | 'settings' | 'users'
+  const [activeTab, setActiveTab] = useState('general');
   const [generalSuccess, setGeneralSuccess] = useAutoDismiss();
   const [generalError, setGeneralError] = useState(null);
 
-  // Queries & Mutations
   const { data: branch, isLoading: isBranchLoading, isError, error, refetch } = useBranchQuery(branchId);
   const updateBranchMutation = useUpdateBranchMutation();
 
@@ -57,7 +56,6 @@ export const BranchDetailPage = () => {
   const { data: branchSettings, isLoading: isSettingsLoading } = useBranchSettingsQuery(branchId);
   const updateSettingsMutation = useUpdateBranchSettingsMutation();
 
-  // General Form setup
   const {
     register,
     handleSubmit,
@@ -125,7 +123,7 @@ export const BranchDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section with back button */}
+      {}
       <div className="flex items-center gap-3 pb-2">
         <Button
           size="sm"
@@ -145,7 +143,7 @@ export const BranchDetailPage = () => {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
+      {}
       <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
         <button
           onClick={() => setActiveTab('general')}
@@ -196,9 +194,9 @@ export const BranchDetailPage = () => {
         </button>
       </div>
 
-      {/* Tab Content Panels */}
+      {}
       <div className="bg-bg-surface border border-border-default border-t-0 rounded-b-lg p-6">
-        {/* Tab 1: General Info */}
+        {}
         {activeTab === 'general' && (
           <form onSubmit={handleSubmit(handleGeneralSubmit)} className="space-y-6 text-right" noValidate>
             <input type="hidden" {...register('code')} value={branch?.code || ''} />
@@ -284,7 +282,7 @@ export const BranchDetailPage = () => {
           </form>
         )}
 
-        {/* Tab 2: Working Hours */}
+        {}
         {activeTab === 'working-hours' && (
           <div>
             {isHoursLoading ? (
@@ -301,7 +299,7 @@ export const BranchDetailPage = () => {
           </div>
         )}
 
-        {/* Tab 3: Branch Settings */}
+        {}
         {activeTab === 'settings' && (
           <div>
             {isSettingsLoading ? (
@@ -316,7 +314,7 @@ export const BranchDetailPage = () => {
           </div>
         )}
 
-        {/* Tab 4: Branch Users (Module 19) */}
+        {}
         {activeTab === 'users' && (
           <div>
             <BranchUsersPanel branchId={branchId} />

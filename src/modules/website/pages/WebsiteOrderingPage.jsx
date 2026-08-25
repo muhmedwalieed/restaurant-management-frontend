@@ -124,7 +124,7 @@ export const WebsiteOrderingPage = () => {
 
   return (
     <div className="min-h-screen bg-bg-base">
-      {/* Header */}
+      {}
       <div className="border-b border-border-default">
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4">
@@ -172,7 +172,7 @@ export const WebsiteOrderingPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Menu */}
+            {}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
                 <button onClick={() => setSelectedCatId('ALL')} className={`px-3 py-2 rounded-full font-bold whitespace-nowrap ${selectedCatId === 'ALL' ? 'bg-brand-primary text-white' : 'bg-bg-surface border border-border-default text-txt-muted'}`}>الكل ({totalProducts})</button>
@@ -199,7 +199,7 @@ export const WebsiteOrderingPage = () => {
               ))}
             </div>
 
-            {/* Cart + Checkout */}
+            {}
             <div className="space-y-4">
               <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2"><ShoppingCart className="w-4 h-4 text-brand-primary" /> السلة ({cartCount})</h3>

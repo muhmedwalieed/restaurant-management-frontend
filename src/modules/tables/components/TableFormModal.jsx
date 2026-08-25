@@ -18,6 +18,7 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(tableFormSchema),
@@ -51,7 +52,7 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
       }
       onClose();
     } catch (err) {
-      // Handled by query/interceptor error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ الطاولة.' });
     }
   };
 
@@ -95,6 +96,12 @@ export const TableFormModal = ({ isOpen, onClose, branchId, tableToEdit = null }
             {...register('status')}
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

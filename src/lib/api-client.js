@@ -11,13 +11,11 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-// Health endpoints are mounted at the ROOT level (not under /api): GET /health & GET /ready
 export const apiHealthClient = axios.create({
   baseURL: apiOrigin,
   timeout: 15000,
 });
 
-// Auth & Refresh Token Handlers
 let authToken = null;
 let onUnauthorizedCallback = null;
 let onConflict409Callback = null;
@@ -34,7 +32,6 @@ export const setApiCallbacks = ({ onUnauthorized, onConflict409, onRefresh }) =>
   if (onRefresh) onRefreshCallback = onRefresh;
 };
 
-// Single-flight token refresh: concurrent 401s share one refresh attempt (Section 16)
 const performRefresh = () => {
   if (!refreshPromise) {
     refreshPromise = (async () => {
@@ -49,10 +46,6 @@ const performRefresh = () => {
   return refreshPromise;
 };
 
-// Section 17 — error code → user-facing UI message mapping.
-// Codes whose value is `null` fall back to the backend-provided message:
-//   - VALIDATION_ERROR  → shown inline next to the affected field
-//   - BUSINESS_RULE_ERROR → the backend message is designed to be user-friendly already
 const ERROR_MESSAGE_MAP = {
   VALIDATION_ERROR: null,
   AUTHENTICATION_ERROR: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى',
@@ -66,10 +59,9 @@ const ERROR_MESSAGE_MAP = {
   INTERNAL_SERVER_ERROR: 'حصل خطأ غير متوقع، جرب تاني',
 };
 
-// Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    if (authToken && !config.skipAuth) {
+    if (authToken && !config.skipAuth && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${authToken}`;
     }
     delete config.skipAuth;
@@ -78,7 +70,6 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Unified success unwrapping (Section 10.3) — shared by the versioned client and the health client
 const unwrapResponse = (response) => {
   const resData = response.data;
   if (resData && typeof resData === 'object' && resData.success !== undefined) {
@@ -89,12 +80,12 @@ const unwrapResponse = (response) => {
         message: resData.message,
       };
     }
-    return resData.data !== undefined ? resData.data : resData;
+
+    return resData.data !== undefined ? resData.data : null;
   }
   return resData;
 };
 
-// Response Interceptor (Section 10.3 & Technical Directives)
 apiClient.interceptors.response.use(unwrapResponse, async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
@@ -112,7 +103,6 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
       raw: error,
     };
 
-    // Handle 409 Optimistic Locking Conflict (Section 17 — CONFLICT_ERROR + refetch signal)
     if (status === 409) {
       if (onConflict409Callback) {
         onConflict409Callback(normalizedError);
@@ -120,11 +110,8 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
       return Promise.reject(normalizedError);
     }
 
-    // Handle 401 Unauthorized Session Expiration (Section 16 — refresh once, then retry)
     if (status === 401 && !originalRequest._retry) {
-      // Do NOT refresh when the failing request IS /auth/refresh itself:
-      // a refresh 401 means the token was already rotated/revoked server-side,
-      // so retrying would spin an infinite refresh loop. Bail straight to logout.
+
       if (originalRequest.url && originalRequest.url.includes('/auth/refresh')) {
         if (onUnauthorizedCallback) onUnauthorizedCallback(normalizedError);
         return Promise.reject(normalizedError);
@@ -140,7 +127,7 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
             return apiClient(originalRequest);
           }
         } catch (_err) {
-          // refresh failed → treat as session expired
+          void _err;
         }
       }
       if (onUnauthorizedCallback) {
@@ -153,5 +140,4 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
   }
 );
 
-// Health client uses the same success unwrapping (no auth needed — 503 handled as a thrown error by the query layer)
 apiHealthClient.interceptors.response.use(unwrapResponse);

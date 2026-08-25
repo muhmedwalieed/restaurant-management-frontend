@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -138,7 +138,7 @@ export const RestaurantSettingsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -181,7 +181,7 @@ export const RestaurantSettingsPage = () => {
         </div>
       )}
 
-      {/* Main Form */}
+      {}
       <div className="bg-bg-surface border border-border-default rounded-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-right" noValidate>
           <ImageUploadInput

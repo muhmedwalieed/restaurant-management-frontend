@@ -74,7 +74,7 @@ export const ConversationDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-3 pb-2 flex-wrap">
         <Button size="sm" variant="outline" onClick={() => navigate('/whatsapp/conversations')} icon={ChevronRight}>
           العودة للمحادثات
@@ -102,7 +102,7 @@ export const ConversationDetailPage = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main */}
+        {}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default flex items-center gap-2">
@@ -117,7 +117,7 @@ export const ConversationDetailPage = () => {
             </div>
           </div>
 
-          {/* Cart */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-brand-primary" />
@@ -140,7 +140,7 @@ export const ConversationDetailPage = () => {
           </div>
         </div>
 
-        {/* Side */}
+        {}
         <div className="space-y-6">
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default">
@@ -178,7 +178,7 @@ export const ConversationDetailPage = () => {
         </div>
       </div>
 
-      {/* Handoff Modal */}
+      {}
       <Modal isOpen={isHandoffOpen} onClose={() => setIsHandoffOpen(false)} title="تحويل المحادثة لموظف" size="sm">
         <div className="space-y-4 text-right">
           <p className="text-xs text-txt-muted">
@@ -195,7 +195,7 @@ export const ConversationDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Close Modal */}
+      {}
       <Modal isOpen={isCloseOpen} onClose={() => setIsCloseOpen(false)} title="إغلاق المحادثة" size="sm">
         <div className="space-y-4 text-right">
           <p className="text-xs text-txt-muted">

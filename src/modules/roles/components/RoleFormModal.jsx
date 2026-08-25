@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,8 +53,7 @@ export const RoleFormModal = ({
           name: initialValues.name || '',
           description: initialValues.description || '',
         });
-        // Backend list returns permissions as [{ permission: { key } }] (RolePermission rows).
-        // Normalize to plain keys so the checkboxes render checked and the saved payload is valid.
+
         setSelectedPermissions(
           (initialValues.permissions || [])
             .map((p) => (typeof p === 'string' ? p : p.permission?.key ?? p.key))
@@ -110,7 +109,6 @@ export const RoleFormModal = ({
     });
   };
 
-  // Filter groups & permissions based on search query
   const filteredGroups = permissionGroups
     .map((group) => {
       const localizedModule = getLocalizedModuleTitle(group.module);
@@ -138,7 +136,7 @@ export const RoleFormModal = ({
       size="xl"
     >
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 text-right" noValidate>
-        {/* Basic Role Information Inputs */}
+        {}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-bg-base/40 p-3.5 rounded-xl border border-border-subtle">
           <Input
             label="اسم الدور الوظيفي"
@@ -155,7 +153,7 @@ export const RoleFormModal = ({
           />
         </div>
 
-        {/* Permission Matrix Controls Header */}
+        {}
         <div className="space-y-3 pt-1">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border-default">
             <div className="flex items-center gap-2">
@@ -165,7 +163,7 @@ export const RoleFormModal = ({
               </h4>
             </div>
 
-            {/* Global Actions: Select All / Deselect All */}
+            {}
             {!isCatalogLoading && allPermissionKeys.length > 0 && (
               <div className="flex items-center gap-2">
                 <button
@@ -189,7 +187,7 @@ export const RoleFormModal = ({
             )}
           </div>
 
-          {/* Quick Search Filter */}
+          {}
           {!isCatalogLoading && permissionGroups.length > 0 && (
             <div className="relative">
               <Search className="w-4 h-4 text-txt-muted absolute right-3 top-2.5 pointer-events-none" />
@@ -203,7 +201,7 @@ export const RoleFormModal = ({
             </div>
           )}
 
-          {/* Permission Matrix Grid */}
+          {}
           {isCatalogLoading ? (
             <div className="flex items-center justify-center gap-2 text-xs text-txt-muted py-8">
               <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
@@ -225,7 +223,7 @@ export const RoleFormModal = ({
                     key={group.module}
                     className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-sm transition-all"
                   >
-                    {/* Group Sub-header */}
+                    {}
                     <div className="px-4 py-3 bg-bg-base/60 border-b border-border-subtle flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="text-xs font-bold text-txt-primary truncate">
@@ -245,7 +243,7 @@ export const RoleFormModal = ({
                       </button>
                     </div>
 
-                    {/* Permissions Grid inside Group */}
+                    {}
                     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       {group.matchingPermissions.map((p) => {
                         const isChecked = selectedPermissions.includes(p.key);
@@ -285,7 +283,7 @@ export const RoleFormModal = ({
           )}
         </div>
 
-        {/* Modal Footer Actions */}
+        {}
         <div className="flex items-center justify-end gap-2 pt-4 border-t border-border-subtle">
           <Button variant="outline" size="md" onClick={onClose} isDisabled={isLoading}>
             إلغاء

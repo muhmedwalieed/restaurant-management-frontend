@@ -43,7 +43,6 @@ export const RoleEditPage = () => {
   const [actionSuccess, setActionSuccess] = useAutoDismiss();
   const [actionError, setActionError] = useState(null);
 
-  // Queries & Mutations
   const { data: rolesData, isLoading: isRolesLoading, isError, error, refetch } = useRolesQuery({ limit: 100 });
   const { data: catalog, isLoading: isCatalogLoading } = usePermissionsCatalogQuery();
 
@@ -65,12 +64,11 @@ export const RoleEditPage = () => {
     [permissionGroups]
   );
 
-  // Populate initial role values
   useEffect(() => {
     if (isEdit && currentRole) {
       setName(currentRole.name || '');
       setDescription(currentRole.description || '');
-      // Normalize permissions array
+
       setSelectedPermissions(
         (currentRole.permissions || [])
           .map((p) => (typeof p === 'string' ? p : p.permission?.key ?? p.key))
@@ -83,7 +81,6 @@ export const RoleEditPage = () => {
     }
   }, [isEdit, currentRole]);
 
-  // Permission selection logic
   const togglePermission = (key) => {
     if (currentRole?.isSystem) return;
     setSelectedPermissions((prev) =>
@@ -145,7 +142,6 @@ export const RoleEditPage = () => {
     }
   };
 
-  // Category Tabs List
   const categoryTabs = useMemo(() => {
     const tabs = [{ id: 'ALL', label: 'جميع الأقسام' }];
     permissionGroups.forEach((g) => {
@@ -157,7 +153,6 @@ export const RoleEditPage = () => {
     return tabs;
   }, [permissionGroups]);
 
-  // Filtered permission groups
   const filteredGroups = useMemo(() => {
     return permissionGroups
       .map((group) => {
@@ -207,10 +202,10 @@ export const RoleEditPage = () => {
 
   return (
     <form onSubmit={handleSave} className="space-y-6" noValidate>
-      {/* 1. Page Breadcrumbs & Sticky Top Action Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-default">
         <div className="space-y-1">
-          {/* Breadcrumb Navigation */}
+          {}
           <div className="flex items-center gap-1.5 text-xs text-txt-muted">
             <Link to="/settings/roles" className="hover:text-txt-primary transition-colors">
               الأدوار والصلاحيات
@@ -227,7 +222,7 @@ export const RoleEditPage = () => {
           </h1>
         </div>
 
-        {/* Top Header Actions */}
+        {}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             type="button"
@@ -265,7 +260,7 @@ export const RoleEditPage = () => {
         </div>
       </div>
 
-      {/* Notification Alerts */}
+      {}
       {actionSuccess && (
         <div className="p-3 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -279,11 +274,11 @@ export const RoleEditPage = () => {
         </div>
       )}
 
-      {/* 2. Unified 2-Column Operational Grid */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* A. Sticky Left Control & Metadata Sidebar (30% Width / lg:col-span-1) */}
+        {}
         <div className="lg:col-span-1 space-y-5 lg:sticky lg:top-4 self-start">
-          {/* Card 1: Role Basic Information */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-5 space-y-4 shadow-sm">
             <div className="flex items-center gap-2 border-b border-border-subtle pb-2.5">
               <SlidersHorizontal className="w-4 h-4 text-brand-primary shrink-0" />
@@ -314,7 +309,7 @@ export const RoleEditPage = () => {
             </div>
           </div>
 
-          {/* Card 2: Permission Metrics & Bulk Actions */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-5 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-border-subtle pb-2.5">
               <h3 className="text-xs font-bold text-txt-primary">ملخص الصلاحيات الممنوحة</h3>
@@ -329,7 +324,7 @@ export const RoleEditPage = () => {
               )}
             </div>
 
-            {/* Metrics Ratio Counter */}
+            {}
             <div className="bg-bg-base/60 border border-border-subtle rounded-xl p-4 text-center space-y-1">
               <div className="text-2xl font-bold font-mono text-brand-primary tabular-nums">
                 {selectedPermissions.length} <span className="text-sm text-txt-muted font-sans font-normal">/ {allPermissionKeys.length}</span>
@@ -337,7 +332,7 @@ export const RoleEditPage = () => {
               <p className="text-xs text-txt-muted">صلاحية مفعّلة لهذا المسمى الوظيفي</p>
             </div>
 
-            {/* Bulk Actions */}
+            {}
             {!currentRole?.isSystem && (
               <div className="space-y-2 pt-1">
                 <Button
@@ -364,11 +359,11 @@ export const RoleEditPage = () => {
           </div>
         </div>
 
-        {/* B. Right Permissions Matrix Workspace (70% Width / lg:col-span-2) */}
+        {}
         <div className="lg:col-span-2 space-y-5">
-          {/* Quick Search & Category Navigation Bar */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3.5 shadow-sm">
-            {/* Search Input */}
+            {}
             <div className="relative">
               <Search className="w-4 h-4 text-txt-muted absolute right-3 top-2.5 pointer-events-none" />
               <input
@@ -380,7 +375,7 @@ export const RoleEditPage = () => {
               />
             </div>
 
-            {/* Category Jump Anchor Tabs */}
+            {}
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
               {categoryTabs.map((tab) => {
                 const isSelected = activeCategoryTab === tab.id;
@@ -402,7 +397,7 @@ export const RoleEditPage = () => {
             </div>
           </div>
 
-          {/* Grouped Permission Matrix Panels */}
+          {}
           {filteredGroups.length === 0 ? (
             <div className="bg-bg-surface border border-border-default rounded-xl p-8 text-center space-y-2">
               <p className="text-xs text-txt-muted">لم يتم العثور على صلاحيات تطابق خيارات البحث.</p>
@@ -419,7 +414,7 @@ export const RoleEditPage = () => {
                     key={group.module}
                     className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-sm"
                   >
-                    {/* Module Group Header */}
+                    {}
                     <div className="px-4 py-3 bg-bg-base/60 border-b border-border-subtle flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <h3 className="text-xs font-bold text-txt-primary truncate">
@@ -441,7 +436,7 @@ export const RoleEditPage = () => {
                       )}
                     </div>
 
-                    {/* Permissions Grid inside Module */}
+                    {}
                     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       {group.matchingPermissions.map((p) => {
                         const isChecked = selectedPermissions.includes(p.key);

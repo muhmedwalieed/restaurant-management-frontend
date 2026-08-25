@@ -9,12 +9,26 @@ import {
   useActiveTableSessionQuery,
   useConfirmTableSession,
   useCloseTableSession,
+  useRejectPendingOrder,
   useRegeneratePin,
-  useSubmitDraft,
   useUpdateSessionItem,
   useRemoveSessionItem,
 } from '../hooks/useTableSessions.js';
-import { KeyRound, Users, CheckCircle2, XCircle, Plus, Minus, Trash2, Receipt, Eye, Copy, Check, Printer } from 'lucide-react';
+import {
+  KeyRound,
+  Users,
+  CheckCircle2,
+  XCircle,
+  Plus,
+  Minus,
+  Trash2,
+  Receipt,
+  Eye,
+  Copy,
+  Check,
+  Printer,
+  Undo2,
+} from 'lucide-react';
 
 const SESSION_STATUS = {
   ACTIVE: { pill: 'warning', label: 'جلسة نشطة' },
@@ -58,26 +72,41 @@ const EditableItemRow = ({ item, onUpdate, onRemove }) => (
   </div>
 );
 
+const ReadonlyItemRow = ({ item }) => (
+  <div className="flex items-center justify-between gap-2 bg-bg-base/60 border border-border-subtle rounded-lg p-2 text-xs">
+    <div className="min-w-0 flex-1">
+      <p className="font-semibold text-txt-primary truncate">{item.productName}</p>
+      <p className="text-[11px] text-txt-muted">
+        {item.quantity} × {Number(item.unitPrice).toFixed(2)} = {Number(item.total).toFixed(2)}
+      </p>
+      {item.addedByName && <p className="text-[11px] text-brand-primary">{item.addedByName} أضافها</p>}
+    </div>
+    <span className="font-mono font-bold text-txt-primary shrink-0">{Number(item.total).toFixed(2)}</span>
+  </div>
+);
+
 export const TableSessionPanel = ({ tableId }) => {
   const [showPin, setShowPin] = useState(null);
   const [startError, setStartError] = useState(null);
   const [startLoading, setStartLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [actionError, setActionError] = useState(null);
+  const [actionSuccess, setActionSuccess] = useState(null);
 
   const startMutation = useStartTableSession();
-  const { data: session, isLoading } = useActiveTableSessionQuery(tableId, true);
+  const { data: session, isLoading, refetch } = useActiveTableSessionQuery(tableId, true);
   const confirmMutation = useConfirmTableSession(session?.id);
   const closeMutation = useCloseTableSession(session?.id);
+  const rejectMutation = useRejectPendingOrder(session?.id);
   const regenerateMutation = useRegeneratePin(session?.id);
-  const submitMutation = useSubmitDraft(session?.id);
   const updateMutation = useUpdateSessionItem(session?.id);
   const removeMutation = useRemoveSessionItem(session?.id);
-  const [actionError, setActionError] = useState(null);
 
   const status = SESSION_STATUS[session?.status] || SESSION_STATUS.ACTIVE;
   const pendingOrder = (session?.orders || []).find((o) => o.status === 'AWAITING_CONFIRMATION');
   const currentItems = session?.items || [];
   const historyOrders = (session?.orders || []).filter((o) => o.status !== 'AWAITING_CONFIRMATION');
+  const grandTotal = Number(session?.grandTotal || 0).toFixed(2);
 
   const handleStart = async () => {
     setStartError(null);
@@ -98,8 +127,8 @@ export const TableSessionPanel = ({ tableId }) => {
       await navigator.clipboard.writeText(showPin);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      void err;
     }
   };
 
@@ -141,21 +170,38 @@ export const TableSessionPanel = ({ tableId }) => {
 
   const handleConfirm = async () => {
     setActionError(null);
+    setActionSuccess(null);
+    if (!session?.id) return;
     try {
-      if (!pendingOrder && currentItems.length > 0) {
-        // No submitted round yet — submit the current cart as a round, then confirm it.
-        await submitMutation.mutateAsync();
-      }
       await confirmMutation.mutateAsync();
+      setActionSuccess(`تم تأكيد أوردر #${pendingOrder?.orderNumber || ''} وإضافته للفاتورة.`);
+      await refetch();
     } catch (err) {
       setActionError(err?.message || 'تعذر تأكيد الطلب.');
     }
   };
 
+  const handleReject = async () => {
+    setActionError(null);
+    setActionSuccess(null);
+    if (!session?.id) return;
+    try {
+      await rejectMutation.mutateAsync();
+      setActionSuccess(`تم إرجاع أوردر #${pendingOrder?.orderNumber || ''} للعميل ليقدر يعدّل عليه.`);
+      await refetch();
+    } catch (err) {
+      setActionError(err?.message || 'تعذر إرجاع الطلب للعميل.');
+    }
+  };
+
   const handleClose = async () => {
     setActionError(null);
+    setActionSuccess(null);
+    if (!session?.id) return;
     try {
       await closeMutation.mutateAsync();
+      setActionSuccess('تم إغلاق الجلسة.');
+      await refetch();
     } catch (err) {
       setActionError(err?.message || 'تعذر إغلاق الجلسة.');
     }
@@ -163,11 +209,11 @@ export const TableSessionPanel = ({ tableId }) => {
 
   const handleShowPin = async () => {
     setActionError(null);
+    if (!session?.id) return;
     if (session?.pin) {
       setShowPin(session.pin);
       return;
     }
-    // Legacy session without a stored PIN → generate a fresh one.
     try {
       const res = await regenerateMutation.mutateAsync();
       setShowPin(res.pin);
@@ -183,12 +229,12 @@ export const TableSessionPanel = ({ tableId }) => {
           <KeyRound className="w-4 h-4 text-brand-primary" />
           <h3 className="text-xs font-bold text-txt-primary">جلسة الطلب الذاتي</h3>
         </div>
-        {session && <StatusPill status={status.pill}>{status.label}</StatusPill>}
+        {session?.id && <StatusPill status={status.pill}>{status.label}</StatusPill>}
       </div>
 
       {isLoading ? (
         <LoadingSkeleton height={80} className="w-full" />
-      ) : !session ? (
+      ) : !session?.id ? (
         <div className="space-y-3">
           <p className="text-xs text-txt-muted">
             ابدأ جلسة للعملاء يجلسوا على الطاولة ويطلبوا بأنفسهم عن طريق الـ QR. هتاخد PIN من 4 أرقام تعطيه للعميل.
@@ -208,11 +254,11 @@ export const TableSessionPanel = ({ tableId }) => {
               الأعضاء: {(session.members || []).map((m) => m.name).join('، ') || '—'}
             </span>
             <span className="font-mono font-bold text-txt-primary">
-              {(session.orders || []).length} أوردرات • {Number(session.total || 0).toFixed(2)}
+              {(session.orders || []).length} أوردرات • إجمالي {grandTotal}
             </span>
           </div>
 
-          {/* Pending order (awaiting review) */}
+          {}
           {pendingOrder && (
             <div className="rounded-lg border border-status-warning/30 bg-status-warning/5 p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -234,10 +280,31 @@ export const TableSessionPanel = ({ tableId }) => {
                   />
                 ))}
               </div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  icon={CheckCircle2}
+                  isLoading={confirmMutation.isPending}
+                  onClick={handleConfirm}
+                >
+                  تأكيد أوردر #{pendingOrder.orderNumber}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={Undo2}
+                  isLoading={rejectMutation.isPending}
+                  onClick={handleReject}
+                  title="إرجاع الأوردر للعميل ليقدر يعدّل عليه ويبعت تاني"
+                >
+                  إرجاع للعميل
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Current cart (open round, not yet submitted) */}
+          {}
           {currentItems.length > 0 && !pendingOrder && (
             <div className="rounded-lg border border-border-subtle bg-bg-base/40 p-3 space-y-2">
               <p className="text-xs font-bold text-txt-primary flex items-center gap-1.5">
@@ -246,21 +313,16 @@ export const TableSessionPanel = ({ tableId }) => {
               </p>
               <div className="space-y-1.5 max-h-44 overflow-y-auto">
                 {currentItems.map((item) => (
-                  <EditableItemRow
-                    key={item.id}
-                    item={item}
-                    onUpdate={(id, qty) => updateMutation.mutate({ itemId: id, quantity: qty })}
-                    onRemove={(id) => removeMutation.mutate(id)}
-                  />
+                  <ReadonlyItemRow key={item.id} item={item} />
                 ))}
               </div>
               <p className="text-[11px] text-txt-muted">
-                العميل بيبعت الأوردر من صفحته أو تقدر تأكّد من هنا مباشرة.
+                العميل لسه بيعدّل في السلة. لما يبعت الأوردر هيظهر هنا للتعديل والتأكيد.
               </p>
             </div>
           )}
 
-          {/* Order history */}
+          {}
           {historyOrders.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-bold text-txt-muted">أوردرات الجلسة السابقة</p>
@@ -286,33 +348,16 @@ export const TableSessionPanel = ({ tableId }) => {
           )}
 
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
-            {actionError && (
-              <p className="w-full text-[11px] font-medium text-status-danger">{actionError}</p>
-            )}
+            {actionSuccess && <p className="w-full text-[11px] font-medium text-status-success">{actionSuccess}</p>}
+            {actionError && <p className="w-full text-[11px] font-medium text-status-danger">{actionError}</p>}
             <PermissionGate permission="orders.create">
-              {(pendingOrder || currentItems.length > 0) && session.status !== 'CLOSED' && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  icon={CheckCircle2}
-                  isLoading={confirmMutation.isPending || submitMutation.isPending}
-                  onClick={handleConfirm}
-                  title="مراجعة وتأكيد الطلب (بيتحول لأوردر حقيقي)"
-                >
-                  {pendingOrder ? `تأكيد أوردر #${pendingOrder.orderNumber}` : 'تأكيد الطلب'}
-                </Button>
-              )}
               <Button
                 size="sm"
                 variant="outline"
                 icon={Eye}
                 isLoading={regenerateMutation.isPending}
                 onClick={handleShowPin}
-                title={
-                  session.pin
-                    ? 'عرض رمز الـ PIN الخاص بالجلسة الحالية'
-                    : 'توليد رمز PIN جديد (الجلسة القديمة مش مخزن فيها رمز)'
-                }
+                title={session.pin ? 'عرض رمز الـ PIN الخاص بالجلسة الحالية' : 'توليد رمز PIN جديد'}
               >
                 {session.pin ? 'عرض الـ PIN' : 'توليد الـ PIN'}
               </Button>
@@ -331,7 +376,7 @@ export const TableSessionPanel = ({ tableId }) => {
         </div>
       )}
 
-      {/* PIN modal */}
+      {}
       <Modal isOpen={Boolean(showPin)} onClose={() => setShowPin(null)} title="PIN جلسة الطاولة" size="sm">
         <div className="text-center space-y-4 py-2">
           <p className="text-xs text-txt-muted">أعطِ هذا الرمز للعميل عشان يدخل الجلسة من الـ QR:</p>

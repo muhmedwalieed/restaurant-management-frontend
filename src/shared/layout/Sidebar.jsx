@@ -50,7 +50,6 @@ export const Sidebar = ({ isCollapsed = false }) => {
   const { hasPermission } = useAuth();
   const location = useLocation();
 
-  // Accordion state: operations open by default, manage & settings collapsed
   const [openSections, setOpenSections] = useState({
     ops: true,
     manage: false,
@@ -64,7 +63,6 @@ export const Sidebar = ({ isCollapsed = false }) => {
     }))
     .filter((section) => section.items.length > 0);
 
-  // Auto-expand section containing active route
   useEffect(() => {
     const activeSection = visibleSections.find((sec) =>
       sec.items.some((item) =>
@@ -91,7 +89,7 @@ export const Sidebar = ({ isCollapsed = false }) => {
         isCollapsed ? 'w-16' : 'w-64'
       )}
     >
-      {/* 1. Header: Logo & Brand Name Only (Fixed shrink-0 56px) */}
+      {}
       <div className={clsx('shrink-0 h-14 border-b border-white/[0.07] flex items-center', isCollapsed ? 'justify-center px-2' : 'px-4')}>
         <div className="flex items-center gap-2.5 min-w-0">
           <Store className="w-5 h-5 text-brand-primary shrink-0" />
@@ -103,19 +101,19 @@ export const Sidebar = ({ isCollapsed = false }) => {
         </div>
       </div>
 
-      {/* 2. Middle Zone: Pure Body Navigation with Strict min-h-0 and Safe pb-16 */}
+      {}
       <nav className={clsx('flex-1 min-h-0 overflow-y-auto pb-16 custom-scrollbar', isCollapsed ? 'py-3 px-2 space-y-1' : 'py-3 px-3 space-y-1')}>
         {visibleSections.map((section, index) => {
           const isOpen = !!openSections[section.key];
 
           return (
             <div key={section.key}>
-              {/* Separator between groups in collapsed mode */}
+              {}
               {isCollapsed && index > 0 && (
                 <div className="w-6 h-px bg-white/[0.07] mx-auto my-2.5" aria-hidden="true" />
               )}
 
-              {/* Section Header: flex items-center justify-between text-slate-400 */}
+              {}
               {!isCollapsed && (
                 <button
                   type="button"
@@ -133,7 +131,7 @@ export const Sidebar = ({ isCollapsed = false }) => {
                 </button>
               )}
 
-              {/* Navigation Items: consistent height h-9 (36px) and space-y-1 */}
+              {}
               {(isCollapsed || isOpen) && (
                 <div className="space-y-1">
                   {section.items.map((item) => {

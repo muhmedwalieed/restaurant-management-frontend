@@ -6,7 +6,6 @@ import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 const SOCKET_URL = new URL(API_BASE_URL).origin;
 
-// Each real-time event invalidates the affected react-query keys (prefix match).
 const EVENT_INVALIDATIONS = {
   'order.created': [
     'orders',
@@ -78,7 +77,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     socket.on('realtime.connected', () => {
-      // Connection acknowledged by the server; nothing else to do.
+
     });
 
     return () => {

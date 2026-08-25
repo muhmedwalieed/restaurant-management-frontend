@@ -1,10 +1,6 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-/**
- * Accessible toggle switch (role="switch").
- * Knob stays LTR internally so the on/off motion is consistent regardless of the page direction.
- */
 export const Toggle = ({
   checked = false,
   onChange,

@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +10,6 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { Store, Mail, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-// Zod Login Form Validation Schema
 export const loginSchema = z.object({
   email: z
     .string()
@@ -49,7 +48,7 @@ export const LoginPage = () => {
       setShowForceLogoutModal(false);
       navigate('/');
     } catch (err) {
-      // Active session on another device → 422 BUSINESS_RULE_ERROR with details.forceLogoutRequired
+
       const isActiveSession = err.code === 'BUSINESS_RULE_ERROR' && err.details?.forceLogoutRequired;
       if (isActiveSession) {
         setPendingCredentials(data);
@@ -72,7 +71,7 @@ export const LoginPage = () => {
   return (
     <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 sm:p-8 space-y-6">
-        {/* Header Branding */}
+        {}
         <div className="text-center space-y-2">
           <Store className="w-6 h-6 text-brand-primary mx-auto" />
           <h1 className="text-xl font-bold text-txt-primary">تسجيل الدخول للنظام</h1>
@@ -88,7 +87,7 @@ export const LoginPage = () => {
           </div>
         )}
 
-        {/* Form */}
+        {}
         <form onSubmit={handleSubmit((data) => handleLoginSubmit(data, false))} className="space-y-4" noValidate>
           <Input
             label="البريد الإلكتروني"
@@ -125,11 +124,11 @@ export const LoginPage = () => {
         </form>
 
         <div className="text-center text-xs text-txt-muted border-t border-border-subtle pt-4">
-          نظام إدارة المطاعم SaaS، الإصدار 1.0 
+          نظام إدارة المطاعم SaaS، الإصدار 1.0
         </div>
       </div>
 
-      {/* Force Logout Confirmation Modal (Section 16 UX) */}
+      {}
       <Modal
         isOpen={showForceLogoutModal}
         onClose={() => setShowForceLogoutModal(false)}

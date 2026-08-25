@@ -48,7 +48,7 @@ export const PosPage = () => {
 
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [cart, setCart] = useState([]); // [{ productId, name, unitPrice, quantity }]
+  const [cart, setCart] = useState([]);
   const [orderType, setOrderType] = useState('DINE_IN');
   const [source, setSource] = useState('CASHIER');
   const [tableId, setTableId] = useState('');
@@ -62,7 +62,6 @@ export const PosPage = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Phone lookup auto-fill: typing a valid number fetches customer name + default address + recent orders
   useEffect(() => {
     const cleanPhone = customerPhone.trim();
     if (cleanPhone.length < 8) {
@@ -81,14 +80,13 @@ export const PosPage = () => {
           const addr = [data.defaultAddress.street, data.defaultAddress.city].filter(Boolean).join('، ');
           if (addr) setAddress(addr);
         }
-      } catch {
-        // Silent catch while typing
+      } catch (err) {
+        void err;
       }
     }, 500);
     return () => clearTimeout(timer);
   }, [customerPhone, customerName, address]);
 
-  // Filter products by category and search
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchesCat = selectedCategory === 'ALL' || p.categoryId === selectedCategory;
@@ -185,7 +183,7 @@ export const PosPage = () => {
 
   return (
     <div className="h-[calc(100vh-5.5rem)] flex flex-col min-h-0 overflow-hidden space-y-3">
-      {/* 1. Header: Compact Utility Bar (Shrink-0) */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border-default/60 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
@@ -217,7 +215,7 @@ export const PosPage = () => {
         </div>
       </div>
 
-      {/* Notifications Banner (Shrink-0) */}
+      {}
       {successMsg && (
         <div className="p-2 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2 shrink-0">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -231,13 +229,13 @@ export const PosPage = () => {
         </div>
       )}
 
-      {/* 2. Main POS Workspace: Viewport Bounded Grid */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 min-h-0 overflow-hidden">
-        {/* Left Column: Menu Catalog (Spans 7-8 cols on large screens, Flex Column bounded) */}
+        {}
         <div className="lg:col-span-7 xl:col-span-8 flex flex-col h-full min-h-0 overflow-hidden space-y-2">
-          {/* Quick Filters Utility Bar (Shrink-0) */}
+          {}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 bg-bg-surface p-2 rounded-xl border border-border-default shrink-0">
-            {/* Category Pills */}
+            {}
             <div className="flex items-center gap-1 overflow-x-auto pb-0.5 max-w-full custom-scrollbar">
               <button
                 type="button"
@@ -273,7 +271,7 @@ export const PosPage = () => {
               })}
             </div>
 
-            {/* Quick Search Field */}
+            {}
             <div className="w-full sm:w-44 shrink-0">
               <Input
                 placeholder="بحث صنف..."
@@ -285,7 +283,7 @@ export const PosPage = () => {
             </div>
           </div>
 
-          {/* Products Scrollable Grid Container (Flex-1 overflow-y-auto) */}
+          {}
           <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1">
             {isProductsLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
@@ -314,21 +312,21 @@ export const PosPage = () => {
                           : 'border-border-default hover:border-white/20 hover:bg-white/[0.02]'
                       }`}
                     >
-                      {/* Active Quantity Badge */}
+                      {}
                       {inCartItem && (
                         <span className="absolute top-2 left-2 z-10 px-2 py-0.5 text-xs font-mono font-bold bg-brand-primary text-slate-950 rounded-full shadow-md">
                           {inCartItem.quantity}×
                         </span>
                       )}
 
-                      {/* Top Row: Category Badge */}
+                      {}
                       <div className="flex items-center justify-between w-full mb-1.5">
                         <span className="text-[10px] font-medium text-txt-muted bg-white/[0.06] px-1.5 py-0.5 rounded truncate max-w-[85%]">
                           {p.category?.name || 'صنف'}
                         </span>
                       </div>
 
-                      {/* Center: Image OR Clean Centered Typography Box */}
+                      {}
                       {p.imageUrl ? (
                         <img
                           src={resolveAssetUrl(p.imageUrl)}
@@ -343,7 +341,7 @@ export const PosPage = () => {
                         </div>
                       )}
 
-                      {/* Bottom Row: Item Title & Price Tag */}
+                      {}
                       <div className="space-y-1 w-full mt-auto">
                         {p.imageUrl && (
                           <p className="text-xs font-bold text-txt-primary line-clamp-1 group-hover:text-brand-primary transition-colors">
@@ -367,11 +365,11 @@ export const PosPage = () => {
           </div>
         </div>
 
-        {/* Right Column: Viewport-Bounded Ticket Panel (Spans 5 cols on lg, 4 on xl) */}
+        {}
         <div className="lg:col-span-5 xl:col-span-4 flex flex-col h-full min-h-0 bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-xl">
-          {/* Zone 1: Fixed Header Context (Shrink-0) */}
+          {}
           <div className="p-2.5 border-b border-border-default bg-bg-base/60 space-y-2 shrink-0">
-            {/* Header Title & Protected Clear Cart */}
+            {}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <ShoppingCart className="w-4 h-4 text-brand-primary" />
@@ -412,10 +410,10 @@ export const PosPage = () => {
               )}
             </div>
 
-            {/* Order Source Segmented Pills */}
+            {}
             <OrderSourcePicker value={source} onChange={setSource} />
 
-            {/* Fulfillment Type Segmented Control */}
+            {}
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-txt-primary block">نوع الطلب</label>
               <div className="grid grid-cols-3 gap-1 p-0.5 bg-bg-base/80 border border-border-default rounded-lg">
@@ -458,7 +456,7 @@ export const PosPage = () => {
               </div>
             </div>
 
-            {/* Table Selector or Customer Fields */}
+            {}
             {orderType === 'DINE_IN' ? (
               <TableQuickPicker
                 tables={tables}
@@ -501,7 +499,7 @@ export const PosPage = () => {
               </div>
             )}
 
-            {/* Caller History Badge */}
+            {}
             {caller?.recentOrders && caller.recentOrders.length > 0 && (
               <div className="p-1.5 bg-bg-surface-elevated/60 border border-border-default rounded space-y-1 text-xs">
                 <div className="flex items-center justify-between font-bold text-txt-primary">
@@ -514,7 +512,7 @@ export const PosPage = () => {
             )}
           </div>
 
-          {/* Zone 2: Independent Scrollable Line Items Container (Flex-1 min-h-0 overflow-y-auto) */}
+          {}
           <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-2 space-y-1.5 bg-bg-base/10">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center py-6 text-center text-txt-muted">
@@ -570,9 +568,9 @@ export const PosPage = () => {
             )}
           </div>
 
-          {/* Zone 3: Pinned Checkout Footer (Shrink-0, Permanently Anchored to Viewport Bottom) */}
+          {}
           <div className="p-3 border-t border-border-default bg-bg-base/90 space-y-2.5 shrink-0 shadow-inner mt-auto">
-            {/* Collapsible Order Notes Toggle */}
+            {}
             <div>
               {showNotes ? (
                 <div className="space-y-1 animate-fadeIn">
@@ -608,7 +606,7 @@ export const PosPage = () => {
               )}
             </div>
 
-            {/* Total Summary Row */}
+            {}
             <div className="flex items-center justify-between pt-1 border-t border-white/[0.06]">
               <span className="text-xs font-semibold text-txt-muted">الإجمالي النهائي:</span>
               <span className="text-base font-bold text-white font-mono tabular-nums">
@@ -616,7 +614,7 @@ export const PosPage = () => {
               </span>
             </div>
 
-            {/* Primary Action Submit CTA */}
+            {}
             <PermissionGate permission="orders.create">
               <Button
                 size="md"

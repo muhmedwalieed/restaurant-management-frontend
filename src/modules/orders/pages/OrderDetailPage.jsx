@@ -109,6 +109,10 @@ const parseHistoryMetadata = (h) => {
   if (h.reason === 'Order created') {
     title = 'تم إنشاء الطلب';
     subtitle = h.employee?.name ? `بواسطة: ${h.employee.name}` : 'بواسطة: النظام';
+  } else if (h.reason?.startsWith('Order round')) {
+    const round = h.reason.match(/\d+/)?.[0] || '';
+    title = round === '1' ? 'تم إنشاء الطلب' : `تمت إضافة طلب إضافي (جولة ${round})`;
+    subtitle = h.employee?.name ? `بواسطة: ${h.employee.name}` : 'بواسطة: النظام';
   } else if (h.reason?.startsWith('Payment processed')) {
     title = 'تم تحصيل الدفع';
     const method = h.reason.match(/\((\w+)\)/)?.[1];
@@ -286,10 +290,24 @@ export const OrderDetailPage = () => {
       ? [order.customer.addresses[0]?.street, order.customer.addresses[0]?.city].filter(Boolean).join(' - ')
       : null);
 
+  const roundsMap = new Map();
+  for (const it of order?.items || []) {
+    const r = it.round || 1;
+    if (!roundsMap.has(r)) roundsMap.set(r, []);
+    roundsMap.get(r).push(it);
+  }
+  const orderRounds = Array.from(roundsMap.entries())
+    .map(([round, items]) => ({
+      round,
+      items,
+      subtotal: items.reduce((acc, i) => acc + Number(i.subtotal || 0), 0),
+    }))
+    .sort((a, b) => a.round - b.round);
+
   return (
     <>
       <div className="space-y-5 print:hidden">
-      {/* 1. Page Top Bar: Back button, Order title, Single Status badge on Right; Quick Flat Actions on Left */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div className="flex items-center gap-3 min-w-0">
           <Button
@@ -308,14 +326,14 @@ export const OrderDetailPage = () => {
               <span>طلب #{order?.orderNumber}</span>
             </h1>
 
-            {/* Single clean Status Pill */}
+            {}
             <StatusPill status={orderStatusPill(order?.status)}>
               {ORDER_STATUS_LABELS[order?.status] || order?.status}
             </StatusPill>
           </div>
         </div>
 
-        {/* Top Flat Actions */}
+        {}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             size="sm"
@@ -329,7 +347,7 @@ export const OrderDetailPage = () => {
         </div>
       </div>
 
-      {/* 2. Notification Alerts */}
+      {}
       {actionSuccess && (
         <div className="p-3 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -343,11 +361,11 @@ export const OrderDetailPage = () => {
         </div>
       )}
 
-      {/* 3. Unified 2-Columns Layout: Everything visible in a single cohesive view */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* A. Right Main Column (68% / lg:col-span-2) */}
+        {}
         <div className="lg:col-span-2 space-y-5">
-          {/* Card 1: Order Items & Financial Receipt */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-sm">
             <div className="px-4 py-3 border-b border-border-default flex items-center justify-between bg-bg-base/40">
               <div className="flex items-center gap-2">
@@ -356,49 +374,116 @@ export const OrderDetailPage = () => {
               </div>
               <span className="text-xs text-txt-muted">
                 {order?.items?.length || 0} أصناف
+                {orderRounds.length > 1 ? ` • ${orderRounds.length} طلبات` : ''}
               </span>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-right">
-                <thead className="bg-bg-base/60 text-txt-muted border-b border-border-default select-none">
-                  <tr>
-                    <th className="px-4 py-2.5 font-semibold">الصنف</th>
-                    <th className="px-4 py-2.5 font-semibold text-center w-20">الكمية</th>
-                    <th className="px-4 py-2.5 font-semibold text-left w-28">السعر</th>
-                    <th className="px-4 py-2.5 font-semibold text-left w-28">الإجمالي</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/[0.05]">
-                  {order?.items?.map((item) => (
-                    <tr key={item.id} className="hover:bg-white/[0.01] transition-colors">
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-txt-primary">{item.productName}</span>
-                          {item.notes && (
-                            <span className="text-[11px] text-txt-muted mt-0.5">
-                              ملاحظات: {item.notes}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-center font-mono font-bold text-txt-primary">
-                        {item.quantity}×
-                      </td>
-                      <td className="px-4 py-3.5 text-left font-mono tabular-nums text-txt-muted">
-                        {Number(item.unitPrice || 0).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3.5 text-left font-mono font-bold tabular-nums text-txt-primary">
-                        {Number(item.subtotal || 0).toFixed(2)} EGP
-                      </td>
+            {}
+            {orderRounds.length > 1 ? (
+              <div className="divide-y divide-white/[0.06]">
+                {orderRounds.map((round) => (
+                  <div key={round.round} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-xs font-bold text-txt-primary">
+                        {round.round === 1 ? 'الطلب الأول' : `الطلب ${round.round === 2 ? 'الثاني' : `#${round.round}`}`}
+                        <span className="text-[11px] font-semibold text-txt-muted mr-1">(جولة {round.round})</span>
+                      </h4>
+                      <span className="text-[11px] font-mono font-bold text-txt-primary" dir="ltr">
+                        حساب الطلب: {round.subtotal.toFixed(2)} EGP
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto rounded-lg border border-border-subtle">
+                      <table className="w-full text-xs text-right">
+                        <thead className="bg-bg-base/60 text-txt-muted border-b border-border-default select-none">
+                          <tr>
+                            <th className="px-4 py-2 font-semibold">الصنف</th>
+                            <th className="px-4 py-2 font-semibold text-center w-20">الكمية</th>
+                            <th className="px-4 py-2 font-semibold text-left w-28">السعر</th>
+                            <th className="px-4 py-2 font-semibold text-left w-28">الإجمالي</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.05]">
+                          {round.items.map((item) => (
+                            <tr key={item.id} className="hover:bg-white/[0.01] transition-colors">
+                              <td className="px-4 py-3">
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-txt-primary">{item.productName}</span>
+                                  {item.notes && (
+                                    <span className="text-[11px] text-txt-muted mt-0.5">
+                                      ملاحظات: {item.notes}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center font-mono font-bold text-txt-primary">
+                                {item.quantity}×
+                              </td>
+                              <td className="px-4 py-3 text-left font-mono tabular-nums text-txt-muted">
+                                {Number(item.unitPrice || 0).toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-left font-mono font-bold tabular-nums text-txt-primary">
+                                {Number(item.subtotal || 0).toFixed(2)} EGP
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-right">
+                  <thead className="bg-bg-base/60 text-txt-muted border-b border-border-default select-none">
+                    <tr>
+                      <th className="px-4 py-2.5 font-semibold">الصنف</th>
+                      <th className="px-4 py-2.5 font-semibold text-center w-20">الكمية</th>
+                      <th className="px-4 py-2.5 font-semibold text-left w-28">السعر</th>
+                      <th className="px-4 py-2.5 font-semibold text-left w-28">الإجمالي</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.05]">
+                    {order?.items?.map((item) => (
+                      <tr key={item.id} className="hover:bg-white/[0.01] transition-colors">
+                        <td className="px-4 py-3.5">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-txt-primary">{item.productName}</span>
+                            {item.notes && (
+                              <span className="text-[11px] text-txt-muted mt-0.5">
+                                ملاحظات: {item.notes}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-center font-mono font-bold text-txt-primary">
+                          {item.quantity}×
+                        </td>
+                        <td className="px-4 py-3.5 text-left font-mono tabular-nums text-txt-muted">
+                          {Number(item.unitPrice || 0).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3.5 text-left font-mono font-bold tabular-nums text-txt-primary">
+                          {Number(item.subtotal || 0).toFixed(2)} EGP
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            {/* Financial Breakdown with clear borders */}
+            {}
             <div className="p-4 border-t border-white/[0.08] bg-bg-base/30 space-y-2 text-xs">
+              {orderRounds.length > 1 && (
+                <div className="space-y-1 pb-2 border-b border-white/[0.06]">
+                  {orderRounds.map((round) => (
+                    <div key={round.round} className="flex items-center justify-between text-txt-muted">
+                      <span>حساب {round.round === 1 ? 'الطلب الأول' : `الطلب ${round.round === 2 ? 'الثاني' : `#${round.round}`}`}:</span>
+                      <span className="font-mono tabular-nums">{round.subtotal.toFixed(2)} EGP</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center justify-between text-txt-muted">
                 <span>المجموع الفرعي:</span>
                 <span className="font-mono tabular-nums">{Number(order?.subtotal || order?.total || 0).toFixed(2)} EGP</span>
@@ -424,7 +509,7 @@ export const OrderDetailPage = () => {
             </div>
           </div>
 
-          {/* Card 2: Notes & Cancellation Reasons (if any) */}
+          {}
           {(order?.notes || order?.cancelReason) && (
             <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3 shadow-sm">
               {order?.notes && (
@@ -449,7 +534,7 @@ export const OrderDetailPage = () => {
             </div>
           )}
 
-          {/* Card 3: Activity Timeline (Compact Linear Flow) */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-5 space-y-4 shadow-sm">
             <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
               <History className="w-4 h-4 text-brand-primary shrink-0" />
@@ -491,9 +576,9 @@ export const OrderDetailPage = () => {
           </div>
         </div>
 
-        {/* B. Left Context & Actions Sidebar (32% / space-y-5) */}
+        {}
         <div className="space-y-5">
-          {/* Unified Card 1: Order & Customer Details */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3.5 shadow-sm">
             <div className="flex items-center gap-2 pb-2 border-b border-border-subtle">
               <Tag className="w-4 h-4 text-brand-primary shrink-0" />
@@ -565,7 +650,7 @@ export const OrderDetailPage = () => {
             </div>
           </div>
 
-          {/* Card 2: Payment Status & Fast Action Card */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3.5 shadow-sm">
             <div className="flex items-center justify-between border-b border-border-subtle pb-2">
               <div className="flex items-center gap-2">
@@ -627,7 +712,7 @@ export const OrderDetailPage = () => {
             </div>
           </div>
 
-          {/* Card 3: Status Controls */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3.5 shadow-sm">
             <div className="flex items-center gap-2 border-b border-border-subtle pb-2">
               <CheckCircle2 className="w-4 h-4 text-brand-primary shrink-0" />
@@ -680,7 +765,7 @@ export const OrderDetailPage = () => {
         </div>
       </div>
 
-      {/* Cancel Modal */}
+      {}
       <Modal
         isOpen={isCancelOpen}
         onClose={() => {
@@ -725,7 +810,7 @@ export const OrderDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Payment Modal */}
+      {}
       <Modal
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
@@ -794,7 +879,7 @@ export const OrderDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Refund Modal */}
+      {}
       <Modal
         isOpen={isRefundOpen}
         onClose={() => {
@@ -867,7 +952,7 @@ export const OrderDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Receipt Preview Modal (Screen Preview) */}
+      {}
       <Modal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
@@ -903,7 +988,7 @@ export const OrderDetailPage = () => {
       </Modal>
       </div>
 
-      {/* Pure Thermal/A4 Receipt Print Template (Rendered only on window.print()) */}
+      {}
       <ReceiptPrintTemplate order={order} activeBranch={activeBranch} />
     </>
   );

@@ -27,7 +27,6 @@ export const BranchesListPage = () => {
 
   const branchesList = branchesResponse?.items || branchesResponse || [];
 
-  // Client-side Search Filtering
   const filteredBranches = branchesList.filter((branch) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -129,7 +128,7 @@ export const BranchesListPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
@@ -160,7 +159,7 @@ export const BranchesListPage = () => {
         </div>
       )}
 
-      {/* Main DataTable */}
+      {}
       <DataTable
         columns={columns}
         data={filteredBranches}
@@ -232,7 +231,7 @@ export const BranchesListPage = () => {
         )}
       />
 
-      {/* Create Branch Modal */}
+      {}
       <BranchFormModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

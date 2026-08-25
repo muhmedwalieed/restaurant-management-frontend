@@ -74,7 +74,7 @@ export const CustomersListPage = () => {
 
   return (
     <div className="space-y-5">
-      {/* 1. Page Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2.5">
@@ -98,7 +98,7 @@ export const CustomersListPage = () => {
         </PermissionGate>
       </div>
 
-      {/* 2. Customers Data Table (Matching OrdersListPage) */}
+      {}
       <DataTable
         columns={columns}
         data={customers}

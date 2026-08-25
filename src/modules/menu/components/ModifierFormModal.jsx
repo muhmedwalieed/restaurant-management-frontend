@@ -25,6 +25,7 @@ export const ModifierFormModal = ({
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(modifierFormSchema),
@@ -71,7 +72,7 @@ export const ModifierFormModal = ({
       }
       onClose();
     } catch (err) {
-      // Error handled by mutation state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ الخيار الإضافي.' });
     }
   };
 
@@ -119,6 +120,12 @@ export const ModifierFormModal = ({
             label="تحديد كإجباري"
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

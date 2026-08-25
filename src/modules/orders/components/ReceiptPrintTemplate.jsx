@@ -6,18 +6,6 @@ import {
   PAYMENT_STATUS_LABELS,
 } from '../schemas/order.schema.js';
 
-/**
- * Thermal receipt print template.
- *
- * RTL/BiDi rules (Print QA):
- * - The parent is `dir="rtl"`. Each row is `flex justify-between`, so the FIRST
- *   child sits on the RIGHT (the Arabic label) and the SECOND child sits on the
- *   LEFT (the value) — matching "label: value" RTL reading order.
- * - Arabic-only content: `dir="rtl"`.
- * - LTR content (order number, prices, currency, dates, phone): `dir="ltr"`.
- * - Mixed content uses `<bdi>` for isolation so parentheses, numbers and Latin
- *   names are never reordered by the surrounding RTL context.
- */
 export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false }) => {
   if (!order) return null;
 
@@ -45,7 +33,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
           : 'printable-receipt hidden print:block print:w-[80mm] print:max-w-[80mm] print:bg-white print:text-black font-sans text-xs p-3 print:p-3 mx-auto text-right print:mx-auto'
       }
     >
-      {/* 1. Header: Brand & Branch Context */}
+      {}
       <div className="text-center space-y-1 pb-3 border-b border-dashed border-gray-400">
         <h2 className="text-base font-bold tracking-tight text-black" dir="rtl">
           مطاعم برايم
@@ -58,7 +46,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
         </p>
       </div>
 
-      {/* 2. Metadata Block — label (right) then value (left) */}
+      {}
       <div className="py-2.5 space-y-1.5 border-b border-dashed border-gray-400 text-[11px]">
         <div className="flex items-center justify-between">
           <span className="text-gray-600 font-semibold" dir="rtl">
@@ -118,7 +106,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
         )}
       </div>
 
-      {/* 3. Items List Table */}
+      {}
       <div className="py-2.5 border-b border-dashed border-gray-400">
         <table className="w-full text-right text-[11px] table-fixed" dir="rtl">
           <thead>
@@ -163,7 +151,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
         </table>
       </div>
 
-      {/* 4. Financial Summary Breakdown — label (right) then LTR money value (left) */}
+      {}
       <div className="py-2.5 space-y-1.5 border-b border-dashed border-gray-400 text-xs">
         <div className="flex items-center justify-between text-gray-700">
           <span dir="rtl">المجموع الفرعي:</span>
@@ -195,7 +183,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
         </div>
       </div>
 
-      {/* 5. Payment Status Summary */}
+      {}
       <div className="py-2 border-b border-dashed border-gray-400 text-[11px] space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-gray-600 font-semibold" dir="rtl">
@@ -217,7 +205,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
         )}
       </div>
 
-      {/* 6. Receipt Footer */}
+      {}
       <div className="pt-2.5 text-center text-[10px] text-gray-600 space-y-0.5">
         <p className="font-semibold text-black" dir="rtl">
           شكراً لزيارتكم مطاعم برايم!

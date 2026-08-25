@@ -41,7 +41,6 @@ export const ProductDetailPage = () => {
   const [modifierToEdit, setModifierToEdit] = useState(null);
   const [modifierToDelete, setModifierToDelete] = useState(null);
 
-  // Queries & Mutations
   const { data: product, isLoading, isError, error, refetch } = useProductQuery(id);
   const updateProductMutation = useUpdateProductMutation();
   const categoriesQuery = useCategoriesQuery();
@@ -53,7 +52,6 @@ export const ProductDetailPage = () => {
 
   const categoryOptions = categories.map((cat) => ({ value: cat.id, label: cat.name }));
 
-  // General Form setup
   const {
     register,
     handleSubmit,
@@ -128,7 +126,7 @@ export const ProductDetailPage = () => {
 
   return (
     <div className="space-y-5">
-      {/* 1. Header section with back button and primary Save CTA */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div className="flex items-center gap-3 flex-wrap">
           <Button
@@ -175,7 +173,7 @@ export const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Notifications */}
+      {}
       {generalSuccess && (
         <div className="p-3 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -195,9 +193,9 @@ export const ProductDetailPage = () => {
         </div>
       )}
 
-      {/* 2. Unified 2-Column Architecture */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* ================= RIGHT COLUMN (~60% / lg:col-span-7): Product Form ================= */}
+        {}
         <div className="lg:col-span-7 space-y-5">
           <div className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
@@ -268,7 +266,7 @@ export const ProductDetailPage = () => {
                 )}
               </div>
 
-              {/* Dual Clean Toggles */}
+              {}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div className="flex items-center justify-between p-3.5 bg-bg-base/60 border border-border-subtle rounded-xl">
                   <div className="space-y-0.5">
@@ -298,7 +296,7 @@ export const ProductDetailPage = () => {
           </div>
         </div>
 
-        {/* ================= LEFT COLUMN (~40% / lg:col-span-5): Modifiers Card ================= */}
+        {}
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
@@ -392,7 +390,7 @@ export const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Modifier Add/Edit Modal */}
+      {}
       <ModifierFormModal
         isOpen={isModifierModalOpen}
         onClose={() => {

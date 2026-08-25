@@ -18,6 +18,7 @@ export const CustomerFormModal = ({ isOpen, onClose, customerToEdit = null }) =>
     handleSubmit,
     control,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(customerFormSchema),
@@ -61,7 +62,7 @@ export const CustomerFormModal = ({ isOpen, onClose, customerToEdit = null }) =>
       }
       onClose();
     } catch (err) {
-      // Handled by interceptor / error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ بيانات العميل.' });
     }
   };
 
@@ -96,7 +97,7 @@ export const CustomerFormModal = ({ isOpen, onClose, customerToEdit = null }) =>
           {...register('phone')}
         />
 
-        {/* Additional phone numbers */}
+        {}
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-medium text-txt-primary">أرقام هاتف إضافية</label>
@@ -137,6 +138,12 @@ export const CustomerFormModal = ({ isOpen, onClose, customerToEdit = null }) =>
           />
           {errors.notes && <p className="text-xs text-status-danger font-medium">{errors.notes.message}</p>}
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

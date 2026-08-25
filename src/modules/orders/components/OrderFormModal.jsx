@@ -26,6 +26,7 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
     watch,
     getValues,
     setValue,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(orderFormSchema),
@@ -50,8 +51,6 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
     }
   }, [isOpen, reset]);
 
-  // Phone lookup auto-fill (delivery): typing a valid number fetches the customer's name + default address.
-  // Fields stay editable — a manually typed name/address is never overwritten.
   useEffect(() => {
     const cleanPhone = (customerPhoneValue || '').trim();
     if (cleanPhone.length < 8) return undefined;
@@ -66,8 +65,8 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
           const addr = [data.defaultAddress.street, data.defaultAddress.city].filter(Boolean).join('، ');
           if (addr) setValue('address', addr, { shouldValidate: true });
         }
-      } catch {
-        // Silent catch while typing
+      } catch (err) {
+        void err;
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -88,7 +87,7 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
       await createMutation.mutateAsync({ branchId, payload, idempotencyKey });
       onClose();
     } catch (err) {
-      // Handled by interceptor / error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء إنشاء الطلب.' });
     }
   };
 
@@ -201,6 +200,12 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
             {...register('notes')}
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {createMutation.isError && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

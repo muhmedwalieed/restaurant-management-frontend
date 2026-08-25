@@ -47,14 +47,14 @@ export const Modal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto print:hidden">
-      {/* Backdrop */}
+      {}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal Container */}
+      {}
       <div
         role="dialog"
         aria-modal="true"
@@ -67,7 +67,7 @@ export const Modal = ({
           )
         )}
       >
-        {/* Header */}
+        {}
         {(title || onClose) && (
           <div className="px-6 py-4 border-b border-border-default flex items-center justify-between gap-4 shrink-0">
             <div>
@@ -91,7 +91,7 @@ export const Modal = ({
           </div>
         )}
 
-        {/* Body */}
+        {}
         <div className="p-6 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>

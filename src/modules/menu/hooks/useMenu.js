@@ -14,8 +14,6 @@ import {
   getPublicMenuApi,
 } from '../../../lib/api/menu.api.js';
 
-// ==================== CATEGORIES HOOKS ====================
-
 export const useCategoriesQuery = (params = {}) => {
   return useQuery({
     queryKey: ['categories', params],
@@ -45,8 +43,6 @@ export const useUpdateCategoryMutation = () => {
     },
   });
 };
-
-// ==================== PRODUCTS HOOKS ====================
 
 export const useProductsQuery = (params = {}) => {
   return useQuery({
@@ -87,8 +83,6 @@ export const useUpdateProductMutation = () => {
     },
   });
 };
-
-// ==================== MODIFIERS HOOKS ====================
 
 export const useModifiersQuery = (productId) => {
   return useQuery({
@@ -135,8 +129,6 @@ export const useDeleteModifierMutation = () => {
     },
   });
 };
-
-// ==================== PUBLIC MENU HOOK ====================
 
 export const usePublicMenuQuery = (params = {}) => {
   return useQuery({

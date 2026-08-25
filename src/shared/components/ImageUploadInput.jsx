@@ -5,12 +5,8 @@ import { uploadImageApi } from '../../lib/api/uploads.api.js';
 import { resolveAssetUrl } from '../../lib/asset-url.js';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+const MAX_SIZE = 2 * 1024 * 1024;
 
-/**
- * File picker that uploads an image to the server and reports the stored path
- * via onChange. Enforces type + size on the client; the server re-validates.
- */
 export const ImageUploadInput = ({ label = 'صورة', value = '', onChange, hint }) => {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);

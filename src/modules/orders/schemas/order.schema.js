@@ -144,11 +144,6 @@ export const orderStatusPill = (status) => {
   return map[status] || 'neutral';
 };
 
-/**
- * Valid next statuses per the backend state machine (Section 25.1)
- * DINE_IN / PICKUP: PENDING→CONFIRMED→PREPARING→READY→DELIVERED
- * DELIVERY: READY→OUT_FOR_DELIVERY→DELIVERED
- */
 export function nextStatuses(currentStatus, orderType) {
   if (currentStatus === 'PENDING') return ['CONFIRMED'];
   if (currentStatus === 'CONFIRMED') return ['PREPARING'];

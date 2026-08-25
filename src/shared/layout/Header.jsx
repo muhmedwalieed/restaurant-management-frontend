@@ -49,9 +49,9 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
 
   return (
     <header className="h-14 shrink-0 bg-bg-surface border-b border-white/[0.07] px-4 flex items-center justify-between select-none z-20 relative">
-      {/* 1. Far Right (RTL Start): Toggle Icon + Branch Selector Dropdown */}
+      {}
       <div className="flex items-center gap-3 min-w-0">
-        {/* Desktop Sidebar Toggle */}
+        {}
         <button
           type="button"
           onClick={onToggleDesktopSidebar}
@@ -62,7 +62,7 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
           {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
 
-        {/* Mobile Nav Toggle */}
+        {}
         <button
           type="button"
           onClick={onToggleMobileNav}
@@ -72,7 +72,7 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Branch Selector Dropdown Pill */}
+        {}
         <div className="relative">
           <button
             type="button"
@@ -133,12 +133,12 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
         </div>
       </div>
 
-      {/* 2. Center: Clean whitespace that gives visual breathing room */}
+      {}
       <div className="flex-1" aria-hidden="true" />
 
-      {/* 3. Far Left (RTL End): Notifications + Thin Divider + Full User Profile Capsule */}
+      {}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Notifications Icon Button with Badge */}
+        {}
         {canSeeNotifications && (
           <Link
             to="/notifications"
@@ -155,10 +155,10 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
           </Link>
         )}
 
-        {/* Thin Vertical Divider */}
+        {}
         <div className="w-px h-5 bg-white/[0.08] mx-0.5" aria-hidden="true" />
 
-        {/* Full User Profile Capsule with Structured Dropdown */}
+        {}
         <div className="relative">
           <button
             type="button"
@@ -186,13 +186,13 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} aria-hidden="true" />
               <div className="absolute left-0 top-full mt-2 w-64 bg-bg-surface border border-white/[0.08] rounded-xl shadow-2xl py-1.5 z-50">
-                {/* User Info Header with subtle bottom border */}
+                {}
                 <div className="px-3.5 py-2.5 border-b border-white/[0.08]">
                   <p className="text-xs font-semibold text-txt-primary truncate">{user?.name || 'مدير النظام'}</p>
                   <p className="text-[11px] text-txt-muted truncate mt-0.5">{user?.email || `${rawRole || 'user'}@restaurant.com`}</p>
                 </div>
 
-                {/* Navigation Items with uniform flex & padding: display: flex; align-items: center; gap: 10px; padding: 8px 12px; font-size: 13px; */}
+                {}
                 <div className="py-1">
                   {canSeeNotifications && (
                     <NavLink
@@ -250,7 +250,7 @@ export const Header = ({ isSidebarCollapsed = false, onToggleDesktopSidebar, onT
                   )}
                 </div>
 
-                {/* Logout Button with subtle top border and soft red color (#EF4444) */}
+                {}
                 <div className="border-t border-white/[0.08] pt-1 mt-1">
                   <button
                     type="button"

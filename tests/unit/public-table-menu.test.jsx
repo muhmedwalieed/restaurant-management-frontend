@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
 import { PublicTableMenuPage } from '../../src/modules/tables/pages/PublicTableMenuPage.jsx';
+import { useTableSessionQuery } from '../../src/modules/tables/hooks/useTableSessions.js';
 
 vi.mock('../../src/lib/api/tables.api.js', () => ({
   getTableMenuApi: vi.fn().mockResolvedValue({
@@ -63,15 +64,13 @@ describe('PublicTableMenuPage Unit Tests (Mobile Dine-in UX)', () => {
     const title = await screen.findByText('مطعم الأكيل');
     expect(title).toBeInTheDocument();
 
-    // Menu item appears (product card) plus the desktop cart may echo the name
     const burgers = screen.getAllByText('كلاسيك برجر');
     expect(burgers.length).toBeGreaterThan(0);
 
-    // Check sticky bottom bar action pill
     const bottomCartBtn = screen.getByRole('button', { name: /عرض السلة \/ اطلب/i });
     expect(bottomCartBtn).toBeInTheDocument();
     expect(screen.getByText(/2 أصناف/i)).toBeInTheDocument();
-    // Total price shows on the floating bar and the desktop cart sidebar
+
     expect(screen.getAllByText(/500\.00 EGP/i).length).toBeGreaterThan(0);
   });
 
@@ -81,12 +80,10 @@ describe('PublicTableMenuPage Unit Tests (Mobile Dine-in UX)', () => {
     const bottomCartBtn = await screen.findByRole('button', { name: /عرض السلة \/ اطلب/i });
     fireEvent.click(bottomCartBtn);
 
-    // Slide-up drawer opens
-    const sharedCartTitle = screen.getByText(/الطلبات المشتركة/i);
+    const sharedCartTitle = screen.getByText(/السلة الحالية/i);
     expect(sharedCartTitle).toBeInTheDocument();
     expect(screen.getByText(/أضافها أحمد/i)).toBeInTheDocument();
 
-    // Checkout button is accessible inside bottom sheet drawer (desktop sidebar also has one)
     const orderNowBtns = screen.getAllByRole('button', { name: /اطلب الآن/i });
     expect(orderNowBtns.length).toBeGreaterThan(0);
   });
@@ -94,12 +91,28 @@ describe('PublicTableMenuPage Unit Tests (Mobile Dine-in UX)', () => {
   it('asks for confirmation before calling the waiter', async () => {
     renderPublicMenu();
 
-    const waiterBtn = await screen.findByRole('button', { name: 'الويتر' });
+    const waiterBtn = await screen.findByRole('button', { name: /استدعاء الويتر/i });
     fireEvent.click(waiterBtn);
 
-    // Confirmation dialog appears instead of calling the waiter directly
     expect(await screen.findByText(/هل تريد فعلاً استدعاء الويتر إلى طاولتك؟/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /نعم، استدعِ الويتر/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'إلغاء' })).toBeInTheDocument();
+  });
+
+  it('keeps a closed session open for viewing the bill and signs out on demand', async () => {
+    vi.mocked(useTableSessionQuery).mockReturnValue({
+      data: { id: 's1', status: 'CLOSED', members: [], items: [], orders: [], total: 0 },
+      isLoading: false,
+      error: undefined,
+    });
+    localStorage.setItem('ts_session_tok123', 's1');
+    renderPublicMenu();
+
+    expect(await screen.findByText(/الجلسة انتهت/i)).toBeInTheDocument();
+    expect(localStorage.getItem('ts_session_tok123')).toBe('s1');
+
+    fireEvent.click(screen.getByRole('button', { name: /تسجيل خروج/i }));
+    expect(screen.getByRole('button', { name: /دخول الجلسة/i })).toBeInTheDocument();
+    expect(localStorage.getItem('ts_session_tok123')).toBeNull();
   });
 });

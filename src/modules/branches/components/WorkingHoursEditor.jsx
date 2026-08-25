@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { Button } from '../../../shared/components/Button.jsx';
@@ -58,7 +58,7 @@ export const WorkingHoursEditor = ({
   timezone = 'Africa/Cairo',
   onTimezoneChange,
 }) => {
-  const [mode, setMode] = useState('custom'); // '247' | 'custom'
+  const [mode, setMode] = useState('custom');
   const [schedule, setSchedule] = useState(DEFAULT_SCHEDULE);
   const [validationError, setValidationError] = useState(null);
   const [successMessage, setSuccessMessage] = useAutoDismiss();
@@ -144,7 +144,7 @@ export const WorkingHoursEditor = ({
         </div>
       )}
 
-      {/* Time zone & mode */}
+      {}
           <div className="space-y-4">
             <div className="max-w-sm">
               <label className="block text-xs font-medium text-txt-primary mb-1.5">
@@ -184,7 +184,7 @@ export const WorkingHoursEditor = ({
             </div>
           </div>
 
-          {/* Working days table */}
+          {}
           <div
             className={`overflow-x-auto bg-bg-surface border border-border-default rounded-lg ${
               is247 ? 'opacity-50 pointer-events-none' : ''

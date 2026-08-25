@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { setAuthToken, setApiCallbacks } from '../../../lib/api-client.js';
 import { loginApi, logoutApi, refreshTokenApi, getCurrentUserApi } from '../../../lib/api/auth.api.js';
@@ -8,9 +8,7 @@ const REFRESH_STORAGE_KEY = 'saas_refresh_token';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Access token lives in memory ONLY (Section 16 / ADR-F006 — never persist access token in localStorage).
-  // The refresh token is the only persisted secret (Secure storage + rotation — the documented fallback
-  // when the backend does not issue an HttpOnly cookie).
+
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -29,8 +27,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem(REFRESH_STORAGE_KEY);
   }, []);
 
-// Single-flight refresh: the backend ROTATES the refresh token on every successful refresh,
-// so concurrent callers MUST share one refresh attempt or the second one 401s (revoked token).
 const refreshPromiseRef = useRef(null);
 
 const handleRefresh = useCallback(async () => {
@@ -58,9 +54,6 @@ const handleRefresh = useCallback(async () => {
   return refreshPromiseRef.current;
 }, []);
 
-// Silent session restore on page refresh (Section 16 — refresh token with rotation).
-// Uses the SAME single-flight handleRefresh so the restore and any 401-driven refresh
-// never call /auth/refresh twice with the same (rotated) token.
 const restoreStartedRef = useRef(false);
 
 useEffect(() => {
@@ -140,7 +133,7 @@ useEffect(() => {
         await logoutApi();
       }
     } catch (_err) {
-      // Ignore network error on logout — local session must still be cleared
+      void _err;
     } finally {
       clearSession();
     }
@@ -149,9 +142,9 @@ useEffect(() => {
   const hasPermission = useCallback(
     (permissionKey) => {
       if (!user) return false;
-      // Owner bypass — mirrors the backend authorize.middleware.js owner bypass
+
       if (user.role?.isSystem && user.role?.name === 'owner') return true;
-      // /auth/me returns permissions nested under role.permissions
+
       const permissions = user.permissions || user.role?.permissions || [];
       const isWildcard = permissions.some((p) => (typeof p === 'string' ? p === '*' : p.key === '*'));
       if (isWildcard) return true;

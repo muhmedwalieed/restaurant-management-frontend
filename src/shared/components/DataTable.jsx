@@ -10,23 +10,23 @@ export const DataTable = ({
   isError = false,
   error = null,
   onRetry,
-  pagination = null, // { page, totalPages, total, onPageChange }
+  pagination = null,
   searchQuery = '',
   onSearchChange,
   searchPlaceholder = 'ابحث هنا...',
   emptyTitle = 'لا توجد بيانات متاحة',
   emptyDescription = 'لم يتم العثور على أي نتائج حتّى الآن.',
-  mobileCardRender, // Optional custom mobile card renderer
-  actions, // Optional top right action bar
-  filters, // Optional custom filter controls
-  onRowClick, // Optional row click handler
+  mobileCardRender,
+  actions,
+  filters,
+  onRowClick,
 }) => {
   return (
     <div className="space-y-4">
-      {/* Header Bar: Search + Filters + Actions in a unified contiguous row */}
+      {}
       {(onSearchChange || filters || actions) && (
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-bg-surface p-3.5 border border-border-default rounded-lg">
-          {/* Start Cluster: Search Input + Contiguous Filters */}
+          {}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
             {onSearchChange && (
               <div className="relative w-full sm:w-72 shrink-0">
@@ -44,12 +44,12 @@ export const DataTable = ({
             {filters && <div className="flex items-center gap-2 flex-wrap">{filters}</div>}
           </div>
 
-          {/* End Cluster: Actions */}
+          {}
           {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
         </div>
       )}
 
-      {/* Error State */}
+      {}
       {isError && (
         <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
           <AlertCircle className="w-6 h-6 text-status-danger mx-auto" />
@@ -63,7 +63,7 @@ export const DataTable = ({
         </div>
       )}
 
-      {/* Desktop / Tablet Table View (Section 20.4) */}
+      {}
       {!isError && (
         <div className="hidden md:block bg-bg-surface border border-border-default rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
@@ -128,7 +128,7 @@ export const DataTable = ({
         </div>
       )}
 
-      {/* Mobile View: Condensed Cards (Section 20.4) */}
+      {}
       {!isError && (
         <div className="block md:hidden space-y-3">
           {isLoading ? (
@@ -165,7 +165,7 @@ export const DataTable = ({
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {}
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between bg-bg-surface px-4 py-3 border border-border-default rounded-lg text-xs">
           <div className="text-txt-muted">

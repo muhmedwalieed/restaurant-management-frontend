@@ -58,7 +58,7 @@ describe('RoleFormModal — permission normalization & localization (regression)
     );
 
     const checked = await screen.findByRole('checkbox', { name: /employees.view/i });
-    expect(checked.checked).toBe(false); // waiter only has orders.view
+    expect(checked.checked).toBe(false);
     const createOrders = screen.getByRole('checkbox', { name: /orders.create/i });
     expect(createOrders.checked).toBe(false);
 

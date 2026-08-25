@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { apiClient, setAuthToken, setApiCallbacks } from '../../src/lib/api-client.js';
 import axios from 'axios';
 
-// Mock axios instance methods using vitest
 describe('API Client Layer Tests (Section 10 & Technical Directives)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -11,7 +10,7 @@ describe('API Client Layer Tests (Section 10 & Technical Directives)', () => {
   it('should attach Bearer token to request headers when set', async () => {
     setAuthToken('my-secret-token');
     const config = { headers: {} };
-    // Interceptor test
+
     const requestInterceptor = apiClient.interceptors.request.handlers[0].fulfilled;
     const modifiedConfig = requestInterceptor(config);
     expect(modifiedConfig.headers.Authorization).toBe('Bearer my-secret-token');
@@ -45,6 +44,15 @@ describe('API Client Layer Tests (Section 10 & Technical Directives)', () => {
       pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
       message: undefined,
     });
+  });
+
+  it('should normalize a success envelope without a data key to null (e.g. no active session)', async () => {
+    const responseInterceptor = apiClient.interceptors.response.handlers[0].fulfilled;
+    const mockAxiosResponse = {
+      data: { success: true, requestId: 'req-1' },
+    };
+    const result = responseInterceptor(mockAxiosResponse);
+    expect(result).toBeNull();
   });
 
   it('should handle 409 Optimistic Locking conflict with generic message and callback', async () => {

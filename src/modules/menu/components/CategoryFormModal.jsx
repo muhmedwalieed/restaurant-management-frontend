@@ -18,6 +18,7 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(categoryFormSchema),
@@ -61,7 +62,7 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
       }
       onClose();
     } catch (err) {
-      // Handled by query/toast/interceptor or error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ التصنيف.' });
     }
   };
 
@@ -118,6 +119,12 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
             {...register('status')}
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

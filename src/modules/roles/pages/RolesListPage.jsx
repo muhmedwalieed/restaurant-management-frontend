@@ -16,11 +16,9 @@ export const RolesListPage = () => {
   const [search, setSearch] = useState('');
   const [pageError, setPageError] = useState(null);
 
-  // Delete Modal State
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
 
-  // React Query
   const { data, isLoading, isError, error, refetch } = useRolesQuery({ search, limit: 100 });
   const deleteMutation = useDeleteRoleMutation();
 
@@ -121,7 +119,7 @@ export const RolesListPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
@@ -151,7 +149,7 @@ export const RolesListPage = () => {
         </div>
       )}
 
-      {/* Table section */}
+      {}
       <DataTable
         columns={columns}
         data={rolesList}
@@ -172,7 +170,7 @@ export const RolesListPage = () => {
         }}
       />
 
-      {/* Delete Confirmation Modal */}
+      {}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

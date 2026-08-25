@@ -27,6 +27,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(productFormSchema),
@@ -82,7 +83,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
       }
       onClose();
     } catch (err) {
-      // Handled by query/toast/interceptor or error block
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ المنتج.' });
     }
   };
 
@@ -173,6 +174,12 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
             {...register('status')}
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

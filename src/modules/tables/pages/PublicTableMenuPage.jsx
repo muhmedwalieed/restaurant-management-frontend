@@ -36,6 +36,7 @@ import { FloatingCartBar } from '../components/FloatingCartBar.jsx';
 import { SessionOrdersList } from '../components/SessionOrdersList.jsx';
 
 const SESSION_KEY_PREFIX = 'ts_session_';
+const MEMBER_KEY_PREFIX = 'ts_member_';
 
 const consolidateItems = (items) => {
   const map = new Map();
@@ -89,9 +90,29 @@ export const PublicTableMenuPage = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [confirmWaiter, setConfirmWaiter] = useState(false);
   const [confirmSubmit, setConfirmSubmit] = useState(false);
+  const [waiterCooldownActive, setWaiterCooldownActive] = useState(false);
+  const [waiterCooldownLeft, setWaiterCooldownLeft] = useState(0);
+
+  const WAITER_COOLDOWN_SECONDS = 120;
+
+  useEffect(() => {
+    if (!waiterCooldownActive) return;
+    const t = setInterval(() => {
+      setWaiterCooldownLeft((c) => {
+        if (c <= 1) {
+          setWaiterCooldownActive(false);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [waiterCooldownActive]);
 
   const sessionStorageKey = `${SESSION_KEY_PREFIX}${qrToken}`;
+  const memberStorageKey = `${MEMBER_KEY_PREFIX}${qrToken}`;
   const [sessionId, setSessionId] = useState(() => localStorage.getItem(sessionStorageKey) || null);
+  const [memberToken, setMemberToken] = useState(() => localStorage.getItem(memberStorageKey) || null);
 
   useEffect(() => {
     let active = true;
@@ -110,14 +131,14 @@ export const PublicTableMenuPage = () => {
     };
   }, [qrToken]);
 
-  const { data: session, isLoading: isSessionLoading } = useTableSessionQuery(sessionId, { poll: true });
+  const { data: session, isLoading: isSessionLoading, error: sessionError } = useTableSessionQuery(sessionId, { poll: true });
 
   const joinMutation = useJoinTableSession(qrToken);
-  const addMutation = useAddSessionItem(sessionId);
-  const updateMutation = useUpdateSessionItem(sessionId);
-  const removeMutation = useRemoveSessionItem(sessionId);
-  const callWaiterMutation = useCallWaiter(sessionId);
-  const submitMutation = useSubmitDraft(sessionId);
+  const addMutation = useAddSessionItem(sessionId, memberToken);
+  const updateMutation = useUpdateSessionItem(sessionId, memberToken);
+  const removeMutation = useRemoveSessionItem(sessionId, memberToken);
+  const callWaiterMutation = useCallWaiter(sessionId, memberToken);
+  const submitMutation = useSubmitDraft(sessionId, memberToken);
 
   const categories = menu?.categories || [];
   const restaurant = menu?.restaurant || {};
@@ -137,6 +158,25 @@ export const PublicTableMenuPage = () => {
   const isClosed = session?.status === 'CLOSED';
   const locked = isAwaiting || isConfirmed || isClosed;
 
+  useEffect(() => {
+    if (!sessionId) return;
+    if (sessionError?.status === 404) {
+      localStorage.removeItem(sessionStorageKey);
+      localStorage.removeItem(memberStorageKey);
+      setSessionId(null);
+      setMemberToken(null);
+    }
+  }, [sessionId, sessionError?.status, sessionStorageKey, memberStorageKey]);
+
+  const handleLeaveSession = () => {
+    localStorage.removeItem(sessionStorageKey);
+    localStorage.removeItem(memberStorageKey);
+    setSessionId(null);
+    setMemberToken(null);
+    setMyName('');
+    setPin('');
+  };
+
   const handleJoin = async (e) => {
     e.preventDefault();
     setJoinError(null);
@@ -147,6 +187,8 @@ export const PublicTableMenuPage = () => {
       const res = await joinMutation.mutateAsync({ name: myName.trim(), pin });
       setSessionId(res.id);
       localStorage.setItem(sessionStorageKey, res.id);
+      setMemberToken(res.memberToken || null);
+      localStorage.setItem(memberStorageKey, res.memberToken || '');
     } catch (err) {
       setJoinError(err?.message || 'تعذر الانضمام للجلسة.');
     } finally {
@@ -160,8 +202,9 @@ export const PublicTableMenuPage = () => {
       await addMutation.mutateAsync({ productId: p.id, quantity: 1, addedByName: myName });
       setLocalFlash(`${myName || 'أنت'} أضفت: ${p.name}`);
       setTimeout(() => setLocalFlash(null), 2500);
-    } catch {
-      /* silent */
+    } catch (err) {
+      setLocalFlash(err?.message || 'تعذر إضافة الصنف، حاول تاني.');
+      setTimeout(() => setLocalFlash(null), 4000);
     }
   };
 
@@ -171,8 +214,12 @@ export const PublicTableMenuPage = () => {
     try {
       await callWaiterMutation.mutateAsync({ requesterName: myName || 'عميل', note: 'يحتاج مساعدة' });
       setWaiterSent(true);
-    } catch {
-      /* silent */
+      setWaiterCooldownLeft(WAITER_COOLDOWN_SECONDS);
+      setWaiterCooldownActive(true);
+      setTimeout(() => setWaiterSent(false), 8000);
+    } catch (err) {
+      setLocalFlash(err?.message || 'تعذر استدعاء الويتر، حاول تاني.');
+      setTimeout(() => setLocalFlash(null), 4000);
     }
   };
 
@@ -181,13 +228,14 @@ export const PublicTableMenuPage = () => {
     try {
       await submitMutation.mutateAsync();
       setIsCartOpen(false);
-    } catch {
-      /* silent */
+    } catch (err) {
+      setLocalFlash(err?.message || 'تعذر إرسال الطلب، حاول تاني.');
+      setTimeout(() => setLocalFlash(null), 4000);
     }
   };
 
   const requestWaiter = () => {
-    if (locked) return;
+    if (locked || waiterCooldownLeft > 0) return;
     setConfirmWaiter(true);
   };
 
@@ -232,11 +280,10 @@ export const PublicTableMenuPage = () => {
     );
   }
 
-  // Not joined yet → show the name + PIN screen.
   if (!sessionId || (!session && !isSessionLoading)) {
     return (
       <div className="min-h-screen bg-bg-base">
-        {/* Hero */}
+        {}
         <div className="relative overflow-hidden bg-gradient-to-b from-brand-primary/15 via-transparent to-transparent">
           <div className="max-w-md mx-auto px-6 pt-12 pb-8 text-center">
             {restaurant.logoUrl ? (
@@ -261,7 +308,7 @@ export const PublicTableMenuPage = () => {
           </div>
         </div>
 
-        {/* Join card */}
+        {}
         <div className="max-w-md mx-auto px-6 pb-12 -mt-2">
           <div className="bg-bg-surface border border-border-default rounded-2xl p-6 shadow-lg space-y-5">
             <div className="text-center space-y-1.5">
@@ -314,10 +361,9 @@ export const PublicTableMenuPage = () => {
     );
   }
 
-  // In session → menu + cart.
   return (
     <div className="min-h-screen bg-bg-base">
-      {/* Header */}
+      {}
       <header className="sticky top-0 z-30 border-b border-border-default bg-bg-surface/85 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           {restaurant.logoUrl ? (
@@ -342,20 +388,20 @@ export const PublicTableMenuPage = () => {
             <Users className="w-3.5 h-3.5 text-brand-primary" />
             <span>{session?.members?.length || 0}</span>
           </span>
-          <Button
-            size="sm"
-            variant="outline"
-            icon={Bell}
-            onClick={requestWaiter}
-            disabled={locked || callWaiterMutation.isPending}
-            className="hidden md:inline-flex text-xs border-brand-primary/30 text-brand-primary hover:bg-brand-primary/10"
-          >
-            استدعاء الويتر
-          </Button>
+          {isClosed && (
+            <button
+              type="button"
+              onClick={handleLeaveSession}
+              className="shrink-0 text-xs font-semibold text-txt-muted hover:text-status-danger transition-colors"
+              title="تسجيل خروج والعودة لشاشة الدخول"
+            >
+              تسجيل خروج
+            </button>
+          )}
         </div>
       </header>
 
-      {/* Notifications */}
+      {}
       <div className="max-w-6xl mx-auto px-4 pt-3 space-y-2">
         {localFlash && (
           <StatusBanner tone="success" icon={CheckCircle2}>
@@ -379,12 +425,12 @@ export const PublicTableMenuPage = () => {
         )}
       </div>
 
-      {/* Main content */}
+      {}
       <main className="max-w-6xl mx-auto px-4 py-5 pb-32 lg:pb-10">
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-6 lg:items-start">
-          {/* Menu column */}
+          {}
           <div className="min-w-0">
-            {/* Category pills */}
+            {}
             {categories.length > 0 && (
               <div className="flex items-center gap-2 overflow-x-auto pb-2 text-xs custom-scrollbar sticky top-[68px] z-20 bg-bg-base/95 backdrop-blur py-1 -mx-1 px-1 rounded-xl">
                 <button
@@ -413,14 +459,14 @@ export const PublicTableMenuPage = () => {
               </div>
             )}
 
-            {/* Products */}
+            {}
             {filteredCategories.length === 0 ? (
               <div className="text-center py-16 space-y-2">
                 <Tag className="w-6 h-6 text-txt-muted mx-auto" />
                 <p className="text-sm font-bold text-txt-primary">قائمة الطعام فارغة</p>
               </div>
             ) : (
-              <div className="space-y-7 pt-2">
+              <div className="space-y-7 pt-2 pb-36">
                 {filteredCategories.map((cat) => (
                   <section key={cat.id} className="space-y-3">
                     <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2">
@@ -432,39 +478,39 @@ export const PublicTableMenuPage = () => {
                       {cat.products.map((p) => (
                         <div
                           key={p.id}
-                          className="bg-bg-surface border border-border-default rounded-2xl overflow-hidden flex flex-col hover:border-brand-primary/40 hover:shadow-md transition-all"
+                          className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:border-border-default/80 transition-all"
                         >
                           {p.imageUrl ? (
                             <img
                               src={resolveAssetUrl(p.imageUrl)}
                               alt={p.name}
-                              className="w-full h-36 object-cover"
+                              className="w-20 h-20 object-cover rounded-lg border border-border-default shrink-0"
                             />
                           ) : (
-                            <div className="w-full h-36 bg-bg-surface-elevated flex items-center justify-center">
-                              <Utensils className="w-8 h-8 text-txt-muted/40" />
+                            <div className="w-20 h-20 bg-bg-surface-elevated rounded-lg border border-border-default shrink-0 flex items-center justify-center">
+                              <Utensils className="w-6 h-6 text-txt-muted/40" />
                             </div>
                           )}
-                          <div className="p-3.5 flex flex-col gap-1.5 flex-1">
-                            <h4 className="text-sm font-bold text-txt-primary">{p.name}</h4>
+
+                          <div className="flex-1 space-y-1 min-w-0 text-right">
+                            <h4 className="text-sm font-bold text-txt-primary truncate">{p.name}</h4>
                             {p.description && (
                               <p className="text-xs text-txt-muted line-clamp-2">{p.description}</p>
                             )}
-                            <div className="mt-auto flex items-center justify-between pt-2.5">
-                              <span className="text-sm font-bold text-brand-primary font-mono" dir="ltr">
-                                {Number(p.price).toFixed(2)} {currency}
-                              </span>
-                              <Button
-                                size="sm"
-                                icon={Plus}
-                                onClick={() => handleAdd(p)}
-                                disabled={locked}
-                                className="text-xs py-1.5 px-3.5 rounded-lg bg-brand-primary text-slate-950 hover:bg-brand-primary-hover font-bold"
-                              >
-                                أضف
-                              </Button>
-                            </div>
+                            <span className="text-sm font-bold text-brand-primary font-mono inline-block pt-0.5" dir="ltr">
+                              {Number(p.price).toFixed(2)} {currency}
+                            </span>
                           </div>
+
+                          <Button
+                            size="sm"
+                            icon={Plus}
+                            onClick={() => handleAdd(p)}
+                            disabled={locked}
+                            className="shrink-0 text-xs py-1.5 px-3 rounded-lg bg-brand-primary text-slate-950 hover:bg-brand-primary-hover font-bold self-center"
+                          >
+                            أضف
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -474,7 +520,7 @@ export const PublicTableMenuPage = () => {
             )}
           </div>
 
-          {/* Desktop cart column */}
+          {}
           <aside className="hidden lg:block lg:sticky lg:top-20">
             <div className="bg-bg-surface border border-border-default rounded-2xl shadow-md overflow-hidden">
               <div className="px-4 py-3.5 border-b border-border-default flex items-center justify-between">
@@ -504,8 +550,8 @@ export const PublicTableMenuPage = () => {
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={() => updateMutation.mutate({ itemId: row.itemIds[0], quantity: (row.quantity || 1) - 1 })}
-                          disabled={locked || updateMutation.isPending}
-                          className="p-1.5 rounded-lg bg-bg-surface-elevated text-txt-muted hover:text-txt-primary disabled:opacity-40 transition-colors"
+                          disabled={locked || updateMutation.isPending || (row.quantity || 1) <= 1}
+                          className="p-1.5 rounded-lg bg-bg-surface-elevated text-txt-muted hover:text-txt-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
@@ -551,10 +597,12 @@ export const PublicTableMenuPage = () => {
                       size="sm"
                       icon={Bell}
                       onClick={requestWaiter}
-                      disabled={callWaiterMutation.isPending}
+                      disabled={callWaiterMutation.isPending || waiterCooldownLeft > 0}
                       className="px-3 text-xs rounded-lg"
                     >
-                      استدعاء الويتر
+                      {waiterCooldownLeft > 0
+                        ? `استدعاء الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
+                        : 'استدعاء الويتر'}
                     </Button>
                     <Button
                       variant="primary"
@@ -578,7 +626,7 @@ export const PublicTableMenuPage = () => {
         </div>
       </main>
 
-      {/* Mobile bottom sheet cart + floating bar */}
+      {}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
@@ -589,6 +637,7 @@ export const PublicTableMenuPage = () => {
         onCallWaiter={requestWaiter}
         onSubmitOrder={requestSubmit}
         isCallWaiterPending={callWaiterMutation.isPending}
+        waiterCooldownLeft={waiterCooldownLeft}
         isSubmitPending={submitMutation.isPending}
       />
 
@@ -599,12 +648,10 @@ export const PublicTableMenuPage = () => {
           currency={currency}
           isCartOpen={isCartOpen}
           onToggleCart={() => setIsCartOpen(!isCartOpen)}
-          onCallWaiter={requestWaiter}
-          isCallWaiterPending={callWaiterMutation.isPending}
         />
       </div>
 
-      {/* Confirmation dialogs */}
+      {}
       <ConfirmDialog
         isOpen={confirmWaiter}
         onClose={() => setConfirmWaiter(false)}

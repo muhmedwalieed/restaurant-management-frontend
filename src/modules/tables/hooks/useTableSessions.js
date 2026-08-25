@@ -11,15 +11,11 @@ import {
   confirmTableSessionApi,
   closeTableSessionApi,
   regeneratePinApi,
+  rejectPendingOrderApi,
   getActiveTableSessionApi,
   listBranchSessionsApi,
 } from '../../../lib/api/table-sessions.api.js';
 
-/**
- * Session state for the shared table cart. Public customers aren't on the socket,
- * so we poll every ~2.5s for near-real-time updates. Staff use the same key and
- * get socket-driven invalidation from SocketProvider too.
- */
 export const useTableSessionQuery = (sessionId, options = {}) => {
   const { enabled = true, poll = true } = options;
   return useQuery({
@@ -30,7 +26,6 @@ export const useTableSessionQuery = (sessionId, options = {}) => {
   });
 };
 
-/** Staff: the active session for a specific table (or null). */
 export const useActiveTableSessionQuery = (tableId, poll = false) => {
   return useQuery({
     queryKey: ['table-session-active', tableId],
@@ -40,7 +35,6 @@ export const useActiveTableSessionQuery = (tableId, poll = false) => {
   });
 };
 
-/** Staff: live sessions in the current branch. */
 export const useBranchSessionsQuery = (poll = false) => {
   return useQuery({
     queryKey: ['table-sessions-branch'],
@@ -55,40 +49,40 @@ export const useJoinTableSession = (qrToken) => {
   });
 };
 
-export const useAddSessionItem = (sessionId) => {
+export const useAddSessionItem = (sessionId, memberToken) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload) => addSessionItemApi(sessionId, payload),
+    mutationFn: (payload) => addSessionItemApi(sessionId, payload, memberToken),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['table-session', sessionId] }),
   });
 };
 
-export const useUpdateSessionItem = (sessionId) => {
+export const useUpdateSessionItem = (sessionId, memberToken) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ itemId, quantity }) => updateSessionItemApi(sessionId, itemId, quantity),
+    mutationFn: ({ itemId, quantity }) => updateSessionItemApi(sessionId, itemId, quantity, memberToken),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['table-session', sessionId] }),
   });
 };
 
-export const useRemoveSessionItem = (sessionId) => {
+export const useRemoveSessionItem = (sessionId, memberToken) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (itemId) => removeSessionItemApi(sessionId, itemId),
+    mutationFn: (itemId) => removeSessionItemApi(sessionId, itemId, memberToken),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['table-session', sessionId] }),
   });
 };
 
-export const useCallWaiter = (sessionId) => {
+export const useCallWaiter = (sessionId, memberToken) => {
   return useMutation({
-    mutationFn: (payload = {}) => callWaiterApi(sessionId, payload),
+    mutationFn: (payload = {}) => callWaiterApi(sessionId, payload, memberToken),
   });
 };
 
-export const useSubmitDraft = (sessionId) => {
+export const useSubmitDraft = (sessionId, memberToken) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => submitDraftApi(sessionId),
+    mutationFn: () => submitDraftApi(sessionId, memberToken),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['table-session', sessionId] }),
   });
 };
@@ -130,6 +124,17 @@ export const useCloseTableSession = (sessionId) => {
       qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
       qc.invalidateQueries({ queryKey: ['table-session-active'] });
       qc.invalidateQueries({ queryKey: ['tables'] });
+    },
+  });
+};
+
+export const useRejectPendingOrder = (sessionId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => rejectPendingOrderApi(sessionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
     },
   });
 };

@@ -45,7 +45,7 @@ export const KdsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
@@ -72,7 +72,7 @@ export const KdsPage = () => {
         </div>
       )}
 
-      {/* Status filter */}
+      {}
       <div className="flex items-center gap-2 flex-wrap text-xs">
         {['ALL', 'CONFIRMED', 'PREPARING'].map((s) => (
           <button
@@ -109,7 +109,7 @@ export const KdsPage = () => {
                 order.status === 'PREPARING' ? 'border-status-warning/50' : 'border-border-default'
               }`}
             >
-              {/* Header */}
+              {}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span className="font-mono font-bold text-txt-primary text-sm">#{order.orderNumber}</span>
@@ -123,7 +123,7 @@ export const KdsPage = () => {
                 </span>
               </div>
 
-              {/* Meta */}
+              {}
               <div className="flex items-center gap-3 text-xs text-txt-muted">
                 {order.tableLabel && (
                   <span className="flex items-center gap-1">
@@ -135,7 +135,7 @@ export const KdsPage = () => {
                 <span>{ORDER_TYPE_LABELS[order.type] || order.type}</span>
               </div>
 
-              {/* Items */}
+              {}
               <div className="space-y-2">
                 {order.items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-2 bg-bg-base border border-border-subtle rounded-lg px-3 py-2">
@@ -154,7 +154,7 @@ export const KdsPage = () => {
                 </p>
               )}
 
-              {/* Actions */}
+              {}
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-subtle">
                 <span className="flex items-center gap-1 text-xs text-txt-muted">
                   <Clock className="w-4 h-4" />

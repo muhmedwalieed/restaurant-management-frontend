@@ -38,12 +38,10 @@ export const MenuManagementPage = () => {
   const [availabilityFilter, setAvailabilityFilter] = useState('ALL');
   const [productPage, setProductPage] = useState(1);
 
-  // Categories filters & pagination
   const [categorySearch, setCategorySearch] = useState('');
   const [categoryStatus, setCategoryStatus] = useState('ALL');
   const [categoryPage, setCategoryPage] = useState(1);
 
-  // Modals state
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState(null);
 
@@ -52,7 +50,6 @@ export const MenuManagementPage = () => {
 
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
 
-  // Data Queries
   const categoriesQuery = useCategoriesQuery({
     page: categoryPage,
     limit: 20,
@@ -69,7 +66,6 @@ export const MenuManagementPage = () => {
   const categories = categoriesQuery.data?.items || [];
   const products = productsQuery.data?.items || [];
 
-  // Client-side search for categories (server has no category search param)
   const filteredCategories = categories.filter((cat) => {
     if (!categorySearch.trim()) return true;
     const query = categorySearch.toLowerCase();
@@ -232,7 +228,7 @@ export const MenuManagementPage = () => {
 
   return (
     <div className="space-y-5">
-      {/* Header section with clean aligned actions */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
@@ -279,7 +275,7 @@ export const MenuManagementPage = () => {
         </div>
       </div>
 
-      {/* Modern Underline Tabs Bar */}
+      {}
       <div className="flex items-center gap-2 border-b border-border-default">
         <button
           type="button"
@@ -308,7 +304,7 @@ export const MenuManagementPage = () => {
         </button>
       </div>
 
-      {/* TAB 1: PRODUCTS VIEW */}
+      {}
       {activeTab === 'products' && (
         <DataTable
           columns={productColumns}
@@ -405,7 +401,7 @@ export const MenuManagementPage = () => {
         />
       )}
 
-      {/* TAB 2: CATEGORIES VIEW */}
+      {}
       {activeTab === 'categories' && (
         <DataTable
           columns={categoryColumns}
@@ -473,7 +469,7 @@ export const MenuManagementPage = () => {
         />
       )}
 
-      {/* Modals */}
+      {}
       <CategoryFormModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}

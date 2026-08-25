@@ -47,7 +47,6 @@ export const TablesListPage = () => {
 
   const tablesList = tablesResponse?.items || [];
 
-  // Client-side search by label
   const filteredTables = tablesList.filter((t) => {
     if (!searchQuery.trim()) return true;
     return t.label?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -105,7 +104,7 @@ export const TablesListPage = () => {
 
   return (
     <div className="space-y-5">
-      {/* 1. Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">

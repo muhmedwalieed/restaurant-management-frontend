@@ -173,7 +173,7 @@ export const EmployeeDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-3 pb-2">
         <Button
           size="sm"
@@ -202,7 +202,7 @@ export const EmployeeDetailPage = () => {
         </div>
       </div>
 
-      {/* Action buttons */}
+      {}
       <div className="flex flex-wrap items-center gap-2">
         <PermissionGate permission="employees.manage">
           <Button
@@ -254,11 +254,11 @@ export const EmployeeDetailPage = () => {
         </div>
       )}
 
-      {/* Content: two columns */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main details (right column) */}
+        {}
         <div className="lg:col-span-2 space-y-6">
-          {/* Tabs */}
+          {}
           <div className="flex items-center gap-1 border-b border-border-default">
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -296,9 +296,9 @@ export const EmployeeDetailPage = () => {
           )}
         </div>
 
-        {/* Profile & quick view (left column) */}
+        {}
         <div className="space-y-6">
-          {/* Quick view card */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default">
               <h3 className="text-sm font-bold text-txt-primary">نظرة سريعة</h3>
@@ -329,7 +329,7 @@ export const EmployeeDetailPage = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {}
       <EmployeeFormModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
@@ -338,7 +338,7 @@ export const EmployeeDetailPage = () => {
         isLoading={updateMutation.isPending}
       />
 
-      {/* Change Password Modal */}
+      {}
       <ChangePasswordModal
         isOpen={isPasswordOpen}
         onClose={() => setIsPasswordOpen(false)}
@@ -347,7 +347,7 @@ export const EmployeeDetailPage = () => {
         isLoading={changePasswordMutation.isPending}
       />
 
-      {/* Change Role Modal */}
+      {}
       <ChangeRoleModal
         isOpen={isRoleOpen}
         onClose={() => setIsRoleOpen(false)}
@@ -356,7 +356,7 @@ export const EmployeeDetailPage = () => {
         isLoading={changeRoleMutation.isPending}
       />
 
-      {/* Delete Confirm Modal */}
+      {}
       <Modal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
@@ -384,7 +384,7 @@ export const EmployeeDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Force Logout Confirm Modal */}
+      {}
       <Modal
         isOpen={isForceLogoutOpen}
         onClose={() => setIsForceLogoutOpen(false)}

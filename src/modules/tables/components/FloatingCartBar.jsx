@@ -1,6 +1,5 @@
 import React from 'react';
-import { Bell, ShoppingCart, ChevronUp } from 'lucide-react';
-import { Button } from '../../../shared/components/Button.jsx';
+import { ShoppingCart, ChevronUp } from 'lucide-react';
 
 export const FloatingCartBar = ({
   totalCartItems = 0,
@@ -8,25 +7,11 @@ export const FloatingCartBar = ({
   currency = 'EGP',
   isCartOpen = false,
   onToggleCart,
-  onCallWaiter,
-  isCallWaiterPending = false,
 }) => {
   return (
     <div className="fixed inset-x-3 sm:inset-x-4 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-40 max-w-md mx-auto">
       <div className="bg-bg-surface/95 backdrop-blur-md border border-border-default shadow-2xl rounded-2xl p-2.5 flex items-center gap-2.5">
-        {/* Waiter Call Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          icon={Bell}
-          onClick={onCallWaiter}
-          disabled={isCallWaiterPending}
-          className="shrink-0 text-xs py-2.5 border-border-default rounded-xl hover:bg-bg-surface-elevated"
-        >
-          الويتر
-        </Button>
-
-        {/* Shared Cart Toggle Pill */}
+        {}
         <button
           type="button"
           onClick={onToggleCart}

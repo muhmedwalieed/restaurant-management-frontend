@@ -2,10 +2,6 @@ import { Modal } from './Modal.jsx';
 import { Button } from './Button.jsx';
 import { AlertTriangle } from 'lucide-react';
 
-/**
- * Reusable confirmation dialog — replaces window.confirm/alert across the app.
- * Only use this for destructive/important actions that need explicit user consent.
- */
 export const ConfirmDialog = ({
   isOpen,
   title,

@@ -1,51 +1,39 @@
 import { apiClient } from '../api-client.js';
 
-/**
- * Staff: start a table ordering session (returns a 4-digit PIN).
- * POST /tables/start  { tableId }  (tableId can be the table id or QR token)
- */
+const authHeaders = (memberToken) => ({
+  headers: memberToken ? { Authorization: `Bearer ${memberToken}` } : {},
+});
+
 export const startTableSessionApi = async (tableId) => {
   return apiClient.post('/tables/start', { tableId });
 };
 
-/**
- * Customer: join a session with name + PIN.
- * POST /sessions/:qrToken/join  { name, pin }
- */
 export const joinTableSessionApi = async (qrToken, payload) => {
   return apiClient.post(`/sessions/${qrToken}/join`, payload);
 };
 
-/**
- * Customer/staff: get the session state (members + items).
- * GET /sessions/:id
- */
 export const getTableSessionApi = async (sessionId) => {
   return apiClient.get(`/sessions/${sessionId}`);
 };
 
-/**
- * Customer: add an item to the shared cart.
- * POST /sessions/:id/items  { productId, quantity, addedByName }
- */
-export const addSessionItemApi = async (sessionId, payload) => {
-  return apiClient.post(`/sessions/${sessionId}/items`, payload);
+export const addSessionItemApi = async (sessionId, payload, memberToken) => {
+  return apiClient.post(`/sessions/${sessionId}/items`, payload, authHeaders(memberToken));
 };
 
-export const updateSessionItemApi = async (sessionId, itemId, quantity) => {
-  return apiClient.patch(`/sessions/${sessionId}/items/${itemId}`, { quantity });
+export const updateSessionItemApi = async (sessionId, itemId, quantity, memberToken) => {
+  return apiClient.patch(`/sessions/${sessionId}/items/${itemId}`, { quantity }, authHeaders(memberToken));
 };
 
-export const removeSessionItemApi = async (sessionId, itemId) => {
-  return apiClient.delete(`/sessions/${sessionId}/items/${itemId}`);
+export const removeSessionItemApi = async (sessionId, itemId, memberToken) => {
+  return apiClient.delete(`/sessions/${sessionId}/items/${itemId}`, authHeaders(memberToken));
 };
 
-export const callWaiterApi = async (sessionId, payload = {}) => {
-  return apiClient.post(`/sessions/${sessionId}/call-waiter`, payload);
+export const callWaiterApi = async (sessionId, payload = {}, memberToken) => {
+  return apiClient.post(`/sessions/${sessionId}/call-waiter`, payload, authHeaders(memberToken));
 };
 
-export const submitDraftApi = async (sessionId) => {
-  return apiClient.post(`/sessions/${sessionId}/submit`);
+export const submitDraftApi = async (sessionId, memberToken) => {
+  return apiClient.post(`/sessions/${sessionId}/submit`, undefined, authHeaders(memberToken));
 };
 
 export const confirmTableSessionApi = async (sessionId) => {
@@ -58,6 +46,10 @@ export const closeTableSessionApi = async (sessionId) => {
 
 export const regeneratePinApi = async (sessionId) => {
   return apiClient.post(`/tables/${sessionId}/regenerate-pin`);
+};
+
+export const rejectPendingOrderApi = async (sessionId) => {
+  return apiClient.post(`/tables/${sessionId}/reject-order`);
 };
 
 export const getActiveTableSessionApi = async (tableId) => {

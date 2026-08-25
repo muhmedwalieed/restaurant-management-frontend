@@ -12,10 +12,10 @@ describe('Shared UI Components Unit Tests', () => {
   it('Button should render text and respond to click events', () => {
     const handleClick = vi.fn();
     render(<Button onClick={handleClick}>اضغط هنا</Button>);
-    
+
     const btn = screen.getByRole('button', { name: /اضغط هنا/i });
     expect(btn).toBeInTheDocument();
-    
+
     fireEvent.click(btn);
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
@@ -23,20 +23,20 @@ describe('Shared UI Components Unit Tests', () => {
   it('Button should be disabled when isLoading or isDisabled is true', () => {
     const handleClick = vi.fn();
     render(<Button isLoading onClick={handleClick}>تحميل</Button>);
-    
+
     const btn = screen.getByRole('button');
     expect(btn).toBeDisabled();
-    
+
     fireEvent.click(btn);
     expect(handleClick).not.toHaveBeenCalled();
   });
 
   it('Input should render label and error message with proper ARIA attributes', () => {
     render(<Input label="اسم الموظف" name="employeeName" error="الحقل مطلوب" />);
-    
+
     expect(screen.getByText('اسم الموظف')).toBeInTheDocument();
     expect(screen.getByText('الحقل مطلوب')).toBeInTheDocument();
-    
+
     const inputEl = screen.getByRole('textbox');
     expect(inputEl).toHaveAttribute('aria-invalid', 'true');
   });
@@ -59,7 +59,7 @@ describe('Shared UI Components Unit Tests', () => {
 
     expect(screen.getByText('لا يوجد عملاء')).toBeInTheDocument();
     expect(screen.getByText('قم بإضافة أول عميل لك')).toBeInTheDocument();
-    
+
     const actionBtn = screen.getByRole('button', { name: /إضافة عميل/i });
     fireEvent.click(actionBtn);
     expect(handleAction).toHaveBeenCalledTimes(1);
@@ -80,7 +80,6 @@ describe('Shared UI Components Unit Tests', () => {
       throw new Error('Test Crash');
     };
 
-    // Suppress expected console.error during ErrorBoundary test
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     render(
@@ -91,7 +90,7 @@ describe('Shared UI Components Unit Tests', () => {
 
     expect(screen.getByText('حدث خطأ غير متوقع في الواجهة')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /إعادة تحضير الصفحة/i })).toBeInTheDocument();
-    // Raw technical details must never be exposed to the end user (Section 17 / 21.3)
+
     expect(screen.queryByText('Test Crash')).not.toBeInTheDocument();
 
     consoleSpy.mockRestore();

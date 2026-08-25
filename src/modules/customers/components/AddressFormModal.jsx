@@ -21,6 +21,7 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(addressFormSchema),
@@ -54,7 +55,7 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
       }
       onClose();
     } catch (err) {
-      // Handled by interceptor / error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ العنوان.' });
     }
   };
 
@@ -87,6 +88,12 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
           </div>
           <Toggle checked={isDefaultValue} onChange={(val) => setValue('isDefault', val)} label="تحديد كافتراضي" />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

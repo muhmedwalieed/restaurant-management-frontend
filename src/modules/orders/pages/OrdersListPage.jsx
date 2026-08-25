@@ -44,7 +44,6 @@ export const OrdersListPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Map active status tab to API query status filter parameter
   const apiStatusParam = useMemo(() => {
     if (activeStatusTab === 'ALL' || activeStatusTab === 'ACTIVE') return undefined;
     return activeStatusTab;
@@ -61,16 +60,14 @@ export const OrdersListPage = () => {
 
   const ordersList = useMemo(() => ordersResponse?.items || [], [ordersResponse]);
 
-  // Client-side filtering for active tab sub-statuses & search query
   const filteredOrders = useMemo(() => {
     return ordersList.filter((o) => {
-      // 1. Status Tab filter
+
       if (activeStatusTab === 'ACTIVE') {
         const activeStatuses = ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'];
         if (!activeStatuses.includes(o.status)) return false;
       }
 
-      // 2. Search query match
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -82,7 +79,6 @@ export const OrdersListPage = () => {
     });
   }, [ordersList, activeStatusTab, searchQuery]);
 
-  // Calculate live tab counts for fast visual feedback
   const tabCounts = useMemo(() => {
     const counts = { ALL: ordersList.length, ACTIVE: 0, DELIVERED: 0, CANCELLED: 0 };
     ordersList.forEach((o) => {
@@ -97,7 +93,6 @@ export const OrdersListPage = () => {
     return counts;
   }, [ordersList]);
 
-  // Determine if branch column should be displayed (Hide by default when viewing single active branch)
   const showBranchColumn = branchFilter === 'ALL' && branches.length > 1;
 
   const baseColumns = [
@@ -221,7 +216,7 @@ export const OrdersListPage = () => {
 
   return (
     <div className="space-y-4">
-      {/* 1. Page Header: Streamlined Title & Quick Actions */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border-default/60">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
@@ -242,7 +237,7 @@ export const OrdersListPage = () => {
           </div>
         </div>
 
-        {/* Action Button: Primary New Order */}
+        {}
         <PermissionGate permission="orders.create">
           <div className="flex items-center gap-2 shrink-0">
             <Button
@@ -258,7 +253,7 @@ export const OrdersListPage = () => {
         </PermissionGate>
       </div>
 
-      {/* 2. 1-Click Status Quick Filter Tabs */}
+      {}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
         {STATUS_TAB_GROUPS.map((tab) => {
           const Icon = tab.icon;
@@ -288,7 +283,7 @@ export const OrdersListPage = () => {
         })}
       </div>
 
-      {/* 3. Orders DataTable with Streamlined Filter Row */}
+      {}
       <DataTable
         columns={baseColumns}
         data={filteredOrders}
@@ -395,7 +390,7 @@ export const OrdersListPage = () => {
         )}
       />
 
-      {/* New Order Modal */}
+      {}
       <OrderFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} branchId={activeBranchId} />
     </div>
   );

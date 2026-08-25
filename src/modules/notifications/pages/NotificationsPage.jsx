@@ -119,7 +119,7 @@ export const NotificationsPage = () => {
         </div>
       </div>
 
-      {/* Preferences */}
+      {}
       <section className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-3">
         <h2 className="text-sm font-bold text-txt-primary">تفضيلات الإشعارات</h2>
         {preferencesQuery.isLoading ? (

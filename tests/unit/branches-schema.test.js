@@ -59,8 +59,8 @@ describe('Module 3 Zod Schemas Unit Tests', () => {
   it('singleWorkingHourSchema should reject invalid time format (e.g. 9:00 or 25:00)', () => {
     const invalidHour = {
       day: 'SAT',
-      openTime: '9:00', // Missing leading zero
-      closeTime: '25:00', // Invalid hour
+      openTime: '9:00',
+      closeTime: '25:00',
       isOpen: true,
     };
     const res = singleWorkingHourSchema.safeParse(invalidHour);

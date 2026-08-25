@@ -139,7 +139,7 @@ export const CustomerDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Actions */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-default">
         <div className="flex items-center gap-3">
           <Button size="sm" variant="outline" onClick={() => navigate('/customers')} icon={ChevronRight}>
@@ -187,9 +187,9 @@ export const CustomerDetailPage = () => {
         </div>
       )}
 
-      {/* Single Profile Hub — 2-Column Responsive Layout */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Right Main Column (65% width): Orders History */}
+        {}
         <div className="lg:col-span-8 space-y-4">
           <div className="bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-border-default pb-3">
@@ -255,9 +255,9 @@ export const CustomerDetailPage = () => {
           </div>
         </div>
 
-        {/* Left Side Column (35% width): Profile Info Card & Saved Addresses Card */}
+        {}
         <div className="lg:col-span-4 space-y-6">
-          {/* Card 1: Customer Profile Card (RTL Label/Value Alignment, Uniform p-5) */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-border-default pb-3">
               <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export const CustomerDetailPage = () => {
             </div>
           </div>
 
-          {/* Card 2: Saved Addresses Card (Uniform p-5 padding & refined badge hierarchy) */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
             <div className="flex items-center justify-between border-b border-border-default pb-3">
               <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export const CustomerDetailPage = () => {
                         )}
                       </div>
 
-                      {/* Flat Action Icons (16px, vertically aligned) */}
+                      {}
                       <div className="flex items-center gap-1">
                         <PermissionGate permission="customers.update">
                           <button

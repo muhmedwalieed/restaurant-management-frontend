@@ -171,7 +171,7 @@ export const WhatsAppPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
@@ -203,7 +203,7 @@ export const WhatsAppPage = () => {
         </div>
       )}
 
-      {/* Tabs */}
+      {}
       <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
         {[
           { key: 'connection', label: 'الاتصال', icon: Phone },
@@ -228,7 +228,7 @@ export const WhatsAppPage = () => {
       </div>
 
       <div className="bg-bg-surface border border-border-default border-t-0 rounded-b-lg p-6">
-        {/* Tab 1: Connection */}
+        {}
         {activeTab === 'connection' && (
           <div className="max-w-2xl">
             {isConnLoading ? (
@@ -316,10 +316,10 @@ export const WhatsAppPage = () => {
           </div>
         )}
 
-        {/* Tab 2: Messages */}
+        {}
         {activeTab === 'messages' && (
           <div className="space-y-5">
-            {/* Send form */}
+            {}
             <PermissionGate permission="whatsapp.manage">
               <form onSubmit={handleSubmitSend(handleSend)} className="bg-bg-base border border-border-default rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2">
@@ -336,7 +336,7 @@ export const WhatsAppPage = () => {
               </form>
             </PermissionGate>
 
-            {/* Messages list */}
+            {}
             <DataTable
               columns={messageColumns}
               data={messages}

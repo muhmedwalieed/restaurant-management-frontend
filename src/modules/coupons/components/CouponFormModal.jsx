@@ -21,6 +21,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
     reset,
     watch,
     setValue,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(couponFormSchema),
@@ -87,7 +88,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
       }
       onClose();
     } catch (err) {
-      // Handled by interceptor / inline error
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ الكوبون.' });
     }
   };
 
@@ -173,6 +174,12 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
           <span className="text-xs text-txt-primary">الكوبون مفعّل</span>
           <Toggle checked={isActive} onChange={(v) => setValue('isActive', v)} label="تفعيل الكوبون" />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

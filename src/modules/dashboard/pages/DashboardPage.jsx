@@ -248,9 +248,9 @@ export const DashboardPage = () => {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Sales Analytics Card (Commercial SaaS UI Composition) */}
+        {}
         <div className="lg:col-span-7 bg-bg-surface border border-border-default/70 rounded-xl p-5 md:p-6 space-y-5 shadow-sm">
-          {/* Header & Metric Hierarchy */}
+          {}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-3 border-b border-border-subtle/40 gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export const DashboardPage = () => {
             </div>
           </div>
 
-          {/* Chart Content & Empty Data Handling */}
+          {}
           {trendQuery.isLoading ? (
             <LoadingSkeleton height={190} />
           ) : totalWeeklyRevenue === 0 && trend.every((t) => Number(t.revenue || 0) === 0) ? (
@@ -294,7 +294,7 @@ export const DashboardPage = () => {
                     </linearGradient>
                   </defs>
 
-                  {/* Subtlest Grid Reference Lines & Y-Axis Scale */}
+                  {}
                   <g className="opacity-30">
                     <line x1="65" y1="20" x2="505" y2="20" stroke="currentColor" className="text-white" strokeDasharray="3 3" strokeWidth="0.7" />
                     <text x="10" y="20" dominantBaseline="middle" className="fill-slate-400 text-[10px] font-mono font-semibold">{formatCompactMoney(maxRevenue)}</text>
@@ -306,13 +306,13 @@ export const DashboardPage = () => {
                     <text x="10" y="130" dominantBaseline="middle" className="fill-slate-400 text-[10px] font-mono font-semibold">0</text>
                   </g>
 
-                  {/* Soft Gradient Area Fill */}
+                  {}
                   <path d={areaPath} fill="url(#salesTrendGradient)" />
 
-                  {/* Crisp 2px Curved Line */}
+                  {}
                   <path d={linePath} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
-                  {/* Touch Triggers & Hover Active Dots */}
+                  {}
                   {chartPoints.map((pt) => {
                     return (
                       <g key={pt.date} className="group cursor-pointer">
@@ -337,7 +337,7 @@ export const DashboardPage = () => {
                   })}
                 </svg>
 
-                {/* Hover-Only Dark Glassmorphism Tooltips */}
+                {}
                 <div className="absolute inset-0 pointer-events-none">
                   {chartPoints.map((pt) => {
                     const leftPercent = (pt.x / 520) * 100;
@@ -362,7 +362,7 @@ export const DashboardPage = () => {
                 </div>
               </div>
 
-              {/* X-Axis Arabic Day Labels */}
+              {}
               <div className="flex justify-between text-center text-xs text-slate-400 font-medium pr-3 pl-[55px] pt-2 border-t border-border-subtle/30">
                 {chartPoints.map((pt, idx) => {
                   const isToday = idx === chartPoints.length - 1;

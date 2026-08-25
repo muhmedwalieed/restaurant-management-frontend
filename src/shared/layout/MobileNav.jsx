@@ -66,7 +66,7 @@ export const MobileNav = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
-  // Keep all sections open by default in mobile drawer to eliminate dead empty space
+
   const [openSections, setOpenSections] = useState({
     ops: true,
     manage: true,
@@ -134,18 +134,18 @@ export const MobileNav = ({ isOpen, onClose }) => {
 
   return (
     <div className="md:hidden fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="القائمة الرئيسية">
-      {/* Backdrop */}
+      {}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Drawer Content */}
+      {}
       <div className="relative flex flex-col w-5/6 max-w-xs bg-bg-surface border-l border-white/[0.07] h-[100dvh] max-h-[100dvh] z-10 shadow-2xl overflow-hidden">
-        {/* 1. Header with 2 Distinct Levels */}
+        {}
         <div className="p-3 border-b border-white/[0.07] shrink-0">
-          {/* Level 1: Brand & Close Button */}
+          {}
           <div className="flex items-center justify-between h-11">
             <div className="flex items-center gap-2 min-w-0">
               <Store className="w-5 h-5 text-brand-primary shrink-0" />
@@ -164,7 +164,7 @@ export const MobileNav = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* Level 2: Full-width Branch Switcher */}
+          {}
           <div className="relative mt-2">
             <button
               type="button"
@@ -230,7 +230,7 @@ export const MobileNav = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* 2. Middle Navigation Accordion (Natural vertical rhythm, all visible) */}
+        {}
         <nav className="flex-1 min-h-0 py-3 px-3 overflow-y-auto space-y-1 pb-16 custom-scrollbar">
           {visibleSections.map((section) => {
             const isSectionOpen = !!openSections[section.key];
@@ -285,7 +285,7 @@ export const MobileNav = ({ isOpen, onClose }) => {
           })}
         </nav>
 
-        {/* 3. Footer with Safe Area Padding (Protected against browser URL bar) */}
+        {}
         <div
           className="border-t border-white/[0.07] p-3 shrink-0 bg-bg-surface"
           style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 24px))' }}
@@ -318,5 +318,4 @@ export const MobileNav = ({ isOpen, onClose }) => {
     </div>
   );
 };
-
 

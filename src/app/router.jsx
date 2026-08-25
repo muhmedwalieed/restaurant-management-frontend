@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../shared/layout/AppShell.jsx';
@@ -44,8 +44,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Section 13 — permission-gated routes are enforced before render, not just hidden.
-// Unauthorized users get a 404 instead of a redirect, so they can't tell the page exists.
 const RequirePermission = ({ permission, children }) => {
   const { hasPermission } = useAuth();
   if (!hasPermission(permission)) {
@@ -54,8 +52,6 @@ const RequirePermission = ({ permission, children }) => {
   return children;
 };
 
-// Landing page picker: a manager with dashboard.view sees the dashboard; a cashier
-// (no dashboard.view) is sent to the most useful page they CAN open (POS → orders → customers).
 const HomeRedirect = () => {
   const { hasPermission } = useAuth();
   if (hasPermission('dashboard.view')) return <DashboardPage />;
@@ -65,7 +61,6 @@ const HomeRedirect = () => {
   return <DashboardPage />;
 };
 
-// 404 Fallback View
 const NotFoundPage = () => (
   <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
     <h1 className="text-4xl font-bold text-status-danger">404</h1>
@@ -74,8 +69,6 @@ const NotFoundPage = () => (
   </div>
 );
 
-// Guest-only route: no login flash on refresh while the session is being restored,
-// and authenticated users are sent back to the app.
 const GuestRoute = ({ children }) => {
   const { isAuthenticated, isBootstrapping } = useAuth();
   if (isBootstrapping) {
