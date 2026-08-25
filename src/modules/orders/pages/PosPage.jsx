@@ -12,6 +12,7 @@ import { Input } from '../../../shared/components/Input.jsx';
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { OrderSourcePicker } from '../components/OrderSourcePicker.jsx';
 import { TableQuickPicker } from '../components/TableQuickPicker.jsx';
+import { ProductModifierModal } from '../components/ProductModifierModal.jsx';
 import {
   Utensils,
   Plus,
@@ -61,6 +62,7 @@ export const PosPage = () => {
   const [successMsg, setSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [modifierProduct, setModifierProduct] = useState(null);
 
   useEffect(() => {
     const cleanPhone = customerPhone.trim();
@@ -95,22 +97,42 @@ export const PosPage = () => {
     });
   }, [products, selectedCategory, searchTerm]);
 
-  const addToCart = (product) => {
-    setSuccessMsg(null);
-    setErrorMsg(null);
+  const addCartLine = (product, modifierIds, modifierNames, unitPrice) => {
+    const lineKey = `${product.id}|${[...(modifierIds || [])].sort().join(',')}`;
     setCart((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
+      const existing = prev.find((i) => i.lineKey === lineKey);
       if (existing) {
-        return prev.map((i) => (i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i));
+        return prev.map((i) => (i.lineKey === lineKey ? { ...i, quantity: i.quantity + 1 } : i));
       }
-      return [...prev, { productId: product.id, name: product.name, unitPrice: Number(product.price), quantity: 1 }];
+      return [
+        ...prev,
+        {
+          lineKey,
+          productId: product.id,
+          name: product.name,
+          unitPrice,
+          quantity: 1,
+          modifierIds: modifierIds || [],
+          modifierNames: modifierNames || [],
+        },
+      ];
     });
   };
 
-  const changeQty = (productId, delta) => {
+  const addToCart = (product) => {
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    if (product.modifiers && product.modifiers.length > 0) {
+      setModifierProduct(product);
+      return;
+    }
+    addCartLine(product, [], [], Number(product.price));
+  };
+
+  const changeQty = (lineKey, delta) => {
     setCart((prev) =>
       prev
-        .map((i) => (i.productId === productId ? { ...i, quantity: i.quantity + delta } : i))
+        .map((i) => (i.lineKey === lineKey ? { ...i, quantity: i.quantity + delta } : i))
         .filter((i) => i.quantity > 0)
     );
   };
@@ -121,6 +143,13 @@ export const PosPage = () => {
   const handleClearCart = () => {
     setCart([]);
     setShowClearConfirm(false);
+  };
+
+  const handleModifierConfirm = (selection) => {
+    if (modifierProduct) {
+      addCartLine(modifierProduct, selection.modifierIds, selection.modifierNames, selection.unitPrice);
+    }
+    setModifierProduct(null);
   };
 
   const handleSubmit = async () => {
@@ -160,7 +189,11 @@ export const PosPage = () => {
         customerName: customerName || undefined,
         address: orderType === 'DELIVERY' ? address : undefined,
         notes: notes || undefined,
-        items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        items: cart.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          ...(i.modifierIds && i.modifierIds.length > 0 ? { modifierIds: i.modifierIds } : {}),
+        })),
       };
       const res = await createPosMutation.mutateAsync({
         branchId: activeBranchId,
@@ -353,7 +386,7 @@ export const PosPage = () => {
                             {Number(p.price).toFixed(2)} EGP
                           </span>
                           <span className="text-[10px] font-semibold text-txt-muted group-hover:text-white transition-colors">
-                            + إضافة
+                            {p.modifiers?.length ? `+ إضافات (${p.modifiers.length})` : '+ إضافة'}
                           </span>
                         </div>
                       </div>
@@ -533,36 +566,41 @@ export const PosPage = () => {
                         {(item.unitPrice * item.quantity).toFixed(2)} EGP
                       </span>
                     </div>
-                    {item.quantity > 1 && (
-                      <div className="text-xs text-txt-muted font-mono leading-normal">
-                        <span dir="ltr" className="inline-block">
-                          {item.unitPrice.toFixed(2)} EGP × {item.quantity}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+{item.quantity > 1 && (
+                        <div className="text-xs text-txt-muted font-mono leading-normal">
+                          <span dir="ltr" className="inline-block">
+                            {item.unitPrice.toFixed(2)} EGP × {item.quantity}
+                          </span>
+                        </div>
+                      )}
+                      {item.modifierNames && item.modifierNames.length > 0 && (
+                        <p className="text-[10px] text-brand-primary leading-tight truncate">
+                          {item.modifierNames.join(' + ')}
+                        </p>
+                      )}
+                    </div>
 
-                  <div className="flex items-center gap-1 shrink-0 bg-bg-surface px-1.5 py-1 rounded border border-border-default">
-                    <button
-                      type="button"
-                      onClick={() => changeQty(item.productId, -1)}
-                      className="w-5 h-5 rounded bg-white/[0.05] hover:bg-white/[0.15] flex items-center justify-center text-txt-primary text-xs transition-colors"
-                      title="إنقاص"
-                    >
-                      <Minus className="w-3 h-3" />
-                    </button>
-                    <span className="w-5 text-center text-xs font-mono font-bold text-txt-primary">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => changeQty(item.productId, 1)}
-                      className="w-5 h-5 rounded bg-white/[0.05] hover:bg-white/[0.15] flex items-center justify-center text-txt-primary text-xs transition-colors"
-                      title="زيادة"
-                    >
-                      <Plus className="w-3 h-3" />
-                    </button>
-                  </div>
+                    <div className="flex items-center gap-1 shrink-0 bg-bg-surface px-1.5 py-1 rounded border border-border-default">
+                      <button
+                        type="button"
+                        onClick={() => changeQty(item.lineKey, -1)}
+                        className="w-5 h-5 rounded bg-white/[0.05] hover:bg-white/[0.15] flex items-center justify-center text-txt-primary text-xs transition-colors"
+                        title="إنقاص"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="w-5 text-center text-xs font-mono font-bold text-txt-primary">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => changeQty(item.lineKey, 1)}
+                        className="w-5 h-5 rounded bg-white/[0.05] hover:bg-white/[0.15] flex items-center justify-center text-txt-primary text-xs transition-colors"
+                        title="زيادة"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
                 </div>
               ))
             )}
@@ -629,6 +667,13 @@ export const PosPage = () => {
           </div>
         </div>
       </div>
+
+      <ProductModifierModal
+        isOpen={Boolean(modifierProduct)}
+        product={modifierProduct}
+        onClose={() => setModifierProduct(null)}
+        onConfirm={handleModifierConfirm}
+      />
     </div>
   );
 };

@@ -136,6 +136,13 @@ const parseHistoryMetadata = (h) => {
   return { title, subtitle };
 };
 
+const ItemModifiers = ({ item }) =>
+  item?.selectedModifiers?.length ? (
+    <span className="text-[11px] text-brand-primary mt-0.5 truncate">
+      {item.selectedModifiers.map((m) => m.name).join(' + ')}
+    </span>
+  ) : null;
+
 export const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -413,6 +420,7 @@ export const OrderDetailPage = () => {
                                       ملاحظات: {item.notes}
                                     </span>
                                   )}
+                                  <ItemModifiers item={item} />
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-center font-mono font-bold text-txt-primary">
@@ -454,6 +462,7 @@ export const OrderDetailPage = () => {
                                 ملاحظات: {item.notes}
                               </span>
                             )}
+                            <ItemModifiers item={item} />
                           </div>
                         </td>
                         <td className="px-4 py-3.5 text-center font-mono font-bold text-txt-primary">

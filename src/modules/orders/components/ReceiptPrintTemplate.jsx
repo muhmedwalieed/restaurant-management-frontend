@@ -130,6 +130,11 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
               <tr key={item.id} className="align-top">
                 <td className="py-1.5 font-medium text-black break-words leading-tight" dir="auto">
                   <div dir="auto">{item.productName}</div>
+                  {item.selectedModifiers?.length > 0 && (
+                    <div className="text-[10px] text-black font-normal mt-0.5" dir="auto">
+                      {item.selectedModifiers.map((m) => m.name).join(' + ')}
+                    </div>
+                  )}
                   {item.notes && (
                     <div className="text-[10px] text-gray-500 font-normal mt-0.5" dir="auto">
                       ملاحظة: <bdi>{item.notes}</bdi>
