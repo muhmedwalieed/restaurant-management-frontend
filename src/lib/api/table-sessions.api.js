@@ -56,6 +56,10 @@ export const closeTableSessionApi = async (sessionId) => {
   return apiClient.post(`/tables/${sessionId}/close`);
 };
 
+export const regeneratePinApi = async (sessionId) => {
+  return apiClient.post(`/tables/${sessionId}/regenerate-pin`);
+};
+
 export const getActiveTableSessionApi = async (tableId) => {
   return apiClient.get(`/tables/table/${tableId}/session`);
 };

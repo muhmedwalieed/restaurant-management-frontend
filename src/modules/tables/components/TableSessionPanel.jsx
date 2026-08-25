@@ -9,6 +9,7 @@ import {
   useActiveTableSessionQuery,
   useConfirmTableSession,
   useCloseTableSession,
+  useRegeneratePin,
   useSubmitDraft,
   useUpdateSessionItem,
   useRemoveSessionItem,
@@ -67,9 +68,11 @@ export const TableSessionPanel = ({ tableId }) => {
   const { data: session, isLoading } = useActiveTableSessionQuery(tableId, true);
   const confirmMutation = useConfirmTableSession(session?.id);
   const closeMutation = useCloseTableSession(session?.id);
+  const regenerateMutation = useRegeneratePin(session?.id);
   const submitMutation = useSubmitDraft(session?.id);
   const updateMutation = useUpdateSessionItem(session?.id);
   const removeMutation = useRemoveSessionItem(session?.id);
+  const [actionError, setActionError] = useState(null);
 
   const status = SESSION_STATUS[session?.status] || SESSION_STATUS.ACTIVE;
   const pendingOrder = (session?.orders || []).find((o) => o.status === 'AWAITING_CONFIRMATION');
@@ -137,11 +140,40 @@ export const TableSessionPanel = ({ tableId }) => {
   };
 
   const handleConfirm = async () => {
-    if (!pendingOrder && currentItems.length > 0) {
-      // No submitted round yet — submit the current cart as a round, then confirm it.
-      await submitMutation.mutateAsync();
+    setActionError(null);
+    try {
+      if (!pendingOrder && currentItems.length > 0) {
+        // No submitted round yet — submit the current cart as a round, then confirm it.
+        await submitMutation.mutateAsync();
+      }
+      await confirmMutation.mutateAsync();
+    } catch (err) {
+      setActionError(err?.message || 'تعذر تأكيد الطلب.');
     }
-    confirmMutation.mutate();
+  };
+
+  const handleClose = async () => {
+    setActionError(null);
+    try {
+      await closeMutation.mutateAsync();
+    } catch (err) {
+      setActionError(err?.message || 'تعذر إغلاق الجلسة.');
+    }
+  };
+
+  const handleShowPin = async () => {
+    setActionError(null);
+    if (session?.pin) {
+      setShowPin(session.pin);
+      return;
+    }
+    // Legacy session without a stored PIN → generate a fresh one.
+    try {
+      const res = await regenerateMutation.mutateAsync();
+      setShowPin(res.pin);
+    } catch (err) {
+      setActionError(err?.message || 'تعذر توليد الـ PIN.');
+    }
   };
 
   return (
@@ -254,6 +286,9 @@ export const TableSessionPanel = ({ tableId }) => {
           )}
 
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
+            {actionError && (
+              <p className="w-full text-[11px] font-medium text-status-danger">{actionError}</p>
+            )}
             <PermissionGate permission="orders.create">
               {(pendingOrder || currentItems.length > 0) && session.status !== 'CLOSED' && (
                 <Button
@@ -271,11 +306,15 @@ export const TableSessionPanel = ({ tableId }) => {
                 size="sm"
                 variant="outline"
                 icon={Eye}
-                onClick={() => setShowPin(session.pin)}
-                disabled={!session.pin}
-                title="عرض رمز الـ PIN الخاص بالجلسة الحالية"
+                isLoading={regenerateMutation.isPending}
+                onClick={handleShowPin}
+                title={
+                  session.pin
+                    ? 'عرض رمز الـ PIN الخاص بالجلسة الحالية'
+                    : 'توليد رمز PIN جديد (الجلسة القديمة مش مخزن فيها رمز)'
+                }
               >
-                عرض الـ PIN
+                {session.pin ? 'عرض الـ PIN' : 'توليد الـ PIN'}
               </Button>
               <Button
                 size="sm"
@@ -283,7 +322,7 @@ export const TableSessionPanel = ({ tableId }) => {
                 icon={XCircle}
                 isLoading={closeMutation.isPending}
                 disabled={session.status === 'CLOSED'}
-                onClick={() => closeMutation.mutate()}
+                onClick={handleClose}
               >
                 إغلاق الجلسة
               </Button>

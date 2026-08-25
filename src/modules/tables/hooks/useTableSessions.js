@@ -10,6 +10,7 @@ import {
   startTableSessionApi,
   confirmTableSessionApi,
   closeTableSessionApi,
+  regeneratePinApi,
   getActiveTableSessionApi,
   listBranchSessionsApi,
 } from '../../../lib/api/table-sessions.api.js';
@@ -96,12 +97,24 @@ export const useStartTableSession = () => {
   return useMutation({ mutationFn: (tableId) => startTableSessionApi(tableId) });
 };
 
+export const useRegeneratePin = (sessionId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => regeneratePinApi(sessionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+    },
+  });
+};
+
 export const useConfirmTableSession = (sessionId) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => confirmTableSessionApi(sessionId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
       qc.invalidateQueries({ queryKey: ['orders'] });
       qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['tables'] });
@@ -115,6 +128,7 @@ export const useCloseTableSession = (sessionId) => {
     mutationFn: () => closeTableSessionApi(sessionId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
       qc.invalidateQueries({ queryKey: ['tables'] });
     },
   });
