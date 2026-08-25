@@ -35,9 +35,9 @@ const NAV_SECTIONS = [
     key: 'ops',
     title: 'العمليات التشغيلية',
     items: [
+      { label: 'نقطة البيع', path: '/pos', icon: Calculator, permission: 'orders.create' },
       { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
       { label: 'الطلبات', path: '/orders', icon: ShoppingBag },
-      { label: 'نقطة البيع', path: '/pos', icon: Calculator, permission: 'orders.create' },
       { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat, permission: 'kds.view' },
       { label: 'الطاولات', path: '/tables', icon: Grid, permission: ['tables.view', 'tables.manage'] },
     ],
