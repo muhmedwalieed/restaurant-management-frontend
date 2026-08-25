@@ -153,7 +153,7 @@ export const router = createBrowserRouter(
       {
         path: 'kds',
         element: (
-          <RequirePermission permission="orders.view">
+          <RequirePermission permission="kds.view">
             <KdsPage />
           </RequirePermission>
         ),

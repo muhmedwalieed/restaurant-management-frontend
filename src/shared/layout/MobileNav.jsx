@@ -38,7 +38,7 @@ const NAV_SECTIONS = [
       { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
       { label: 'الطلبات', path: '/orders', icon: ShoppingBag },
       { label: 'نقطة البيع', path: '/pos', icon: Calculator, permission: 'orders.create' },
-      { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat },
+      { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat, permission: 'kds.view' },
       { label: 'الطاولات', path: '/tables', icon: Grid, permission: 'tables.manage' },
     ],
   },
