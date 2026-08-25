@@ -9,6 +9,7 @@ import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
+import { StartSessionButton } from '../components/StartSessionButton.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
 import { Grid3x3, Plus, Users, ArrowUpRight } from 'lucide-react';
 
@@ -88,17 +89,20 @@ export const TablesListPage = () => {
     {
       header: 'الإجراءات',
       key: 'actions',
-      width: '100px',
+      width: '220px',
       render: (row) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => navigate(`/tables/${row.id}`)}
-          icon={ArrowUpRight}
-          className="border-white/10 hover:bg-white/[0.06] text-xs"
-        >
-          التفاصيل
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <StartSessionButton tableId={row.id} tableLabel={row.label} compact />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(`/tables/${row.id}`)}
+            icon={ArrowUpRight}
+            className="border-white/10 hover:bg-white/[0.06] text-xs"
+          >
+            التفاصيل
+          </Button>
+        </div>
       ),
     },
   ];
