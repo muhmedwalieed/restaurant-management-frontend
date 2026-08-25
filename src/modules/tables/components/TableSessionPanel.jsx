@@ -13,7 +13,7 @@ import {
   useUpdateSessionItem,
   useRemoveSessionItem,
 } from '../hooks/useTableSessions.js';
-import { KeyRound, Users, CheckCircle2, XCircle, Plus, Minus, Trash2, Receipt, Eye, Copy, Check } from 'lucide-react';
+import { KeyRound, Users, CheckCircle2, XCircle, Plus, Minus, Trash2, Receipt, Eye, Copy, Check, Printer } from 'lucide-react';
 
 const SESSION_STATUS = {
   ACTIVE: { pill: 'warning', label: 'جلسة نشطة' },
@@ -100,6 +100,42 @@ export const TableSessionPanel = ({ tableId }) => {
     }
   };
 
+  const handlePrintPin = () => {
+    if (!showPin) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    const label = session?.tableLabel || '—';
+    printWindow.document.write(`
+      <html dir="rtl">
+        <head>
+          <title>طاولة ${label} - PIN</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 28px; background: #f1f5f9; text-align: center; color: #0f172a; }
+            .card { display: inline-block; margin-top: 20px; padding: 44px 56px; background: #ffffff; border-radius: 22px; border: 2px solid #cbd5e1; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+            .table-label { font-size: 14px; color: #64748b; font-weight: 600; }
+            .table-name { font-size: 34px; font-weight: 800; margin: 6px 0 22px; }
+            .divider { border-top: 2px dashed #cbd5e1; margin-bottom: 20px; }
+            .pin-label { font-size: 13px; color: #64748b; font-weight: 600; }
+            .pin { font-size: 72px; font-weight: 900; letter-spacing: 20px; direction: ltr; font-family: 'Courier New', ui-monospace, monospace; margin: 14px 0 10px; color: #0f172a; }
+            .tip { font-size: 12px; color: #94a3b8; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="table-label">رقم الطاولة</div>
+            <div class="table-name">طاولة ${label}</div>
+            <div class="divider"></div>
+            <div class="pin-label">رمز الدخول للطلب الذاتي</div>
+            <div class="pin">${showPin}</div>
+            <div class="tip">أدخل هذا الرمز مع اسمك في صفحة الـ QR لبدء الطلب</div>
+          </div>
+          <script>window.onload = function() { window.print(); window.close(); }</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const handleConfirm = async () => {
     if (!pendingOrder && currentItems.length > 0) {
       // No submitted round yet — submit the current cart as a round, then confirm it.
@@ -107,9 +143,6 @@ export const TableSessionPanel = ({ tableId }) => {
     }
     confirmMutation.mutate();
   };
-
-  const confirmDisabled =
-    session?.status === 'CLOSED' || (!pendingOrder && currentItems.length === 0);
 
   return (
     <div className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-sm space-y-4">
@@ -131,7 +164,7 @@ export const TableSessionPanel = ({ tableId }) => {
           {startError && <p className="text-xs text-status-danger">{startError}</p>}
           <PermissionGate permission="orders.create">
             <Button size="sm" icon={KeyRound} isLoading={startLoading} onClick={handleStart}>
-              بدء جلسة الطاولة
+              إنشاء جلسة
             </Button>
           </PermissionGate>
         </div>
@@ -222,6 +255,18 @@ export const TableSessionPanel = ({ tableId }) => {
 
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
             <PermissionGate permission="orders.create">
+              {(pendingOrder || currentItems.length > 0) && session.status !== 'CLOSED' && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  icon={CheckCircle2}
+                  isLoading={confirmMutation.isPending || submitMutation.isPending}
+                  onClick={handleConfirm}
+                  title="مراجعة وتأكيد الطلب (بيتحول لأوردر حقيقي)"
+                >
+                  {pendingOrder ? `تأكيد أوردر #${pendingOrder.orderNumber}` : 'تأكيد الطلب'}
+                </Button>
+              )}
               <Button
                 size="sm"
                 variant="outline"
@@ -231,17 +276,6 @@ export const TableSessionPanel = ({ tableId }) => {
                 title="عرض رمز الـ PIN الخاص بالجلسة الحالية"
               >
                 عرض الـ PIN
-              </Button>
-              <Button
-                size="sm"
-                variant="primary"
-                icon={CheckCircle2}
-                isLoading={confirmMutation.isPending || submitMutation.isPending}
-                disabled={confirmDisabled}
-                onClick={handleConfirm}
-                title="مراجعة وتأكيد الطلب (بيتحول لأوردر حقيقي)"
-              >
-                {pendingOrder ? `تأكيد أوردر #${pendingOrder.orderNumber}` : 'تأكيد الطلب'}
               </Button>
               <Button
                 size="sm"
@@ -268,6 +302,9 @@ export const TableSessionPanel = ({ tableId }) => {
           <div className="flex items-center justify-center gap-2">
             <Button size="sm" variant="outline" icon={copied ? Check : Copy} onClick={handleCopyPin}>
               {copied ? 'تم النسخ' : 'نسخ الرمز'}
+            </Button>
+            <Button size="sm" variant="outline" icon={Printer} onClick={handlePrintPin}>
+              طباعة الـ PIN
             </Button>
             <Button size="sm" variant="primary" onClick={() => setShowPin(null)}>تمام</Button>
           </div>
