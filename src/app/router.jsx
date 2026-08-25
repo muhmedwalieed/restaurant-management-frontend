@@ -161,7 +161,7 @@ export const router = createBrowserRouter(
       {
         path: 'tables',
         element: (
-          <RequirePermission permission="tables.manage">
+          <RequirePermission permission={['tables.view', 'tables.manage']}>
             <TablesListPage />
           </RequirePermission>
         ),

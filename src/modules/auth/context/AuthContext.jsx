@@ -148,8 +148,10 @@ useEffect(() => {
       const permissions = user.permissions || user.role?.permissions || [];
       const isWildcard = permissions.some((p) => (typeof p === 'string' ? p === '*' : p.key === '*'));
       if (isWildcard) return true;
-      return permissions.some((p) =>
-        typeof p === 'string' ? p === permissionKey : p.key === permissionKey
+
+      const keys = Array.isArray(permissionKey) ? permissionKey : [permissionKey];
+      return keys.some((key) =>
+        permissions.some((p) => (typeof p === 'string' ? p === key : p.key === key))
       );
     },
     [user]
