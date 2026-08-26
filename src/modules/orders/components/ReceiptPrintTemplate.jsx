@@ -132,7 +132,7 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, isPreview = false })
                   <div dir="auto">{item.productName}</div>
                   {item.selectedModifiers?.length > 0 && (
                     <div className="text-[10px] text-black font-normal mt-0.5" dir="auto">
-                      {item.selectedModifiers.map((m) => m.name).join(' + ')}
+                      {item.selectedModifiers.map((m) => (m.quantity > 1 ? `${m.name} ×${m.quantity}` : m.name)).join(' + ')}
                     </div>
                   )}
                   {item.notes && (

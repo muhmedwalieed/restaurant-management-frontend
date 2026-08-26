@@ -139,7 +139,7 @@ const parseHistoryMetadata = (h) => {
 const ItemModifiers = ({ item }) =>
   item?.selectedModifiers?.length ? (
     <span className="text-[11px] text-brand-primary mt-0.5 truncate">
-      {item.selectedModifiers.map((m) => m.name).join(' + ')}
+      {item.selectedModifiers.map((m) => (m.quantity > 1 ? `${m.name} ×${m.quantity}` : m.name)).join(' + ')}
     </span>
   ) : null;
 

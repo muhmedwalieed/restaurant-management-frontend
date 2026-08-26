@@ -9,6 +9,11 @@ import { modifierFormSchema } from '../schemas/menu.schema.js';
 import { useCreateModifierMutation, useUpdateModifierMutation } from '../hooks/useMenu.js';
 import { PlusCircle } from 'lucide-react';
 
+const QUANTITY_MODE_OPTIONS = [
+  { value: 'SINGLE', label: 'اختيار واحد فقط', hint: '☐ جبنة +10 EGP' },
+  { value: 'QUANTITY', label: 'بالكمية', hint: '☐ جبنة إضافية [-] 2 [+].' },
+];
+
 export const ModifierFormModal = ({
   isOpen,
   onClose,
@@ -33,10 +38,13 @@ export const ModifierFormModal = ({
       name: '',
       priceDelta: 0,
       isRequired: false,
+      quantityMode: 'SINGLE',
+      maxQuantity: 10,
     },
   });
 
   const isRequiredValue = watch('isRequired');
+  const quantityModeValue = watch('quantityMode');
 
   useEffect(() => {
     if (isOpen) {
@@ -45,12 +53,16 @@ export const ModifierFormModal = ({
           name: modifierToEdit.name || '',
           priceDelta: modifierToEdit.priceDelta !== undefined ? String(modifierToEdit.priceDelta) : '0',
           isRequired: modifierToEdit.isRequired ?? false,
+          quantityMode: modifierToEdit.quantityMode || 'SINGLE',
+          maxQuantity: modifierToEdit.maxQuantity || 10,
         });
       } else {
         reset({
           name: '',
           priceDelta: 0,
           isRequired: false,
+          quantityMode: 'SINGLE',
+          maxQuantity: 10,
         });
       }
     }
@@ -108,6 +120,43 @@ export const ModifierFormModal = ({
           error={errors.priceDelta?.message}
           {...register('priceDelta')}
         />
+
+        <div className="space-y-2">
+          <label className="text-[11px] font-medium text-txt-primary block">طريقة اختيار الإضافة في الطلب</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {QUANTITY_MODE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setValue('quantityMode', opt.value)}
+                className={`text-right p-3 rounded-xl border transition-colors ${
+                  quantityModeValue === opt.value
+                    ? 'border-brand-primary bg-brand-primary/[0.06]'
+                    : 'border-border-default bg-bg-base/40 hover:border-white/20'
+                }`}
+              >
+                <span className="block text-xs font-bold text-txt-primary">{opt.label}</span>
+                <span className="block text-[10px] text-txt-muted mt-0.5">{opt.hint}</span>
+              </button>
+            ))}
+          </div>
+          {errors.quantityMode?.message && (
+            <p className="text-[11px] text-status-danger">{errors.quantityMode.message}</p>
+          )}
+        </div>
+
+        {quantityModeValue === 'QUANTITY' && (
+          <Input
+            label="أقصى كمية مسموحة"
+            type="number"
+            min="1"
+            max="99"
+            placeholder="10"
+            helperText="العميل هيقدر يختار من 1 لحد الرقم ده"
+            error={errors.maxQuantity?.message}
+            {...register('maxQuantity')}
+          />
+        )}
 
         <div className="flex items-center justify-between p-3 bg-bg-base/60 border border-border-default rounded-lg">
           <div>

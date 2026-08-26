@@ -27,4 +27,6 @@ export const modifierFormSchema = z.object({
   name: z.string().trim().min(2, 'اسم الإضافة يجب أن يكون حرفين على الأقل'),
   priceDelta: z.coerce.number({ invalid_type_error: 'يرجى إدخال رقم صحيح' }).min(0, 'سعر الإضافة لا يمكن أن يكون بالسالب').default(0),
   isRequired: z.boolean().default(false),
+  quantityMode: z.enum(['SINGLE', 'QUANTITY']).default('SINGLE'),
+  maxQuantity: z.coerce.number().int().min(1).max(99).default(10),
 });
