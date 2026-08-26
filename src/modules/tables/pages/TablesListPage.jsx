@@ -94,6 +94,11 @@ export const TablesListPage = () => {
 
   const handleStartSession = async (e, table) => {
     e.stopPropagation();
+    if (table.session) {
+      // Session already active — just open the drawer (PIN is visible inline there).
+      setSelectedTable(table);
+      return;
+    }
     try {
       const res = await startMutation.mutateAsync(table.id);
       setPinTable(table);
