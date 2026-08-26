@@ -13,7 +13,7 @@ import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
 import { TableDetailDrawer } from '../components/TableDetailDrawer.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
-import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, LayoutGrid } from 'lucide-react';
+import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check } from 'lucide-react';
 
 const statusPill = (status) => {
   const map = {
@@ -67,21 +67,6 @@ export const TablesListPage = () => {
       })),
     [tablesList, sessionsByTable]
   );
-
-  const metrics = useMemo(() => {
-    let occupied = 0;
-    let seats = 0;
-    for (const t of withSession) {
-      if (t.occupied) occupied += 1;
-      seats += t.capacity || 0;
-    }
-    return {
-      total: withSession.length,
-      available: withSession.length - occupied,
-      occupied,
-      seats,
-    };
-  }, [withSession]);
 
   const filteredTables = useMemo(() => {
     return withSession.filter((t) => {
@@ -154,38 +139,6 @@ export const TablesListPage = () => {
             إضافة طاولة جديدة
           </Button>
         </PermissionGate>
-      </div>
-
-      {/* Floor metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-brand-primary/10 text-brand-primary"><LayoutGrid className="w-4 h-4" /></span>
-          <div>
-            <p className="text-lg font-bold text-txt-primary leading-none">{metrics.total}</p>
-            <p className="text-[11px] text-txt-muted mt-0.5">إجمالي الطاولات</p>
-          </div>
-        </div>
-        <div className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"><Users className="w-4 h-4" /></span>
-          <div>
-            <p className="text-lg font-bold text-txt-primary leading-none">{metrics.available}</p>
-            <p className="text-[11px] text-txt-muted mt-0.5">متاحة</p>
-          </div>
-        </div>
-        <div className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-red-500/10 text-red-400"><Grid3x3 className="w-4 h-4" /></span>
-          <div>
-            <p className="text-lg font-bold text-txt-primary leading-none">{metrics.occupied}</p>
-            <p className="text-[11px] text-txt-muted mt-0.5">مشغولة</p>
-          </div>
-        </div>
-        <div className="bg-bg-surface border border-border-default rounded-xl p-3 flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-brand-primary/10 text-brand-primary"><Users className="w-4 h-4" /></span>
-          <div>
-            <p className="text-lg font-bold text-txt-primary leading-none">{metrics.seats}</p>
-            <p className="text-[11px] text-txt-muted mt-0.5">مقاعد</p>
-          </div>
-        </div>
       </div>
 
       {/* Controls + filter tabs */}
