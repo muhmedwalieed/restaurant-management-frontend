@@ -255,19 +255,38 @@ export const TableSessionPanel = ({ tableId }) => {
               className={`rounded-lg border p-3 space-y-2 ${
                 session.waiterCall.status === 'ACCEPTED'
                   ? 'border-status-success/30 bg-status-success/5'
+                  : session.waiterCall.type === 'BILL'
+                  ? 'border-amber-500/40 bg-amber-500/10'
                   : 'border-status-warning/30 bg-status-warning/5'
               }`}
             >
-              <p
-                className={`text-xs font-bold flex items-center gap-1.5 ${
-                  session.waiterCall.status === 'ACCEPTED' ? 'text-status-success' : 'text-status-warning'
-                }`}
-              >
-                <Bell className="w-3.5 h-3.5" />
-                {session.waiterCall.status === 'ACCEPTED'
-                  ? 'الويتر في الطريق للعميل'
-                  : `استدعاء ويتر من ${session.waiterCall.requesterName}`}
-              </p>
+              <div className="flex items-center justify-between">
+                <p
+                  className={`text-xs font-bold flex items-center gap-1.5 ${
+                    session.waiterCall.status === 'ACCEPTED'
+                      ? 'text-status-success'
+                      : session.waiterCall.type === 'BILL'
+                      ? 'text-amber-300'
+                      : 'text-status-warning'
+                  }`}
+                >
+                  {session.waiterCall.type === 'BILL' ? (
+                    <Receipt className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <Bell className="w-3.5 h-3.5" />
+                  )}
+                  {session.waiterCall.status === 'ACCEPTED'
+                    ? (session.waiterCall.type === 'BILL' ? 'الويتر في الطريق للعميل بالحساب' : 'الويتر في الطريق للعميل')
+                    : session.waiterCall.type === 'BILL'
+                    ? `طلب فاتورة وحساب من ${session.waiterCall.requesterName}`
+                    : `استدعاء ويتر من ${session.waiterCall.requesterName}`}
+                </p>
+                {session.waiterCall.type === 'BILL' && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    طلب حساب
+                  </span>
+                )}
+              </div>
               {session.waiterCall.note && <p className="text-[11px] text-txt-muted">{session.waiterCall.note}</p>}
               <div className="flex flex-wrap gap-2 pt-1">
                 {session.waiterCall.status === 'PENDING' && (

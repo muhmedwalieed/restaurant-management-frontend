@@ -13,7 +13,7 @@ import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
 import { TableDetailDrawer } from '../components/TableDetailDrawer.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
-import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, Bell } from 'lucide-react';
+import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, Bell, Receipt } from 'lucide-react';
 
 const statusPill = (status) => {
   const map = {
@@ -230,9 +230,19 @@ export const TablesListPage = () => {
                   </span>
                 )}
                 {table.session?.waiterCall?.status === 'PENDING' && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-status-warning bg-status-warning/10 px-2 py-0.5 rounded-full">
-                    <Bell className="w-3 h-3 animate-pulse" />
-                    استدعاء ويتر
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                      table.session?.waiterCall?.type === 'BILL'
+                        ? 'text-amber-300 bg-amber-500/20 border border-amber-500/30'
+                        : 'text-status-warning bg-status-warning/10'
+                    }`}
+                  >
+                    {table.session?.waiterCall?.type === 'BILL' ? (
+                      <Receipt className="w-3 h-3 animate-pulse text-amber-400" />
+                    ) : (
+                      <Bell className="w-3 h-3 animate-pulse" />
+                    )}
+                    {table.session?.waiterCall?.type === 'BILL' ? 'طلب حساب' : 'استدعاء ويتر'}
                   </span>
                 )}
               </div>

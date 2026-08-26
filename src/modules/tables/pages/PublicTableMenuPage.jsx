@@ -30,6 +30,7 @@ import {
   ShoppingCart,
   Utensils,
   ShieldCheck,
+  Receipt,
 } from 'lucide-react';
 import { CartDrawer } from '../components/CartDrawer.jsx';
 import { FloatingCartBar } from '../components/FloatingCartBar.jsx';
@@ -89,6 +90,7 @@ export const PublicTableMenuPage = () => {
   const [localFlash, setLocalFlash] = useState(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [confirmWaiter, setConfirmWaiter] = useState(false);
+  const [waiterCallType, setWaiterCallType] = useState('HELP');
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [waiterCooldownActive, setWaiterCooldownActive] = useState(false);
   const [waiterCooldownLeft, setWaiterCooldownLeft] = useState(0);
@@ -221,20 +223,31 @@ export const PublicTableMenuPage = () => {
   };
 
   const handleConfirmWaiter = async () => {
+    const isBill = waiterCallType === 'BILL';
     setConfirmWaiter(false);
     setWaiterSent(false);
     try {
-      await callWaiterMutation.mutateAsync({ requesterName: myName || 'عميل', note: 'يحتاج مساعدة' });
+      await callWaiterMutation.mutateAsync({
+        requesterName: myName || 'عميل',
+        note: isBill ? 'طلب الفاتورة والحساب' : 'يحتاج مساعدة',
+        type: isBill ? 'BILL' : 'HELP',
+      });
       setWaiterSent(true);
       setWaiterCooldownLeft(WAITER_COOLDOWN_SECONDS);
       setWaiterCooldownActive(true);
       setTimeout(() => setWaiterSent(false), 8000);
+      setLocalFlash(isBill ? 'تم طلب الفاتورة والحساب، الويتر في الطريق إليك.' : 'تم استدعاء الويتر إلى طاولتك، هيوصلك حالاً.');
+      setTimeout(() => setLocalFlash(null), 4000);
     } catch (err) {
       if (err?.status === 401) {
         handleMemberExpired();
         return;
       }
-      setLocalFlash(err?.message || 'تعذر استدعاء الويتر، حاول تاني.');
+      const message =
+        err?.code === 'BUSINESS_RULE_ERROR' || err?.message?.includes('already active')
+          ? 'يوجد بالفعل استدعاء ويتر نشط لطاولتك، الويتر في الطريق.'
+          : err?.message || 'تعذر استدعاء الويتر، حاول تاني.';
+      setLocalFlash(message);
       setTimeout(() => setLocalFlash(null), 4000);
     }
   };
@@ -256,6 +269,13 @@ export const PublicTableMenuPage = () => {
 
   const requestWaiter = () => {
     if (locked || waiterCooldownLeft > 0) return;
+    setWaiterCallType('HELP');
+    setConfirmWaiter(true);
+  };
+
+  const requestBill = () => {
+    if (locked || waiterCooldownLeft > 0) return;
+    setWaiterCallType('BILL');
     setConfirmWaiter(true);
   };
 
@@ -429,18 +449,24 @@ export const PublicTableMenuPage = () => {
           </StatusBanner>
         )}
         {waiterSent && session?.waiterCall?.status !== 'ACCEPTED' && (
-          <StatusBanner tone="success" icon={Bell}>
-            تم استدعاء الويتر إلى طاولتك، هيوصلك حالاً.
+          <StatusBanner tone="success" icon={session?.waiterCall?.type === 'BILL' ? Receipt : Bell}>
+            {session?.waiterCall?.type === 'BILL'
+              ? 'تم إرسال طلب الفاتورة والحساب، الويتر في الطريق إليك.'
+              : 'تم استدعاء الويتر إلى طاولتك، هيوصلك حالاً.'}
           </StatusBanner>
         )}
         {session?.waiterCall?.status === 'PENDING' && (
-          <StatusBanner tone="warning" icon={Bell}>
-            تم استدعاء الويتر، بانتظار تأكيد الويتر.
+          <StatusBanner tone="warning" icon={session?.waiterCall?.type === 'BILL' ? Receipt : Bell}>
+            {session?.waiterCall?.type === 'BILL'
+              ? 'تم طلب الفاتورة والحساب، بانتظار استلام الويتر للطلب.'
+              : 'تم استدعاء الويتر، بانتظار تأكيد الويتر.'}
           </StatusBanner>
         )}
         {session?.waiterCall?.status === 'ACCEPTED' && (
           <StatusBanner tone="success" icon={CheckCircle2}>
-            الويتر جايلك حالاً.
+            {session?.waiterCall?.type === 'BILL'
+              ? 'الويتر في الطريق إليك ومعه الفاتورة والحساب.'
+              : 'الويتر جايلك حالاً.'}
           </StatusBanner>
         )}
         {isAwaiting && (
@@ -677,6 +703,7 @@ export const PublicTableMenuPage = () => {
           }
         }}
         onCallWaiter={requestWaiter}
+        onRequestBill={requestBill}
         onSubmitOrder={requestSubmit}
         isCallWaiterPending={callWaiterMutation.isPending}
         waiterCooldownLeft={waiterCooldownLeft}
@@ -697,9 +724,13 @@ export const PublicTableMenuPage = () => {
       <ConfirmDialog
         isOpen={confirmWaiter}
         onClose={() => setConfirmWaiter(false)}
-        title="استدعاء الويتر"
-        message="هل تريد فعلاً استدعاء الويتر إلى طاولتك؟"
-        confirmLabel="نعم، استدعِ الويتر"
+        title={waiterCallType === 'BILL' ? 'طلب الفاتورة والحساب' : 'استدعاء الويتر'}
+        message={
+          waiterCallType === 'BILL'
+            ? 'هل تريد طلب الفاتورة والحساب إلى طاولتك الآن؟'
+            : 'هل تريد فعلاً استدعاء الويتر إلى طاولتك؟'
+        }
+        confirmLabel={waiterCallType === 'BILL' ? 'نعم، اطلب الفاتورة' : 'نعم، استدعِ الويتر'}
         isLoading={callWaiterMutation.isPending}
         onConfirm={handleConfirmWaiter}
       />

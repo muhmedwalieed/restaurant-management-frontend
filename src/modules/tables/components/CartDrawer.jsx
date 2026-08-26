@@ -11,6 +11,7 @@ export const CartDrawer = ({
   onUpdateQuantity,
   onRemoveItem,
   onCallWaiter,
+  onRequestBill,
   onSubmitOrder,
   isCallWaiterPending = false,
   waiterCooldownLeft = 0,
@@ -314,6 +315,29 @@ export const CartDrawer = ({
           ) : (
 
             <div className="space-y-3">
+              {session?.waiterCall && (
+                <div
+                  className={`rounded-xl p-2.5 text-xs flex items-center gap-2 border ${
+                    session.waiterCall.status === 'ACCEPTED'
+                      ? 'bg-status-success/10 border-status-success/30 text-status-success'
+                      : session.waiterCall.type === 'BILL'
+                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                      : 'bg-status-warning/10 border-status-warning/30 text-status-warning'
+                  }`}
+                >
+                  {session.waiterCall.type === 'BILL' ? (
+                    <Receipt className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <Bell className="w-4 h-4 shrink-0" />
+                  )}
+                  <span className="font-semibold">
+                    {session.waiterCall.status === 'ACCEPTED'
+                      ? (session.waiterCall.type === 'BILL' ? 'الويتر في الطريق إليك بالحساب' : 'الويتر في الطريق إليك')
+                      : (session.waiterCall.type === 'BILL' ? 'تم طلب الفاتورة والحساب — بانتظار الويتر' : 'تم استدعاء الويتر — بانتظار الاستجابة')}
+                  </span>
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-txt-muted">إجمالي حساب الجلسة:</span>
                 <span className="text-base font-bold text-brand-primary font-mono text-lg" dir="ltr">
@@ -337,11 +361,14 @@ export const CartDrawer = ({
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={onCallWaiter}
-                  disabled={isCallWaiterPending}
+                  icon={Receipt}
+                  onClick={onRequestBill || onCallWaiter}
+                  disabled={isCallWaiterPending || waiterCooldownLeft > 0}
                   className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-slate-950 font-bold"
                 >
-                  طلب الفاتورة والحساب
+                  {waiterCooldownLeft > 0 && session?.waiterCall?.type === 'BILL'
+                    ? `تم الطلب (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
+                    : 'طلب الفاتورة والحساب'}
                 </Button>
               </div>
             </div>

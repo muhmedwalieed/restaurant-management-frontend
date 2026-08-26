@@ -100,8 +100,12 @@ export const useRemoveSessionItemStaff = (sessionId) => {
 };
 
 export const useCallWaiter = (sessionId, memberToken) => {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload = {}) => callWaiterApi(sessionId, payload, memberToken),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+    },
   });
 };
 
