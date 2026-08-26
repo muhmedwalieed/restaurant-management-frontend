@@ -8,6 +8,7 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // send/accept the httpOnly refresh cookie (login/refresh/logout)
   timeout: 15000,
 });
 
