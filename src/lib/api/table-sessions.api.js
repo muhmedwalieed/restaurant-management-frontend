@@ -52,6 +52,14 @@ export const rejectPendingOrderApi = async (sessionId) => {
   return apiClient.post(`/tables/${sessionId}/reject-order`);
 };
 
+export const updateSessionItemStaffApi = async (sessionId, itemId, quantity) => {
+  return apiClient.patch(`/tables/${sessionId}/items/${itemId}`, { quantity });
+};
+
+export const removeSessionItemStaffApi = async (sessionId, itemId) => {
+  return apiClient.delete(`/tables/${sessionId}/items/${itemId}`);
+};
+
 export const getActiveTableSessionApi = async (tableId) => {
   return apiClient.get(`/tables/table/${tableId}/session`);
 };

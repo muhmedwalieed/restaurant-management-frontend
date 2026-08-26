@@ -10,6 +10,8 @@ import {
   startTableSessionApi,
   confirmTableSessionApi,
   closeTableSessionApi,
+  updateSessionItemStaffApi,
+  removeSessionItemStaffApi,
   regeneratePinApi,
   rejectPendingOrderApi,
   getActiveTableSessionApi,
@@ -70,6 +72,28 @@ export const useRemoveSessionItem = (sessionId, memberToken) => {
   return useMutation({
     mutationFn: (itemId) => removeSessionItemApi(sessionId, itemId, memberToken),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['table-session', sessionId] }),
+  });
+};
+
+export const useUpdateSessionItemStaff = (sessionId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, quantity }) => updateSessionItemStaffApi(sessionId, itemId, quantity),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+    },
+  });
+};
+
+export const useRemoveSessionItemStaff = (sessionId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId) => removeSessionItemStaffApi(sessionId, itemId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
+    },
   });
 };
 

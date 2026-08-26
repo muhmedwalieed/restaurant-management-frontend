@@ -13,8 +13,8 @@ import {
   useCloseTableSession,
   useRejectPendingOrder,
   useRegeneratePin,
-  useUpdateSessionItem,
-  useRemoveSessionItem,
+  useUpdateSessionItemStaff,
+  useRemoveSessionItemStaff,
 } from '../hooks/useTableSessions.js';
 import {
   KeyRound,
@@ -102,8 +102,8 @@ export const TableSessionPanel = ({ tableId }) => {
   const closeMutation = useCloseTableSession(session?.id);
   const rejectMutation = useRejectPendingOrder(session?.id);
   const regenerateMutation = useRegeneratePin(session?.id);
-  const updateMutation = useUpdateSessionItem(session?.id);
-  const removeMutation = useRemoveSessionItem(session?.id);
+  const updateMutation = useUpdateSessionItemStaff(session?.id);
+  const removeMutation = useRemoveSessionItemStaff(session?.id);
 
   const status = SESSION_STATUS[session?.status] || SESSION_STATUS.ACTIVE;
   const pendingOrder = (session?.orders || []).find((o) => o.status === 'AWAITING_CONFIRMATION');
