@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import QRCode from 'react-qr-code';
-import { QrCode, Copy, Check, Download, Printer, Sparkles } from 'lucide-react';
+import { QrCode, Copy, Check, Download, Printer } from 'lucide-react';
 import { Button } from '../../../shared/components/Button.jsx';
 
 const QR_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#f59e0b"/><text x="24" y="31" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a" text-anchor="middle">QR</text></svg>`;
@@ -49,9 +49,7 @@ export const TableQrPanel = ({ table, branchName, size = 180 }) => {
   const handlePrintQr = () => {
     const qrElem = document.getElementById('table-qr-print-area');
     if (!qrElem) return;
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    printWindow.document.write(`
+    const html = `
       <html dir="rtl">
         <head>
           <title>طاولة ${table?.label || ''} - رمز QR</title>
@@ -71,11 +69,31 @@ export const TableQrPanel = ({ table, branchName, size = 180 }) => {
             <div class="qr-wrapper">${qrElem.innerHTML}</div>
             <div class="footer-tip">امسح بكاميرا الهاتف لفتح المنيو الذكي</div>
           </div>
-          <script>window.onload = function() { window.print(); window.close(); }</script>
         </body>
       </html>
-    `);
-    printWindow.document.close();
+    `;
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(html.replace('</body>', '<script>window.onload = function() { window.print(); window.close(); }</script></body>'));
+      printWindow.document.close();
+      return;
+    }
+    // Fallback if the popup was blocked: print from a hidden iframe (no popup needed).
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => document.body.removeChild(iframe), 1000);
   };
 
   return (
@@ -83,12 +101,8 @@ export const TableQrPanel = ({ table, branchName, size = 180 }) => {
       <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
         <div className="flex items-center gap-2">
           <QrCode className="w-4 h-4 text-brand-primary" />
-          <h3 className="text-xs font-bold text-txt-primary">رمز QR للطلب الذاتي</h3>
+          <h3 className="text-xs font-bold text-txt-primary">رمز QR</h3>
         </div>
-        <span className="text-[11px] text-txt-muted flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-brand-primary" />
-          المنيو الرقمي
-        </span>
       </div>
 
       <div className="flex flex-col items-center justify-center p-5 bg-bg-base/60 border border-border-subtle rounded-xl">

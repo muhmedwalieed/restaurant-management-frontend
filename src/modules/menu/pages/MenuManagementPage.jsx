@@ -241,16 +241,6 @@ export const MenuManagementPage = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            icon={Eye}
-            onClick={() => setIsPreviewModalOpen(true)}
-            className="border-white/10 text-xs"
-          >
-            معاينة المنيو الرقمي
-          </Button>
-
           <PermissionGate permission="menu.manage">
             {activeTab === 'products' ? (
               <Button

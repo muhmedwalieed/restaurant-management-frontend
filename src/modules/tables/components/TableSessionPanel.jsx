@@ -134,10 +134,10 @@ export const TableSessionPanel = ({ tableId }) => {
 
   const handlePrintPin = () => {
     if (!showPin) return;
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
     const label = session?.tableLabel || '—';
-    printWindow.document.write(`
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
       <html dir="rtl">
         <head>
           <title>طاولة ${label} - PIN</title>
@@ -165,7 +165,47 @@ export const TableSessionPanel = ({ tableId }) => {
         </body>
       </html>
     `);
-    printWindow.document.close();
+      printWindow.document.close();
+      return;
+    }
+    // Fallback if the popup was blocked: print from a hidden iframe (no popup needed).
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <html dir="rtl">
+        <head>
+          <title>طاولة ${label} - PIN</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 28px; background: #ffffff; text-align: center; color: #0f172a; }
+            .table-label { font-size: 14px; color: #64748b; font-weight: 600; }
+            .table-name { font-size: 34px; font-weight: 800; margin: 6px 0 22px; }
+            .divider { border-top: 2px dashed #cbd5e1; margin-bottom: 20px; }
+            .pin-label { font-size: 13px; color: #64748b; font-weight: 600; }
+            .pin { font-size: 72px; font-weight: 900; letter-spacing: 20px; direction: ltr; font-family: 'Courier New', ui-monospace, monospace; margin: 14px 0 10px; color: #0f172a; }
+            .tip { font-size: 12px; color: #94a3b8; }
+          </style>
+        </head>
+        <body>
+          <div class="table-label">رقم الطاولة</div>
+          <div class="table-name">طاولة ${label}</div>
+          <div class="divider"></div>
+          <div class="pin-label">رمز الدخول للطلب الذاتي</div>
+          <div class="pin">${showPin}</div>
+        </body>
+      </html>
+    `);
+    doc.close();
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => document.body.removeChild(iframe), 1000);
   };
 
   const handleConfirm = async () => {

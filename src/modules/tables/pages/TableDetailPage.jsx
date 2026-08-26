@@ -16,13 +16,11 @@ import {
   QrCode,
   Receipt,
   AlertCircle,
-  ExternalLink,
   Copy,
   Check,
   Download,
   Printer,
   ArrowUpRight,
-  Sparkles,
 } from 'lucide-react';
 
 const QR_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#f59e0b"/><text x="24" y="31" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a" text-anchor="middle">QR</text></svg>`;
@@ -191,13 +189,6 @@ export const TableDetailPage = () => {
           </div>
         </div>
 
-        {table?.qrUrl && (
-          <a href={table.qrUrl} target="_blank" rel="noreferrer">
-            <Button size="sm" variant="outline" icon={ExternalLink} className="border-white/10 text-xs">
-              معاينة القائمة الرقمية
-            </Button>
-          </a>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -316,10 +307,6 @@ export const TableDetailPage = () => {
                 <QrCode className="w-4 h-4 text-brand-primary" />
                 <h3 className="text-xs font-bold text-txt-primary">رمز QR للطلب الذاتي</h3>
               </div>
-              <span className="text-[11px] text-txt-muted flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-brand-primary" />
-                <span>المنيو الرقمي</span>
-              </span>
             </div>
 
             <p className="text-xs text-txt-muted leading-relaxed">
