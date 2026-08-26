@@ -140,10 +140,8 @@ export const CartDrawer = ({
           </div>
         </div>
 
-        {}
         <div className="p-4 space-y-3 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
           {activeTab === 'cart' ? (
-
             consolidatedItems.length === 0 ? (
               <div className="text-center py-10 space-y-3">
                 <ShoppingCart className="w-10 h-10 text-txt-muted mx-auto opacity-40" />
@@ -229,13 +227,12 @@ export const CartDrawer = ({
               ))
             )
           ) : (
-
             <div className="space-y-3">
               {sessionOrders.length === 0 ? (
                 <div className="text-center py-10 space-y-2">
                   <Receipt className="w-10 h-10 text-txt-muted mx-auto opacity-40" />
-                  <p className="text-sm font-bold text-txt-primary">لا توجد أوردرات سابقة في هذه الجلسة</p>
-                  <p className="text-xs text-txt-muted">الأوردرات المؤكدة ستظهر هنا مقسمة بالحساب لكل شخص.</p>
+                  <p className="text-sm font-bold text-txt-primary">لا توجد طلبات سابقة في هذه الجلسة</p>
+                  <p className="text-xs text-txt-muted">الطلبات المؤكدة ستظهر هنا مفصلة بالحساب لكل عضو.</p>
                 </div>
               ) : (
                 <SessionOrdersList orders={sessionOrders} currency={currency} />
@@ -244,10 +241,8 @@ export const CartDrawer = ({
           )}
         </div>
 
-        {}
         <div className="p-4 border-t border-border-default bg-bg-surface/95 backdrop-blur shrink-0 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-3">
           {activeTab === 'cart' ? (
-
             consolidatedItems.length > 0 ? (
               <>
                 <div className="flex items-center justify-between">
@@ -284,7 +279,7 @@ export const CartDrawer = ({
                   </div>
                 ) : (
                   <p className="text-xs text-txt-muted text-center py-1">
-                    {isAwaiting ? 'أوردرك قيد المراجعة مع الويتر.' : 'شكراً لزيارتكم، نتمنى لكم وجبة شهية.'}
+                    {isAwaiting ? 'طلبكم قيد المراجعة والتأكيد من قِبل موظف الصالة.' : 'شكراً لزيارتكم، نتمنى لكم وجبة شهية.'}
                   </p>
                 )}
               </>
@@ -313,7 +308,6 @@ export const CartDrawer = ({
               </div>
             )
           ) : (
-
             <div className="space-y-3">
               {session?.waiterCall && (
                 <div
@@ -332,8 +326,8 @@ export const CartDrawer = ({
                   )}
                   <span className="font-semibold">
                     {session.waiterCall.status === 'ACCEPTED'
-                      ? (session.waiterCall.type === 'BILL' ? 'الويتر في الطريق إليك بالحساب' : 'الويتر في الطريق إليك')
-                      : (session.waiterCall.type === 'BILL' ? 'تم طلب الفاتورة والحساب — بانتظار الويتر' : 'تم استدعاء الويتر — بانتظار الاستجابة')}
+                      ? (session.waiterCall.type === 'BILL' ? 'الويتر في الطريق لطاولتكم ومعه الفاتورة' : 'الويتر في الطريق لطاولتكم حالياً')
+                      : (session.waiterCall.type === 'BILL' ? 'تم طلب الفاتورة والحساب، بانتظار وصول الويتر' : 'تم استدعاء الويتر، بانتظار وصول الويتر')}
                   </span>
                 </div>
               )}

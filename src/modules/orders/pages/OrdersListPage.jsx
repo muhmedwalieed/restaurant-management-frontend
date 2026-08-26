@@ -236,21 +236,6 @@ export const OrdersListPage = () => {
             </div>
           </div>
         </div>
-
-        {}
-        <PermissionGate permission="orders.create">
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="primary"
-              size="sm"
-              icon={Plus}
-              onClick={() => setIsModalOpen(true)}
-              className="text-xs font-semibold h-8"
-            >
-              طلب جديد
-            </Button>
-          </div>
-        </PermissionGate>
       </div>
 
       {}
@@ -267,7 +252,7 @@ export const OrdersListPage = () => {
                 setActiveStatusTab(tab.id);
                 setPage(1);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 ${
                 isSelected
                   ? 'bg-brand-primary text-slate-950 shadow-sm'
                   : 'bg-bg-surface text-txt-muted border border-border-default hover:text-txt-primary hover:border-white/10'

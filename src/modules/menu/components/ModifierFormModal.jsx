@@ -10,8 +10,8 @@ import { useCreateModifierMutation, useUpdateModifierMutation } from '../hooks/u
 import { PlusCircle } from 'lucide-react';
 
 const QUANTITY_MODE_OPTIONS = [
-  { value: 'SINGLE', label: 'اختيار واحد فقط', hint: '☐ جبنة +10 EGP' },
-  { value: 'QUANTITY', label: 'بالكمية', hint: '☐ جبنة إضافية [-] 2 [+].' },
+  { value: 'SINGLE', label: 'اختيار واحد فقط', hint: 'مثال: جبنة +10 ج.م' },
+  { value: 'QUANTITY', label: 'تحديد الكمية', hint: 'مثال: جبنة إضافية (تحديد العدد)' },
 ];
 
 export const ModifierFormModal = ({

@@ -252,23 +252,21 @@ export const TableSessionPanel = ({ tableId }) => {
 
           {session.waiterCall && (
             <div
-              className={`rounded-lg border p-3 space-y-2 ${
-                session.waiterCall.status === 'ACCEPTED'
+              className={`rounded-lg border p-3 space-y-2 ${session.waiterCall.status === 'ACCEPTED'
                   ? 'border-status-success/30 bg-status-success/5'
                   : session.waiterCall.type === 'BILL'
-                  ? 'border-amber-500/40 bg-amber-500/10'
-                  : 'border-status-warning/30 bg-status-warning/5'
-              }`}
+                    ? 'border-amber-500/40 bg-amber-500/10'
+                    : 'border-status-warning/30 bg-status-warning/5'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <p
-                  className={`text-xs font-bold flex items-center gap-1.5 ${
-                    session.waiterCall.status === 'ACCEPTED'
+                  className={`text-xs font-bold flex items-center gap-1.5 ${session.waiterCall.status === 'ACCEPTED'
                       ? 'text-status-success'
                       : session.waiterCall.type === 'BILL'
-                      ? 'text-amber-300'
-                      : 'text-status-warning'
-                  }`}
+                        ? 'text-amber-300'
+                        : 'text-status-warning'
+                    }`}
                 >
                   {session.waiterCall.type === 'BILL' ? (
                     <Receipt className="w-4 h-4 text-amber-400" />
@@ -278,8 +276,8 @@ export const TableSessionPanel = ({ tableId }) => {
                   {session.waiterCall.status === 'ACCEPTED'
                     ? (session.waiterCall.type === 'BILL' ? 'الويتر في الطريق للعميل بالحساب' : 'الويتر في الطريق للعميل')
                     : session.waiterCall.type === 'BILL'
-                    ? `طلب فاتورة وحساب من ${session.waiterCall.requesterName}`
-                    : `استدعاء ويتر من ${session.waiterCall.requesterName}`}
+                      ? `طلب فاتورة وحساب من ${session.waiterCall.requesterName}`
+                      : `استدعاء ويتر من ${session.waiterCall.requesterName}`}
                 </p>
                 {session.waiterCall.type === 'BILL' && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
@@ -314,7 +312,7 @@ export const TableSessionPanel = ({ tableId }) => {
             </div>
           )}
 
-          {}
+          { }
           {pendingOrder && (
             <div className="rounded-lg border border-status-warning/30 bg-status-warning/5 p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -344,7 +342,7 @@ export const TableSessionPanel = ({ tableId }) => {
                   isLoading={confirmMutation.isPending}
                   onClick={handleConfirm}
                 >
-                  تأكيد أوردر #{pendingOrder.orderNumber}
+                  تأكيد الطلب #{pendingOrder.orderNumber}
                 </Button>
                 <Button
                   size="sm"
@@ -352,7 +350,7 @@ export const TableSessionPanel = ({ tableId }) => {
                   icon={Undo2}
                   isLoading={rejectMutation.isPending}
                   onClick={handleReject}
-                  title="إرجاع الأوردر للعميل ليقدر يعدّل عليه ويبعت تاني"
+                  title="إرجاع الطلب للعميل للتعديل وإعادة الإرسال"
                 >
                   إرجاع للعميل
                 </Button>
@@ -360,7 +358,6 @@ export const TableSessionPanel = ({ tableId }) => {
             </div>
           )}
 
-          {}
           {currentItems.length > 0 && !pendingOrder && (
             <div className="rounded-lg border border-border-subtle bg-bg-base/40 p-3 space-y-2">
               <p className="text-xs font-bold text-txt-primary flex items-center gap-1.5">
@@ -373,15 +370,14 @@ export const TableSessionPanel = ({ tableId }) => {
                 ))}
               </div>
               <p className="text-[11px] text-txt-muted">
-                العميل لسه بيعدّل في السلة. لما يبعت الأوردر هيظهر هنا للتعديل والتأكيد.
+                العميل يقوم حالياً باختيار الأصناف. سيظهر الطلب هنا فور إرساله للمراجعة والتأكيد.
               </p>
             </div>
           )}
 
-          {}
           {historyOrders.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[11px] font-bold text-txt-muted">أوردرات الجلسة السابقة</p>
+              <p className="text-[11px] font-bold text-txt-muted">طلبات الجلسة السابقة</p>
               {historyOrders.map((order) => {
                 const st = ORDER_STATUS_LABEL[order.status] || ORDER_STATUS_LABEL.CANCELLED;
                 return (
@@ -389,7 +385,7 @@ export const TableSessionPanel = ({ tableId }) => {
                     key={order.id}
                     className="flex items-center justify-between gap-2 bg-bg-base/40 border border-border-subtle rounded-lg px-3 py-2 text-xs"
                   >
-                    <span className="font-semibold text-txt-primary">أوردر #{order.orderNumber}</span>
+                    <span className="font-semibold text-txt-primary">طلب #{order.orderNumber}</span>
                     <div className="flex items-center gap-2">
                       <StatusPill status={st.pill}>{st.label}</StatusPill>
                       <span className="font-mono font-bold text-txt-primary" dir="ltr">
@@ -432,10 +428,9 @@ export const TableSessionPanel = ({ tableId }) => {
         </div>
       )}
 
-      {}
-      <Modal isOpen={Boolean(showPin)} onClose={() => setShowPin(null)} title="PIN جلسة الطاولة" size="sm">
+      <Modal isOpen={Boolean(showPin)} onClose={() => setShowPin(null)} title="رمز PIN جلسة الطاولة" size="sm">
         <div className="text-center space-y-4 py-2">
-          <p className="text-xs text-txt-muted">أعطِ هذا الرمز للعميل عشان يدخل الجلسة من الـ QR:</p>
+          <p className="text-xs text-txt-muted">قم بتزويد العميل بهذا الرمز السري للانضمام إلى جلسة الطاولة عبر رمز QR:</p>
           <div className="text-4xl font-bold tracking-[0.4em] text-brand-primary font-mono" dir="ltr">
             {showPin}
           </div>
@@ -446,12 +441,12 @@ export const TableSessionPanel = ({ tableId }) => {
             <Button size="sm" variant="outline" icon={Printer} onClick={handlePrintPin}>
               طباعة الـ PIN
             </Button>
-            <Button size="sm" variant="primary" onClick={() => setShowPin(null)}>تمام</Button>
+            <Button size="sm" variant="primary" onClick={() => setShowPin(null)}>إغلاق</Button>
           </div>
         </div>
       </Modal>
 
-      {}
+      { }
       <ConfirmDialog
         isOpen={confirmClose}
         onClose={() => setConfirmClose(false)}

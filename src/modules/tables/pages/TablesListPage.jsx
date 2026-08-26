@@ -13,7 +13,7 @@ import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
 import { TableDetailDrawer } from '../components/TableDetailDrawer.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
-import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, Bell, Receipt } from 'lucide-react';
+import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, Bell, Receipt, Store } from 'lucide-react';
 
 const statusPill = (status) => {
   const map = {
@@ -123,15 +123,26 @@ export const TablesListPage = () => {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Header + metrics */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Grid3x3 className="w-5 h-5 text-brand-primary" />
-            <span>إدارة الطاولات ورمز QR</span>
-          </h1>
-          <p className="text-xs text-txt-muted mt-1">متابعة صالة المطعم، الأرقام المتاحة والمشغولة، وجلسات الطلب الذاتي.</p>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border-default/60">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0">
+            <Grid3x3 className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-txt-primary leading-tight">
+              إدارة الطاولات ورمز QR
+            </h1>
+            <div className="flex items-center gap-2 text-xs text-txt-muted mt-0.5">
+              <span className="flex items-center gap-1 font-medium text-slate-300">
+                <Store className="w-3.5 h-3.5 text-brand-primary" />
+                {activeBranch?.name || 'جميع الفروع'}
+              </span>
+              <span>•</span>
+              <span>إجمالي الطاولات المسجلة ({tablesList.length})</span>
+            </div>
+          </div>
         </div>
 
         <PermissionGate permission="tables.manage">
@@ -156,7 +167,7 @@ export const TablesListPage = () => {
                 key={tab.value}
                 type="button"
                 onClick={() => setStatusFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${
                   isActive
                     ? 'bg-brand-primary text-slate-950 shadow-sm'
                     : 'bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary'
@@ -211,9 +222,8 @@ export const TablesListPage = () => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') setSelectedTable(table);
               }}
-              className={`cursor-pointer text-right bg-bg-surface rounded-xl p-3.5 border flex flex-col gap-2.5 transition-all hover:shadow-md active:scale-[0.99] ${
-                table.occupied ? 'border-red-500/30 hover:border-red-500/50' : 'border-border-default hover:border-brand-primary/40'
-              }`}
+              className={`cursor-pointer text-right bg-bg-surface rounded-xl p-3.5 border flex flex-col gap-2.5 transition-all hover:shadow-md active:scale-[0.99] ${table.occupied ? 'border-red-500/30 hover:border-red-500/50' : 'border-border-default hover:border-brand-primary/40'
+                }`}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono font-bold text-txt-primary text-lg leading-none">#{table.label}</span>
@@ -231,11 +241,10 @@ export const TablesListPage = () => {
                 )}
                 {table.session?.waiterCall?.status === 'PENDING' && (
                   <span
-                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                      table.session?.waiterCall?.type === 'BILL'
-                        ? 'text-amber-300 bg-amber-500/20 border border-amber-500/30'
-                        : 'text-status-warning bg-status-warning/10'
-                    }`}
+                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${table.session?.waiterCall?.type === 'BILL'
+                      ? 'text-amber-300 bg-amber-500/20 border border-amber-500/30'
+                      : 'text-status-warning bg-status-warning/10'
+                      }`}
                   >
                     {table.session?.waiterCall?.type === 'BILL' ? (
                       <Receipt className="w-3 h-3 animate-pulse text-amber-400" />
@@ -299,5 +308,3 @@ export const TablesListPage = () => {
     </div>
   );
 };
-
-export default TablesListPage;

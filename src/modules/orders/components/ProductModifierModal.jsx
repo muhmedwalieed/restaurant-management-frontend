@@ -77,7 +77,7 @@ export const ProductModifierModal = ({ isOpen, product, onClose, onConfirm }) =>
           <div className="space-y-2">
             <p className="text-[11px] font-semibold text-txt-muted flex items-center gap-1">
               <Info className="w-3.5 h-3.5" />
-              اختر الإضافات (الإجبارية محددة مسبقاً)
+              اختر الإضافات
             </p>
             {modifiers.map((mod) => {
               const on = isOn(mod);

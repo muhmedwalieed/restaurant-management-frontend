@@ -184,14 +184,14 @@ export const PublicTableMenuPage = () => {
     localStorage.removeItem(memberStorageKey);
     setSessionId(null);
     setMemberToken(null);
-    setJoinError('انتهت صلاحية الجلسة، سجّل دخولك تاني بالاسم والـ PIN.');
+    setJoinError('انتهت صلاحية الجلسة الحالية، يرجى تسجيل الدخول مجدداً بالاسم والرمز السري.');
   };
 
   const handleJoin = async (e) => {
     e.preventDefault();
     setJoinError(null);
-    if (!myName.trim()) return setJoinError('أدخل اسمك أولاً.');
-    if (!/^\d{4}$/.test(pin)) return setJoinError('أدخل الـ PIN المكون من 4 أرقام.');
+    if (!myName.trim()) return setJoinError('يرجى إدخال اسمك أولاً.');
+    if (!/^\d{4}$/.test(pin)) return setJoinError('يرجى إدخال الرمز السري (PIN) المكون من 4 أرقام.');
     setJoinLoading(true);
     try {
       const res = await joinMutation.mutateAsync({ name: myName.trim(), pin });
@@ -200,7 +200,7 @@ export const PublicTableMenuPage = () => {
       setMemberToken(res.memberToken || null);
       localStorage.setItem(memberStorageKey, res.memberToken || '');
     } catch (err) {
-      setJoinError(err?.message || 'تعذر الانضمام للجلسة.');
+      setJoinError(err?.message || 'تعذر الانضمام للجلسة، يرجى التحقق من صحة البيانات.');
     } finally {
       setJoinLoading(false);
     }
@@ -217,7 +217,7 @@ export const PublicTableMenuPage = () => {
         handleMemberExpired();
         return;
       }
-      setLocalFlash(err?.message || 'تعذر إضافة الصنف، حاول تاني.');
+      setLocalFlash(err?.message || 'تعذر إضافة الصنف، يرجى المحاولة مرة أخرى.');
       setTimeout(() => setLocalFlash(null), 4000);
     }
   };
@@ -236,7 +236,11 @@ export const PublicTableMenuPage = () => {
       setWaiterCooldownLeft(WAITER_COOLDOWN_SECONDS);
       setWaiterCooldownActive(true);
       setTimeout(() => setWaiterSent(false), 8000);
-      setLocalFlash(isBill ? 'تم طلب الفاتورة والحساب، الويتر في الطريق إليك.' : 'تم استدعاء الويتر إلى طاولتك، هيوصلك حالاً.');
+      setLocalFlash(
+        isBill
+          ? 'تم طلب الفاتورة والحساب بنجاح، الويتر في الطريق لطاولتكم.'
+          : 'تم استدعاء الويتر لطاولتكم بنجاح، سيصل إليكم قريباً.'
+      );
       setTimeout(() => setLocalFlash(null), 4000);
     } catch (err) {
       if (err?.status === 401) {
@@ -245,8 +249,8 @@ export const PublicTableMenuPage = () => {
       }
       const message =
         err?.code === 'BUSINESS_RULE_ERROR' || err?.message?.includes('already active')
-          ? 'يوجد بالفعل استدعاء ويتر نشط لطاولتك، الويتر في الطريق.'
-          : err?.message || 'تعذر استدعاء الويتر، حاول تاني.';
+          ? 'يوجد بالفعل طلب نشط لطاولتكم، الويتر في الطريق إليكم.'
+          : err?.message || 'تعذر استدعاء الويتر، يرجى المحاولة مرة أخرى.';
       setLocalFlash(message);
       setTimeout(() => setLocalFlash(null), 4000);
     }
@@ -262,7 +266,7 @@ export const PublicTableMenuPage = () => {
         handleMemberExpired();
         return;
       }
-      setLocalFlash(err?.message || 'تعذر إرسال الطلب، حاول تاني.');
+      setLocalFlash(err?.message || 'تعذر إرسال الطلب، يرجى المحاولة مرة أخرى.');
       setTimeout(() => setLocalFlash(null), 4000);
     }
   };
@@ -355,8 +359,8 @@ export const PublicTableMenuPage = () => {
               <span className="inline-flex p-3 rounded-full bg-brand-primary/10">
                 <Lock className="w-5 h-5 text-brand-primary" />
               </span>
-              <h2 className="text-base font-bold text-txt-primary">ادخل اسمك و الـ PIN</h2>
-              <p className="text-xs text-txt-muted">اسأل الموظف عن رمز الـ PIN الخاص بطاولتك</p>
+              <h2 className="text-base font-bold text-txt-primary">الانضمام إلى طاولة الطعام</h2>
+              <p className="text-xs text-txt-muted">أدخل اسمك والرمز السري (PIN) المزود من قِبل موظف الصالة</p>
             </div>
 
             <form onSubmit={handleJoin} className="space-y-4">
@@ -368,7 +372,7 @@ export const PublicTableMenuPage = () => {
                 icon={Users}
               />
               <Input
-                label="الـ PIN"
+                label="الرمز السري (PIN)"
                 value={pin}
                 onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 placeholder="••••"
@@ -392,7 +396,7 @@ export const PublicTableMenuPage = () => {
 
             {!table.label && (
               <p className="text-[11px] text-txt-muted text-center">
-                لو مفيش جلسة نشطة، اطلب من الموظف يبدأها عن طريق نقطة البيع.
+                في حال عدم وجود جلسة نشطة، يرجى طلب بدء الجلسة من موظف الصالة.
               </p>
             )}
           </div>
@@ -403,7 +407,6 @@ export const PublicTableMenuPage = () => {
 
   return (
     <div className="min-h-screen bg-bg-base">
-      {}
       <header className="sticky top-0 z-30 border-b border-border-default bg-bg-surface/85 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           {restaurant.logoUrl ? (
@@ -441,7 +444,6 @@ export const PublicTableMenuPage = () => {
         </div>
       </header>
 
-      {}
       <div className="max-w-6xl mx-auto px-4 pt-3 space-y-2">
         {localFlash && (
           <StatusBanner tone="success" icon={CheckCircle2}>
@@ -451,27 +453,27 @@ export const PublicTableMenuPage = () => {
         {waiterSent && session?.waiterCall?.status !== 'ACCEPTED' && (
           <StatusBanner tone="success" icon={session?.waiterCall?.type === 'BILL' ? Receipt : Bell}>
             {session?.waiterCall?.type === 'BILL'
-              ? 'تم إرسال طلب الفاتورة والحساب، الويتر في الطريق إليك.'
-              : 'تم استدعاء الويتر إلى طاولتك، هيوصلك حالاً.'}
+              ? 'تم إرسال طلب الفاتورة والحساب، الويتر في الطريق لطاولتكم.'
+              : 'تم استدعاء الويتر لطاولتكم بنجاح، سيصل إليكم قريباً.'}
           </StatusBanner>
         )}
         {session?.waiterCall?.status === 'PENDING' && (
           <StatusBanner tone="warning" icon={session?.waiterCall?.type === 'BILL' ? Receipt : Bell}>
             {session?.waiterCall?.type === 'BILL'
               ? 'تم طلب الفاتورة والحساب، بانتظار استلام الويتر للطلب.'
-              : 'تم استدعاء الويتر، بانتظار تأكيد الويتر.'}
+              : 'تم استدعاء الويتر، بانتظار استلام الطلب.'}
           </StatusBanner>
         )}
         {session?.waiterCall?.status === 'ACCEPTED' && (
           <StatusBanner tone="success" icon={CheckCircle2}>
             {session?.waiterCall?.type === 'BILL'
-              ? 'الويتر في الطريق إليك ومعه الفاتورة والحساب.'
-              : 'الويتر جايلك حالاً.'}
+              ? 'الويتر في الطريق لطاولتكم ومعه الفاتورة والحساب.'
+              : 'الويتر في الطريق لطاولتكم حالياً.'}
           </StatusBanner>
         )}
         {isAwaiting && (
           <StatusBanner tone="warning" icon={CheckCircle2}>
-            أوردرك اتبعت للويتر للمراجعة، هييجي عندكم قريباً.
+            تم إرسال الطلب للمراجعة والتأكيد من قِبل موظف الصالة.
           </StatusBanner>
         )}
         {isClosed && (

@@ -57,7 +57,7 @@ export const NetworkStatusBanner = () => {
         <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 bg-status-danger/95 backdrop-blur-md text-white text-xs font-semibold rounded-xl shadow-xl border border-red-400/30 animate-in slide-in-from-top duration-300 max-w-md w-full">
           <div className="flex items-center gap-2 min-w-0">
             <WifiOff className="w-4 h-4 shrink-0 animate-pulse text-red-200" />
-            <span className="truncate">انقطع الاتصال بالإنترنت، بنحاول نعيد الاتصال...</span>
+            <span className="truncate">تعذر الاتصال بالشبكة، جاري إعادة الاتصال تلقائياً...</span>
           </div>
           <button
             type="button"
@@ -66,13 +66,13 @@ export const NetworkStatusBanner = () => {
             className="flex items-center gap-1 shrink-0 px-2.5 py-1 bg-white/20 hover:bg-white/30 active:scale-95 transition-all rounded-lg font-bold text-[11px]"
           >
             <RefreshCw className={`w-3 h-3 ${isRetrying ? 'animate-spin' : ''}`} />
-            <span>{isRetrying ? 'جارٍ الفحص...' : 'إعادة المحاولة'}</span>
+            <span>{isRetrying ? 'جاري التحقق...' : 'إعادة المحاولة'}</span>
           </button>
         </div>
       ) : showRestored ? (
         <div className="pointer-events-auto flex items-center gap-2 px-4 py-2 bg-status-success/95 backdrop-blur-md text-slate-950 text-xs font-bold rounded-xl shadow-xl border border-emerald-400/30 animate-in slide-in-from-top fade-in duration-300">
           <Wifi className="w-4 h-4 text-emerald-950" />
-          <span>تم استعادة الاتصال بالإنترنت وتحديث البيانات.</span>
+          <span>تم استعادة الاتصال بالإنترنت بنجاح.</span>
         </div>
       ) : null}
     </div>

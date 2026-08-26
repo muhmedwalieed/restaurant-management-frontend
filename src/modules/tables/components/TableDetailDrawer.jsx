@@ -28,9 +28,9 @@ export const TableDetailDrawer = ({ isOpen, onClose, table, branchName }) => {
   const hasSession = Boolean(session);
   const effectiveStatus = hasSession
     ? {
-        label: session.status === 'AWAITING_CONFIRMATION' ? 'بانتظار التأكيد' : 'جلسة نشطة',
-        tone: 'warning',
-      }
+      label: session.status === 'AWAITING_CONFIRMATION' ? 'بانتظار التأكيد' : 'جلسة نشطة',
+      tone: 'warning',
+    }
     : { label: TABLE_STATUS_LABELS[table.status] || table.status, tone: statusPill(table.status) };
 
   const handleCopyPin = async () => {
@@ -62,8 +62,7 @@ export const TableDetailDrawer = ({ isOpen, onClose, table, branchName }) => {
   };
 
   const tabBtn = (active) =>
-    `py-2 rounded-md text-xs font-bold transition-all ${
-      active ? 'bg-brand-primary text-slate-950 shadow-sm' : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+    `py-2 rounded-md text-xs font-bold transition-all ${active ? 'bg-brand-primary text-slate-950 shadow-sm' : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
     }`;
 
   return (
