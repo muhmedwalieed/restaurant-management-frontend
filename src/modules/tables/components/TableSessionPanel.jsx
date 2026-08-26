@@ -4,6 +4,7 @@ import { Modal } from '../../../shared/components/Modal.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { printHtml } from '../../../lib/print.js';
 import {
   useStartTableSession,
   useActiveTableSessionQuery,
@@ -135,77 +136,19 @@ export const TableSessionPanel = ({ tableId }) => {
   const handlePrintPin = () => {
     if (!showPin) return;
     const label = session?.tableLabel || '—';
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-      <html dir="rtl">
-        <head>
-          <title>طاولة ${label} - PIN</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 28px; background: #f1f5f9; text-align: center; color: #0f172a; }
-            .card { display: inline-block; margin-top: 20px; padding: 44px 56px; background: #ffffff; border-radius: 22px; border: 2px solid #cbd5e1; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
-            .table-label { font-size: 14px; color: #64748b; font-weight: 600; }
-            .table-name { font-size: 34px; font-weight: 800; margin: 6px 0 22px; }
-            .divider { border-top: 2px dashed #cbd5e1; margin-bottom: 20px; }
-            .pin-label { font-size: 13px; color: #64748b; font-weight: 600; }
-            .pin { font-size: 72px; font-weight: 900; letter-spacing: 20px; direction: ltr; font-family: 'Courier New', ui-monospace, monospace; margin: 14px 0 10px; color: #0f172a; }
-            .tip { font-size: 12px; color: #94a3b8; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <div class="table-label">رقم الطاولة</div>
-            <div class="table-name">طاولة ${label}</div>
-            <div class="divider"></div>
-            <div class="pin-label">رمز الدخول للطلب الذاتي</div>
-            <div class="pin">${showPin}</div>
-            <div class="tip">أدخل هذا الرمز مع اسمك في صفحة الـ QR لبدء الطلب</div>
-          </div>
-          <script>window.onload = function() { window.print(); window.close(); }</script>
-        </body>
-      </html>
-    `);
-      printWindow.document.close();
-      return;
-    }
-    // Fallback if the popup was blocked: print from a hidden iframe (no popup needed).
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '0';
-    iframe.style.bottom = '0';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = '0';
-    document.body.appendChild(iframe);
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(`
-      <html dir="rtl">
-        <head>
-          <title>طاولة ${label} - PIN</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 28px; background: #ffffff; text-align: center; color: #0f172a; }
-            .table-label { font-size: 14px; color: #64748b; font-weight: 600; }
-            .table-name { font-size: 34px; font-weight: 800; margin: 6px 0 22px; }
-            .divider { border-top: 2px dashed #cbd5e1; margin-bottom: 20px; }
-            .pin-label { font-size: 13px; color: #64748b; font-weight: 600; }
-            .pin { font-size: 72px; font-weight: 900; letter-spacing: 20px; direction: ltr; font-family: 'Courier New', ui-monospace, monospace; margin: 14px 0 10px; color: #0f172a; }
-            .tip { font-size: 12px; color: #94a3b8; }
-          </style>
-        </head>
-        <body>
-          <div class="table-label">رقم الطاولة</div>
-          <div class="table-name">طاولة ${label}</div>
-          <div class="divider"></div>
-          <div class="pin-label">رمز الدخول للطلب الذاتي</div>
-          <div class="pin">${showPin}</div>
-        </body>
-      </html>
-    `);
-    doc.close();
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    setTimeout(() => document.body.removeChild(iframe), 1000);
+    printHtml(
+      `
+      <div style="text-align:center; padding:24px; font-family:Arial, sans-serif;">
+        <div style="font-size:14px; color:#333;">رقم الطاولة</div>
+        <div style="font-size:34px; font-weight:800; margin:6px 0 22px; color:#000;">طاولة ${label}</div>
+        <div style="border-top:2px dashed #ccc; margin-bottom:20px;"></div>
+        <div style="font-size:13px; color:#333;">رمز الدخول للطلب الذاتي</div>
+        <div style="font-size:72px; font-weight:900; letter-spacing:20px; color:#000; direction:ltr; margin:14px 0 10px;">${showPin}</div>
+        <div style="font-size:12px; color:#94a3b8;">أدخل هذا الرمز مع اسمك في صفحة الـ QR لبدء الطلب</div>
+      </div>
+    `,
+      'printing-pin'
+    );
   };
 
   const handleConfirm = async () => {

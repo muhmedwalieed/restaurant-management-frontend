@@ -166,4 +166,20 @@ svg.lucide {
     direction: rtl !important;
     text-align: right !important;
   }
+
+  /* 5. PIN / QR prints: hide the app and show only the printable holder */
+  body.printing-pin #root,
+  body.printing-qr #root {
+    display: none !important;
+  }
+  body.printing-pin .printable-print,
+  body.printing-qr .printable-print {
+    display: block !important;
+    position: static !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    font-family: 'Cairo', 'Inter', system-ui, -apple-system, sans-serif !important;
+  }
 }
