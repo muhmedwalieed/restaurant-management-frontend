@@ -46,7 +46,7 @@ export const LoginPage = () => {
     try {
       await login(data.email, data.password, forceLogout);
       setShowForceLogoutModal(false);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
 
       const isActiveSession = err.code === 'BUSINESS_RULE_ERROR' && err.details?.forceLogoutRequired;

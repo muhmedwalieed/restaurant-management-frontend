@@ -4,28 +4,47 @@ import { setAuthToken, setApiCallbacks } from '../../../lib/api-client.js';
 import { loginApi, logoutApi, refreshTokenApi, getCurrentUserApi } from '../../../lib/api/auth.api.js';
 
 const REFRESH_STORAGE_KEY = 'saas_refresh_token';
+const REFRESH_ACCOUNT_KEY = 'saas_refresh_account';
+const TAB_ACCOUNT_KEY = 'saas_tab_account';
 const BRANCH_STORAGE_KEY = 'saas_active_branch_id';
 
-// The refresh token lives in sessionStorage (per-tab), NOT localStorage:
-// a shared localStorage key lets one open tab overwrite another's session
-// (e.g. an old owner tab refreshes and clobbers the cashier tab's token,
-// which then reloads straight into the owner account). sessionStorage is
-// isolated per tab, so each tab keeps its own session and reloads stay on
-// the same account. clearSession also drops the previous account's branch
-// selection so nothing sensitive leaks to the next user.
-const readRefreshToken = () => {
+const readStorage = (key, store = localStorage) => {
   try {
-    return sessionStorage.getItem(REFRESH_STORAGE_KEY);
+    return store.getItem(key);
   } catch {
     return null;
   }
 };
-const writeRefreshToken = (value) => {
+const writeStorage = (key, value, store = localStorage) => {
   try {
-    if (value) sessionStorage.setItem(REFRESH_STORAGE_KEY, value);
-    else sessionStorage.removeItem(REFRESH_STORAGE_KEY);
+    if (value) store.setItem(key, value);
+    else store.removeItem(key);
   } catch {
     /* ignore */
+  }
+};
+
+// Session model:
+// - The refresh token + the account (employeeId) it belongs to live in localStorage,
+//   so a logged-in user is recognized across tabs and reloads.
+// - Each tab remembers in sessionStorage which account IT was last on. On restore, if
+//   the shared localStorage session belongs to a DIFFERENT account than this tab was
+//   using, we clear instead of silently switching (prevents the cross-account takeover
+//   where an old owner tab's refresh clobbered the shared token and a reload of the
+//   cashier tab logged straight into the owner account).
+const readRefreshToken = () => readStorage(REFRESH_STORAGE_KEY);
+const writeRefreshToken = (v) => writeStorage(REFRESH_STORAGE_KEY, v);
+const readRefreshAccount = () => readStorage(REFRESH_ACCOUNT_KEY);
+const writeRefreshAccount = (v) => writeStorage(REFRESH_ACCOUNT_KEY, v);
+const readTabAccount = () => readStorage(TAB_ACCOUNT_KEY, sessionStorage);
+const writeTabAccount = (v) => writeStorage(TAB_ACCOUNT_KEY, v, sessionStorage);
+
+const decodeJwtPayload = (token) => {
+  try {
+    const part = token.split('.')[1];
+    return JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch {
+    return {};
   }
 };
 
@@ -44,11 +63,16 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   useEffect(() => {
-    // One-time cleanup: previously the refresh token lived in localStorage
-    // (shared across tabs — the source of cross-account session takeover).
-    // Remove any legacy copy so a stale owner token can never resurface.
+    // One-time migration reset (once per browser, guarded by a flag): drop any
+    // legacy token/account markers from older versions so a stale session can
+    // never resurface, without wiping the live session on every tab mount.
     try {
-      localStorage.removeItem(REFRESH_STORAGE_KEY);
+      if (!localStorage.getItem('saas_auth_migrated_v2')) {
+        writeRefreshToken(null);
+        writeRefreshAccount(null);
+        writeTabAccount(null);
+        localStorage.setItem('saas_auth_migrated_v2', '1');
+      }
     } catch {
       /* ignore */
     }
@@ -60,6 +84,8 @@ export const AuthProvider = ({ children }) => {
     refreshTokenRef.current = null;
     setAuthToken(null);
     writeRefreshToken(null);
+    writeRefreshAccount(null);
+    writeTabAccount(null);
     localStorage.removeItem(BRANCH_STORAGE_KEY);
   }, []);
 
@@ -75,6 +101,8 @@ const handleRefresh = useCallback(async () => {
       if (res?.accessToken) {
         refreshTokenRef.current = res.refreshToken ?? refreshTokenRef.current;
         writeRefreshToken(refreshTokenRef.current);
+        const payload = decodeJwtPayload(res.accessToken);
+        if (payload.employeeId) writeRefreshAccount(payload.employeeId);
         setToken(res.accessToken);
         setAuthToken(res.accessToken);
         return res.accessToken;
@@ -94,6 +122,15 @@ const restoreStartedRef = useRef(false);
 
 useEffect(() => {
   const restoreSession = async () => {
+    const tabAccount = readTabAccount();
+    const storedAccount = readRefreshAccount();
+    if (tabAccount && storedAccount && tabAccount !== storedAccount) {
+      // The shared session belongs to a different account than this tab was on —
+      // do NOT take it over; clear and let the user sign in.
+      clearSession();
+      setIsBootstrapping(false);
+      return;
+    }
     const storedRefresh = readRefreshToken();
     if (!storedRefresh) {
       setIsBootstrapping(false);
@@ -105,6 +142,8 @@ useEffect(() => {
       if (newToken) {
         const me = await getCurrentUserApi();
         setUser(me);
+        writeTabAccount(me.id);
+        writeRefreshAccount(me.id);
       } else {
         clearSession();
       }
@@ -112,8 +151,8 @@ useEffect(() => {
       clearSession();
     } finally {
       setIsBootstrapping(false);
-      }
-    };
+    }
+  };
     if (!restoreStartedRef.current) {
       restoreStartedRef.current = true;
       restoreSession();
@@ -144,6 +183,8 @@ useEffect(() => {
       setToken(accessToken);
       refreshTokenRef.current = refreshToken;
       writeRefreshToken(refreshToken || null);
+      const payload = decodeJwtPayload(accessToken);
+      if (payload.employeeId) writeRefreshAccount(payload.employeeId);
       setAuthToken(accessToken);
 
       let me;
@@ -155,6 +196,8 @@ useEffect(() => {
       }
 
       setUser(me);
+      writeTabAccount(me.id);
+      writeRefreshAccount(me.id);
       return { success: true, user: me };
     } finally {
       setIsLoading(false);
