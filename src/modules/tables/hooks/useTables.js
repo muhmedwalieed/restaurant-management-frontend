@@ -4,7 +4,6 @@ import {
   getTableByIdApi,
   createTableApi,
   updateTableApi,
-  deleteTableApi,
   regenerateQrApi,
 } from '../../../lib/api/tables.api.js';
 
@@ -42,17 +41,6 @@ export const useUpdateTableMutation = () => {
     onSuccess: (_, { branchId, id }) => {
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
       qc.invalidateQueries({ queryKey: ['table', branchId, id] });
-    },
-  });
-};
-
-export const useDeleteTableMutation = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ branchId, id }) => deleteTableApi(branchId, id),
-    onSuccess: (_, { branchId }) => {
-      qc.invalidateQueries({ queryKey: ['tables', branchId] });
-      qc.invalidateQueries({ queryKey: ['table', branchId] });
     },
   });
 };

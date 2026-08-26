@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,7 +45,7 @@ export const ChangePasswordModal = ({
   }, [isOpen, reset]);
 
   const handleFormSubmit = (data) => {
-    // Backend PATCH /employees/:id/password expects { currentPassword?, newPassword }
+
     onSubmit({ newPassword: data.newPassword });
   };
 

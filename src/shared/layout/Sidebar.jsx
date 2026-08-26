@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -9,119 +10,166 @@ import {
   MessageSquare,
   BarChart3,
   Calculator,
-  Settings,
   Store,
-  Building2,
-  Bell,
   TicketPercent,
-  ScrollText,
-  Phone,
+  ChevronDown,
+  UserCheck,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
 
-// Section 6.5 Operational Navigation Structure.
-// Each item is gated by a permission key — a cashier only sees the pages they can use.
-const NAV_ITEMS = [
-  { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
-  { label: 'الطلبات', path: '/orders', icon: ShoppingBag, badge: 'POS' },
-  { label: 'نقطة البيع (POS)', path: '/pos', icon: Calculator, permission: 'orders.create' },
-  { label: 'أوردرات الهاتف', path: '/phone-order', icon: Phone, permission: 'orders.create' },
-  { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat },
-  { label: 'الترابيزات', path: '/tables', icon: Grid, permission: 'tables.manage' },
-  { label: 'المنيو', path: '/menu', icon: UtensilsCrossed, permission: 'menu.manage' },
-  { label: 'العملاء', path: '/customers', icon: Users, permission: 'customers.view' },
-  { label: 'الواتساب والرسائل', path: '/whatsapp', icon: MessageSquare, permission: 'whatsapp.view' },
-  { label: 'الإشعارات', path: '/notifications', icon: Bell, permission: 'notifications.view' },
-  { label: 'كوبونات الخصم', path: '/coupons', icon: TicketPercent, permission: 'coupons.manage' },
-  { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3, permission: 'dashboard.view' },
-  { label: 'إعدادات المطعم', path: '/settings/restaurant', icon: Store, permission: 'restaurants.manage' },
-  { label: 'الفروع والمواقع', path: '/settings/branches', icon: Building2, permission: 'branches.manage' },
-  { label: 'الموظفين', path: '/settings/employees', icon: Users, permission: 'employees.view' },
-  { label: 'سجل التدقيق', path: '/settings/audit-logs', icon: ScrollText, permission: 'audit.view' },
-  { label: 'الأدوار والصلاحيات', path: '/settings/roles', icon: Settings, permission: 'employees.manage_roles' },
+const NAV_SECTIONS = [
+  {
+    key: 'ops',
+    title: 'العمليات التشغيلية',
+    items: [
+      { label: 'نقطة البيع', path: '/pos', icon: Calculator, permission: ['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website'] },
+      { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
+      { label: 'الطلبات', path: '/orders', icon: ShoppingBag },
+      { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat, permission: 'kds.view' },
+      { label: 'الطاولات', path: '/tables', icon: Grid, permission: ['tables.view', 'tables.manage'] },
+    ],
+  },
+  {
+    key: 'manage',
+    title: 'إدارة المطعم',
+    items: [
+      { label: 'قائمة الطعام', path: '/menu', icon: UtensilsCrossed, permission: 'menu.manage' },
+      { label: 'العملاء', path: '/customers', icon: Users, permission: 'customers.view' },
+      { label: 'الموظفون', path: '/settings/employees', icon: UserCheck, permission: 'employees.view' },
+      { label: 'الرسائل', path: '/whatsapp', icon: MessageSquare, permission: 'whatsapp.view' },
+      { label: 'الكوبونات', path: '/coupons', icon: TicketPercent, permission: 'coupons.manage' },
+      { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3, permission: 'dashboard.view' },
+    ],
+  },
 ];
 
-// Items without an explicit permission (orders list / KDS) fall back to orders.view.
 const DEFAULT_PERMISSION = 'orders.view';
 
 export const Sidebar = ({ isCollapsed = false }) => {
   const { hasPermission } = useAuth();
+  const location = useLocation();
 
-  const visibleItems = NAV_ITEMS.filter((item) => hasPermission(item.permission || DEFAULT_PERMISSION));
+  const [openSections, setOpenSections] = useState({
+    ops: true,
+    manage: false,
+    settings: false,
+  });
 
-  if (visibleItems.length === 0) {
-    return (
-      <aside
-        className={clsx(
-          'hidden md:flex flex-col bg-bg-surface border-l border-border-default shrink-0 select-none',
-          isCollapsed ? 'w-16' : 'w-64'
-        )}
-      >
-        <div className="h-16 px-4 flex items-center gap-3 border-b border-border-default overflow-hidden">
-          <div className="w-9 h-9 rounded-lg bg-brand-primary/10 border border-brand-primary/20 text-brand-primary flex items-center justify-center shrink-0">
-            <Store className="w-5 h-5" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col truncate">
-              <span className="text-sm font-bold text-txt-primary truncate">مطعم البرجر الشهي</span>
-              <span className="text-[10px] text-txt-muted truncate">SaaS Enterprise</span>
-            </div>
-          )}
-        </div>
-        <div className="flex-1 py-4 px-2 flex items-start justify-center">
-          <span className={`text-[10px] text-txt-muted ${isCollapsed ? 'hidden' : 'block'}`}>مفيش صفحات متاحة لحسابك</span>
-        </div>
-      </aside>
+  const visibleSections = NAV_SECTIONS
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => hasPermission(item.permission || DEFAULT_PERMISSION)),
+    }))
+    .filter((section) => section.items.length > 0);
+
+  useEffect(() => {
+    const activeSection = visibleSections.find((sec) =>
+      sec.items.some((item) =>
+        item.path === '/'
+          ? location.pathname === '/'
+          : location.pathname.startsWith(item.path)
+      )
     );
-  }
+    if (activeSection) {
+      setOpenSections((prev) =>
+        prev[activeSection.key] ? prev : { ...prev, [activeSection.key]: true }
+      );
+    }
+  }, [location.pathname, visibleSections]);
+
+  const toggleSection = (key) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   return (
     <aside
       className={clsx(
-        'hidden md:flex flex-col bg-bg-surface border-l border-border-default transition-all duration-200 shrink-0 select-none',
+        'hidden md:flex flex-col h-[100dvh] max-h-[100dvh] bg-bg-surface border-l border-white/[0.07] transition-all duration-200 shrink-0 select-none shadow-none z-20 overflow-hidden',
         isCollapsed ? 'w-16' : 'w-64'
       )}
     >
-      {/* Brand Header */}
-      <div className="h-16 px-4 flex items-center gap-3 border-b border-border-default overflow-hidden">
-        <div className="w-9 h-9 rounded-lg bg-brand-primary/10 border border-brand-primary/20 text-brand-primary flex items-center justify-center shrink-0">
-          <Store className="w-5 h-5" />
+      {}
+      <div className={clsx('shrink-0 h-14 border-b border-white/[0.07] flex items-center', isCollapsed ? 'justify-center px-2' : 'px-4')}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Store className="w-5 h-5 text-brand-primary shrink-0" />
+          {!isCollapsed && (
+            <span className="text-sm font-bold text-txt-primary truncate">
+              نظام إدارة المطاعم
+            </span>
+          )}
         </div>
-        {!isCollapsed && (
-          <div className="flex flex-col truncate">
-            <span className="text-sm font-bold text-txt-primary truncate">مطعم البرجر الشهي</span>
-            <span className="text-[10px] text-txt-muted truncate">SaaS Enterprise</span>
-          </div>
-        )}
       </div>
 
-      {/* Navigation List */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {visibleItems.map((item) => {
-          const Icon = item.icon;
+      {}
+      <nav className={clsx('flex-1 min-h-0 overflow-y-auto pb-16 custom-scrollbar', isCollapsed ? 'py-3 px-2 space-y-1' : 'py-3 px-3 space-y-1')}>
+        {visibleSections.map((section, index) => {
+          const isOpen = !!openSections[section.key];
+
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                clsx(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-medium transition-colors relative group',
-                  isActive
-                    ? 'bg-brand-primary/10 text-brand-primary border-r-2 border-brand-primary'
-                    : 'text-txt-muted hover:bg-bg-surface-elevated hover:text-txt-primary'
-                )
-              }
-              title={isCollapsed ? item.label : undefined}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span className="truncate">{item.label}</span>}
-              {!isCollapsed && item.badge && (
-                <span className="mr-auto text-[10px] px-1.5 py-0.5 rounded bg-brand-primary/20 text-brand-primary font-bold">
-                  {item.badge}
-                </span>
+            <div key={section.key}>
+              {}
+              {isCollapsed && index > 0 && (
+                <div className="w-6 h-px bg-white/[0.07] mx-auto my-2.5" aria-hidden="true" />
               )}
-            </NavLink>
+
+              {}
+              {!isCollapsed && (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.key)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 mt-3 first:mt-0 mb-1 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors focus-visible:outline-none select-none text-right rounded-md group"
+                  aria-expanded={isOpen}
+                >
+                  <span className="truncate">{section.title}</span>
+                  <ChevronDown
+                    className={clsx(
+                      'w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-transform duration-200 shrink-0',
+                      isOpen ? 'rotate-0' : '-rotate-90'
+                    )}
+                  />
+                </button>
+              )}
+
+              {}
+              {(isCollapsed || isOpen) && (
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        className={({ isActive }) =>
+                          clsx(
+                            'group flex items-center rounded-md text-xs transition-colors duration-150',
+                            isCollapsed
+                              ? 'w-9 h-9 mx-auto justify-center'
+                              : 'w-full gap-3 px-3 h-9',
+                            isActive
+                              ? 'bg-white/[0.08] text-white font-medium'
+                              : 'text-slate-400 font-normal hover:text-slate-100 hover:bg-white/[0.03]'
+                          )
+                        }
+                        title={isCollapsed ? item.label : undefined}
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Icon
+                              className={clsx(
+                                'w-4 h-4 shrink-0 transition-colors',
+                                isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
+                              )}
+                            />
+                            {!isCollapsed && <span className="truncate min-w-0 leading-none">{item.label}</span>}
+                          </>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>

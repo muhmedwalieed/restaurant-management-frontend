@@ -32,7 +32,7 @@ export const ConversationsListPage = () => {
       accessorKey: 'customerPhone',
       render: (row) => (
         <span className="dir-ltr inline-block font-bold text-txt-primary">
-          <Phone className="w-3.5 h-3.5 inline text-brand-primary ml-1" />
+          <Phone className="w-4 h-4 inline text-brand-primary ml-1" />
           {row.customerPhone}
         </span>
       ),
@@ -56,7 +56,7 @@ export const ConversationsListPage = () => {
       accessorKey: 'lastInboundAt',
       width: '140px',
       render: (row) => (
-        <span className="text-txt-muted text-[11px]">{new Date(row.lastInboundAt).toLocaleString('ar-EG')}</span>
+        <span className="text-txt-muted text-xs">{new Date(row.lastInboundAt).toLocaleString('ar-EG')}</span>
       ),
     },
     {
@@ -82,11 +82,11 @@ export const ConversationsListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <MessagesSquare className="w-6 h-6 text-brand-primary" />
+            <MessagesSquare className="w-5 h-5 text-brand-primary" />
             <span>محادثات الواتساب (الروبوت)</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
-            محادثات الواتساب الآلية — حالتها ومرحلتها وتحويلها لموظف أو إغلاقها
+            محادثات الواتساب الآلية، حالتها ومرحلتها وتحويلها لموظف أو إغلاقها
           </p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export const ConversationsListPage = () => {
             <p className="text-xs text-txt-muted">
               المرحلة: <strong className="text-txt-primary">{CONVERSATION_STATE_LABELS[c.state] || c.state}</strong>
             </p>
-            <p className="text-[11px] text-txt-muted">{new Date(c.lastInboundAt).toLocaleString('ar-EG')}</p>
+            <p className="text-xs text-txt-muted">{new Date(c.lastInboundAt).toLocaleString('ar-EG')}</p>
             <div className="flex items-center justify-end pt-2 border-t border-border-default">
               <Button size="sm" variant="ghost" onClick={() => navigate(`/whatsapp/conversations/${c.id}`)} icon={Eye} className="text-txt-primary hover:text-brand-primary">
                 التفاصيل

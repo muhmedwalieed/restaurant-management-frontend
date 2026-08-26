@@ -16,12 +16,10 @@ import { Phone, ChevronRight, User, MapPin, ShoppingCart, Headset, XCircle, Aler
 
 const InfoRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-center gap-3 py-3">
-    <span className="p-1.5 rounded-md bg-bg-base text-brand-primary shrink-0">
-      <Icon className="w-4 h-4" />
-    </span>
+    <Icon className="w-4 h-4 text-brand-primary shrink-0" />
     <div className="min-w-0">
-      <p className="text-[11px] text-txt-muted">{label}</p>
-      <p className="text-sm font-semibold text-txt-primary truncate">{value || '—'}</p>
+      <p className="text-xs text-txt-muted">{label}</p>
+      <p className="text-sm font-semibold text-txt-primary truncate">{value || 'غير محدد'}</p>
     </div>
   </div>
 );
@@ -62,7 +60,7 @@ export const ConversationDetailPage = () => {
   if (isError) {
     return (
       <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
-        <AlertCircle className="w-8 h-8 text-status-danger mx-auto" />
+        <AlertCircle className="w-6 h-6 text-status-danger mx-auto" />
         <h3 className="text-base font-bold text-txt-primary">فشل في تحميل المحادثة</h3>
         <p className="text-xs text-txt-muted">{error?.message || 'تعذر التواصل مع الخادم.'}</p>
         <Button size="sm" variant="outline" onClick={refetch}>
@@ -76,7 +74,7 @@ export const ConversationDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-3 pb-2 flex-wrap">
         <Button size="sm" variant="outline" onClick={() => navigate('/whatsapp/conversations')} icon={ChevronRight}>
           العودة للمحادثات
@@ -104,7 +102,7 @@ export const ConversationDetailPage = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main */}
+        {}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default flex items-center gap-2">
@@ -113,13 +111,13 @@ export const ConversationDetailPage = () => {
             </div>
             <div className="px-4 py-2 divide-y divide-border-subtle">
               <InfoRow icon={Phone} label="رقم العميل" value={conv?.customerPhone} />
-              <InfoRow icon={User} label="اسم العميل" value={conv?.customer?.name || '—'} />
+              <InfoRow icon={User} label="اسم العميل" value={conv?.customer?.name || 'غير محدد'} />
               <InfoRow icon={User} label="المرحلة الحالية" value={CONVERSATION_STATE_LABELS[conv?.state] || conv?.state} />
-              <InfoRow icon={User} label="آخر رسالة" value={conv?.lastInboundAt ? new Date(conv.lastInboundAt).toLocaleString('ar-EG') : '—'} />
+              <InfoRow icon={User} label="آخر رسالة" value={conv?.lastInboundAt ? new Date(conv.lastInboundAt).toLocaleString('ar-EG') : 'غير محدد'} />
             </div>
           </div>
 
-          {/* Cart */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-brand-primary" />
@@ -142,7 +140,7 @@ export const ConversationDetailPage = () => {
           </div>
         </div>
 
-        {/* Side */}
+        {}
         <div className="space-y-6">
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default">
@@ -150,8 +148,8 @@ export const ConversationDetailPage = () => {
             </div>
             <div className="px-4 py-2">
               <p className="flex items-start gap-2 text-xs text-txt-muted py-3">
-                <MapPin className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
-                {conv?.address || '—'}
+                <MapPin className="w-4 h-4 text-brand-primary shrink-0 mt-1" />
+                {conv?.address || 'غير محدد'}
               </p>
             </div>
           </div>
@@ -180,7 +178,7 @@ export const ConversationDetailPage = () => {
         </div>
       </div>
 
-      {/* Handoff Modal */}
+      {}
       <Modal isOpen={isHandoffOpen} onClose={() => setIsHandoffOpen(false)} title="تحويل المحادثة لموظف" size="sm">
         <div className="space-y-4 text-right">
           <p className="text-xs text-txt-muted">
@@ -197,7 +195,7 @@ export const ConversationDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Close Modal */}
+      {}
       <Modal isOpen={isCloseOpen} onClose={() => setIsCloseOpen(false)} title="إغلاق المحادثة" size="sm">
         <div className="space-y-4 text-right">
           <p className="text-xs text-txt-muted">

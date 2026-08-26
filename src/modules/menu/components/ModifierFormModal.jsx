@@ -7,7 +7,12 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { modifierFormSchema } from '../schemas/menu.schema.js';
 import { useCreateModifierMutation, useUpdateModifierMutation } from '../hooks/useMenu.js';
-import { PlusCircle, DollarSign } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
+
+const QUANTITY_MODE_OPTIONS = [
+  { value: 'SINGLE', label: 'اختيار واحد فقط', hint: 'مثال: جبنة +10 ج.م' },
+  { value: 'QUANTITY', label: 'تحديد الكمية', hint: 'مثال: جبنة إضافية (تحديد العدد)' },
+];
 
 export const ModifierFormModal = ({
   isOpen,
@@ -25,6 +30,7 @@ export const ModifierFormModal = ({
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(modifierFormSchema),
@@ -32,10 +38,13 @@ export const ModifierFormModal = ({
       name: '',
       priceDelta: 0,
       isRequired: false,
+      quantityMode: 'SINGLE',
+      maxQuantity: 10,
     },
   });
 
   const isRequiredValue = watch('isRequired');
+  const quantityModeValue = watch('quantityMode');
 
   useEffect(() => {
     if (isOpen) {
@@ -44,12 +53,16 @@ export const ModifierFormModal = ({
           name: modifierToEdit.name || '',
           priceDelta: modifierToEdit.priceDelta !== undefined ? String(modifierToEdit.priceDelta) : '0',
           isRequired: modifierToEdit.isRequired ?? false,
+          quantityMode: modifierToEdit.quantityMode || 'SINGLE',
+          maxQuantity: modifierToEdit.maxQuantity || 10,
         });
       } else {
         reset({
           name: '',
           priceDelta: 0,
           isRequired: false,
+          quantityMode: 'SINGLE',
+          maxQuantity: 10,
         });
       }
     }
@@ -71,7 +84,7 @@ export const ModifierFormModal = ({
       }
       onClose();
     } catch (err) {
-      // Error handled by mutation state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ الخيار الإضافي.' });
     }
   };
 
@@ -96,18 +109,56 @@ export const ModifierFormModal = ({
         />
 
         <Input
-          label="الفرق في السعر (+EGP)"
+          label="الفرق في السعر الإضافي"
           type="number"
           step="0.01"
           min="0"
           placeholder="0.00"
-          helperText="0 يعني خيار بدون تكلفة إضافية"
-          icon={DollarSign}
+          helperText="0 يعني خيار مجاني بدون تكلفة إضافية"
+          prefix="+"
+          suffix="ج.م"
           error={errors.priceDelta?.message}
           {...register('priceDelta')}
         />
 
-        <div className="flex items-center justify-between p-3 bg-bg-surface-elevated/50 border border-border-default rounded-md">
+        <div className="space-y-2">
+          <label className="text-[11px] font-medium text-txt-primary block">طريقة اختيار الإضافة في الطلب</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {QUANTITY_MODE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setValue('quantityMode', opt.value)}
+                className={`text-right p-3 rounded-xl border transition-colors ${
+                  quantityModeValue === opt.value
+                    ? 'border-brand-primary bg-brand-primary/[0.06]'
+                    : 'border-border-default bg-bg-base/40 hover:border-white/20'
+                }`}
+              >
+                <span className="block text-xs font-bold text-txt-primary">{opt.label}</span>
+                <span className="block text-[10px] text-txt-muted mt-0.5">{opt.hint}</span>
+              </button>
+            ))}
+          </div>
+          {errors.quantityMode?.message && (
+            <p className="text-[11px] text-status-danger">{errors.quantityMode.message}</p>
+          )}
+        </div>
+
+        {quantityModeValue === 'QUANTITY' && (
+          <Input
+            label="أقصى كمية مسموحة"
+            type="number"
+            min="1"
+            max="99"
+            placeholder="10"
+            helperText="العميل هيقدر يختار من 1 لحد الرقم ده"
+            error={errors.maxQuantity?.message}
+            {...register('maxQuantity')}
+          />
+        )}
+
+        <div className="flex items-center justify-between p-3 bg-bg-base/60 border border-border-default rounded-lg">
           <div>
             <span className="text-xs font-medium text-txt-primary block">خيار إجباري عند الطلب</span>
             <span className="text-[11px] text-txt-muted">يلزم العميل باختيار هذا الخيار قبل الإضافة للسلة</span>
@@ -119,6 +170,12 @@ export const ModifierFormModal = ({
           />
         </div>
 
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
+
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
             {createMutation.error?.message ||
@@ -127,12 +184,23 @@ export const ModifierFormModal = ({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-default">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-white/[0.06]">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isPending}
+            className="border-white/10 text-xs"
+          >
             إلغاء
           </Button>
-          <Button type="submit" variant="primary" isLoading={isPending}>
-            {isEditing ? 'حفظ الخيار' : 'إضافة الخيار'}
+          <Button
+            type="submit"
+            size="sm"
+            isLoading={isPending}
+            className="bg-white text-slate-950 font-medium hover:bg-slate-200 border-none shadow-sm text-xs"
+          >
+            {isEditing ? 'حفظ التعديل' : 'إضافة الخيار'}
           </Button>
         </div>
       </form>

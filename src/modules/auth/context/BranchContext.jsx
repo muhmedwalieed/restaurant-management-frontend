@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMyBranchesApi } from '../../../lib/api/multi-branch.api.js';
@@ -13,9 +13,6 @@ export const BranchProvider = ({ children }) => {
     return localStorage.getItem('saas_active_branch_id') || null;
   });
 
-  // Query the branches the CURRENT employee can access (home + granted).
-  // Uses the authenticate-only endpoint so cashiers/kitchen (who lack branches.manage)
-  // still get a working branch switcher (Module 19).
   const {
     data: branchesResponse,
     isLoading,
@@ -23,11 +20,10 @@ export const BranchProvider = ({ children }) => {
   } = useQuery({
     queryKey: ['my-branches'],
     queryFn: () => getMyBranchesApi(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 5,
     enabled: isAuthenticated,
   });
 
-  // Clear the selected branch whenever the user logs out / session ends
   useEffect(() => {
     if (!isAuthenticated) {
       setActiveBranchIdState(null);
@@ -36,10 +32,13 @@ export const BranchProvider = ({ children }) => {
   }, [isAuthenticated]);
 
   const branches = useMemo(() => {
-    return branchesResponse?.items || (Array.isArray(branchesResponse) ? branchesResponse : []);
+    if (!branchesResponse) return [];
+    if (Array.isArray(branchesResponse)) return branchesResponse;
+    if (Array.isArray(branchesResponse?.items)) return branchesResponse.items;
+    if (Array.isArray(branchesResponse?.data)) return branchesResponse.data;
+    return [];
   }, [branchesResponse]);
 
-  // Auto select active branch if none selected or selected branch no longer exists
   useEffect(() => {
     if (branches.length > 0) {
       const exists = branches.some((b) => b.id === activeBranchId);

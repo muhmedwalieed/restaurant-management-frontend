@@ -6,9 +6,10 @@ import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
+import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import { productFormSchema } from '../schemas/menu.schema.js';
 import { useCreateProductMutation, useUpdateProductMutation } from '../hooks/useMenu.js';
-import { Utensils, DollarSign, Image } from 'lucide-react';
+import { Utensils, DollarSign } from 'lucide-react';
 
 export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, categories = [] }) => {
   const isEditing = Boolean(productToEdit);
@@ -26,6 +27,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(productFormSchema),
@@ -41,6 +43,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
   });
 
   const isAvailableValue = watch('isAvailable');
+  const imageUrlValue = watch('imageUrl');
 
   useEffect(() => {
     if (isOpen) {
@@ -80,7 +83,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
       }
       onClose();
     } catch (err) {
-      // Handled by query/toast/interceptor or error block
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ المنتج.' });
     }
   };
 
@@ -127,19 +130,16 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
             {...register('price')}
           />
 
-          <Input
-            label="رابط الصورة (Image URL)"
-            type="url"
-            placeholder="https://example.com/item.jpg"
-            helperText="رابط صورة مباشر للمنتج (اختياري)"
-            icon={Image}
-            error={errors.imageUrl?.message}
-            {...register('imageUrl')}
+          <ImageUploadInput
+            label="صورة المنتج"
+            value={imageUrlValue}
+            onChange={(url) => setValue('imageUrl', url, { shouldValidate: true })}
+            hint="ارفع صورة من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
           />
         </div>
 
-        <div className="flex flex-col gap-1.5 w-full text-right">
-          <label className="text-xs font-medium text-txt-primary">وصف المنتج (اختياري)</label>
+        <div className="flex flex-col gap-2 w-full text-right">
+          <label className="text-xs font-medium text-txt-primary">وصف المنتج</label>
           <textarea
             rows={3}
             placeholder="أدخل مكونات أو تفاصيل المنتج..."
@@ -147,7 +147,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
             {...register('description')}
           />
           {errors.description && (
-            <p className="text-xs text-status-danger font-medium mt-0.5">{errors.description.message}</p>
+            <p className="text-xs text-status-danger font-medium mt-1">{errors.description.message}</p>
           )}
         </div>
 
@@ -155,7 +155,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
           <div className="flex items-center justify-between p-3 bg-bg-surface-elevated/50 border border-border-default rounded-md">
             <div>
               <span className="text-xs font-medium text-txt-primary block">التوافر الفوري للمطبخ</span>
-              <span className="text-[11px] text-txt-muted">متاح للطلب الآن على الكاشير/الواتساب</span>
+              <span className="text-xs text-txt-muted">متاح للطلب الآن على الكاشير/الواتساب</span>
             </div>
             <Toggle
               checked={isAvailableValue}
@@ -167,13 +167,19 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
           <Select
             label="حالة المنتج الإدارية"
             options={[
-              { value: 'ACTIVE', label: 'نشط (ظاهر في المنيو)' },
-              { value: 'INACTIVE', label: 'غير نشط (مخفي من المنيو)' },
+              { value: 'ACTIVE', label: 'نشط (ظاهر في قائمة الطعام)' },
+              { value: 'INACTIVE', label: 'غير نشط (مخفي من قائمة الطعام)' },
             ]}
             error={errors.status?.message}
             {...register('status')}
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

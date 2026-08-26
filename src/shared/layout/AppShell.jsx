@@ -10,24 +10,33 @@ export const AppShell = () => {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-bg-base flex flex-row font-sans text-txt-primary">
-      {/* Sidebar for Desktop & Tablet */}
-      <Sidebar isCollapsed={isSidebarCollapsed} />
+    <div className="h-[100dvh] max-h-[100dvh] bg-bg-base flex font-sans text-txt-primary overflow-hidden">
+      {}
+      <div className="print:hidden">
+        <Sidebar isCollapsed={isSidebarCollapsed} />
+      </div>
 
-      {/* Mobile Drawer Navigation */}
-      <MobileNav
-        isOpen={isMobileNavOpen}
-        onClose={() => setIsMobileNavOpen(false)}
-      />
-
-      {/* Main Page Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        <Header
-          onToggleMobileNav={() => setIsMobileNavOpen(!isMobileNavOpen)}
-          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+      {}
+      <div className="print:hidden">
+        <MobileNav
+          isOpen={isMobileNavOpen}
+          onClose={() => setIsMobileNavOpen(false)}
         />
+      </div>
 
-        <ContentContainer>
+      {}
+      <div className="flex-1 flex flex-col min-w-0 h-[100dvh] max-h-[100dvh] overflow-hidden print:h-auto print:max-h-none print:overflow-visible">
+        {}
+        <div className="print:hidden">
+          <Header
+            isSidebarCollapsed={isSidebarCollapsed}
+            onToggleDesktopSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            onToggleMobileNav={() => setIsMobileNavOpen(!isMobileNavOpen)}
+          />
+        </div>
+
+        {}
+        <ContentContainer className="flex-1 min-h-0 overflow-y-auto">
           <Outlet />
         </ContentContainer>
       </div>

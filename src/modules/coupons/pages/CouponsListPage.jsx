@@ -5,6 +5,7 @@ import { DataTable } from '../../../shared/components/DataTable.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { CouponFormModal } from '../components/CouponFormModal.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 
 const formatMoney = (v) => `${Number(v || 0).toLocaleString('ar-EG')} ج.م`;
 
@@ -14,6 +15,7 @@ export const CouponsListPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [couponToEdit, setCouponToEdit] = useState(null);
+  const [couponToDelete, setCouponToDelete] = useState(null);
 
   const { data: couponsResponse, isLoading, isError, error, refetch } = useCouponsQuery({
     page,
@@ -39,7 +41,7 @@ export const CouponsListPage = () => {
       header: 'الكود',
       accessorKey: 'code',
       render: (row) => (
-        <span className="dir-ltr inline-block font-bold text-txt-primary px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary">
+        <span className="dir-ltr inline-block font-bold text-txt-primary px-2 py-1 rounded bg-brand-primary/10 text-brand-primary">
           {row.code}
         </span>
       ),
@@ -56,7 +58,7 @@ export const CouponsListPage = () => {
     {
       header: 'حد أدنى',
       accessorKey: 'minSubtotal',
-      render: (row) => <span className="text-txt-muted">{Number(row.minSubtotal) > 0 ? formatMoney(row.minSubtotal) : '—'}</span>,
+      render: (row) => <span className="text-txt-muted">{Number(row.minSubtotal) > 0 ? formatMoney(row.minSubtotal) : 'غير محدد'}</span>,
     },
     {
       header: 'الاستخدام',
@@ -73,7 +75,7 @@ export const CouponsListPage = () => {
       accessorKey: 'isActive',
       render: (row) => (
         <span
-          className={`text-[11px] px-2 py-0.5 rounded-full ${
+          className={`text-xs px-2 py-1 rounded-full ${
             row.isActive ? 'bg-status-success/10 text-status-success font-bold' : 'bg-bg-surface-elevated text-txt-muted'
           }`}
         >
@@ -85,23 +87,23 @@ export const CouponsListPage = () => {
       header: 'إجراءات',
       key: 'actions',
       render: (row) => (
-        <div className="flex items-center gap-1">
-          <Button size="sm" variant="ghost" icon={Pencil} onClick={() => openEdit(row)} title="تعديل">
-            تعديل
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            icon={Trash2}
-            className="text-status-danger hover:text-status-danger"
-            title="حذف الكوبون"
-            onClick={() => {
-              if (window.confirm(`متأكد إنك عايز تعطّل كوبون ${row.code}؟`)) deleteMutation.mutate(row.id);
-            }}
-          >
-            حذف
-          </Button>
-        </div>
+        <PermissionGate permission="coupons.manage">
+          <div className="flex items-center gap-1">
+            <Button size="sm" variant="ghost" icon={Pencil} onClick={() => openEdit(row)} title="تعديل">
+              تعديل
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={Trash2}
+              className="text-status-danger hover:text-status-danger"
+              title="حذف الكوبون"
+              onClick={() => setCouponToDelete(row)}
+            >
+              حذف
+            </Button>
+          </div>
+        </PermissionGate>
       ),
     },
   ];
@@ -111,10 +113,10 @@ export const CouponsListPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <TicketPercent className="w-6 h-6 text-brand-primary" />
+            <TicketPercent className="w-5 h-5 text-brand-primary" />
             <span>كوبونات الخصم</span>
           </h1>
-          <p className="text-xs text-txt-muted mt-1">كوبونات النسبة المئوية والمبلغ الثابت بتطبق تلقائيًا على الأوردرات</p>
+          <p className="text-xs text-txt-muted mt-1">كوبونات النسبة المئوية والمبلغ الثابت بتطبق تلقائيًا على الطلبات</p>
         </div>
 
         <PermissionGate permission="coupons.manage">
@@ -164,6 +166,21 @@ export const CouponsListPage = () => {
       />
 
       <CouponFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} couponToEdit={couponToEdit} />
+
+      <ConfirmDialog
+        isOpen={Boolean(couponToDelete)}
+        onClose={() => setCouponToDelete(null)}
+        title="حذف الكوبون"
+        message={`متأكد إنك عايز تحذف كوبون "${couponToDelete?.code}"؟`}
+        confirmLabel="حذف"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => {
+          deleteMutation.mutate(couponToDelete.id, {
+            onSettled: () => setCouponToDelete(null),
+          });
+        }}
+      />
     </div>
   );
 };

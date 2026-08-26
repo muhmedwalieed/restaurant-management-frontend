@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -30,7 +30,7 @@ const STATUS_OPTIONS = [
 export const EmployeeFormModal = ({
   isOpen,
   onClose,
-  initialValues = null, // null for Create, Object for Edit
+  initialValues = null,
   onSubmit,
   isLoading = false,
 }) => {

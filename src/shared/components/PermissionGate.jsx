@@ -14,7 +14,6 @@ export const PermissionGate = ({
 
   let isAllowed = true;
 
-  // Check Permission Key
   if (permission) {
     if (Array.isArray(permission)) {
       isAllowed = permission.some((p) => hasPermission(p));
@@ -23,7 +22,6 @@ export const PermissionGate = ({
     }
   }
 
-  // Check Role
   if (isAllowed && role) {
     const userRole = user.role?.name || user.role;
     if (Array.isArray(role)) {

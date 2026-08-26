@@ -21,6 +21,7 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
     reset,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(addressFormSchema),
@@ -54,7 +55,7 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
       }
       onClose();
     } catch (err) {
-      // Handled by interceptor / error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ العنوان.' });
     }
   };
 
@@ -83,10 +84,16 @@ export const AddressFormModal = ({ isOpen, onClose, customerId, addressToEdit = 
         <div className="flex items-center justify-between p-3 bg-bg-surface-elevated/50 border border-border-default rounded-md">
           <div>
             <span className="text-xs font-medium text-txt-primary block">العنوان الافتراضي</span>
-            <span className="text-[11px] text-txt-muted">يستخدم كعنوان أساسي للتوصيل</span>
+            <span className="text-xs text-txt-muted">يستخدم كعنوان أساسي للتوصيل</span>
           </div>
           <Toggle checked={isDefaultValue} onChange={(val) => setValue('isDefault', val)} label="تحديد كافتراضي" />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

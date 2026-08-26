@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+
 export default {
   content: [
     './index.html',
@@ -15,11 +15,11 @@ export default {
         brand: {
           primary: 'var(--color-primary)',
           'primary-hover': 'var(--color-primary-hover)',
-          accent: 'var(--color-accent)',
         },
         txt: {
           primary: 'var(--text-primary)',
           muted: 'var(--text-muted)',
+          dim: 'var(--text-dim)',
           inverted: 'var(--text-inverted)',
         },
         border: {
@@ -49,7 +49,7 @@ export default {
         sans: ['Cairo', 'Inter', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
-        'content-max': '1600px',
+        'content-max': '1280px',
       },
     },
   },

@@ -1,8 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   useRolesQuery,
-  useCreateRoleMutation,
-  useUpdateRoleMutation,
   useDeleteRoleMutation,
 } from '../hooks/useRoles.js';
 import { DataTable } from '../../../shared/components/DataTable.jsx';
@@ -10,58 +9,31 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { RoleFormModal } from '../components/RoleFormModal.jsx';
 import { ShieldCheck, Plus, Edit3, Trash2, AlertTriangle } from 'lucide-react';
 
 export const RolesListPage = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [pageError, setPageError] = useState(null);
-
-  // Modal State
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
 
-  // React Query
   const { data, isLoading, isError, error, refetch } = useRolesQuery({ search, limit: 100 });
-  const createMutation = useCreateRoleMutation();
-  const updateMutation = useUpdateRoleMutation();
   const deleteMutation = useDeleteRoleMutation();
 
   const rolesList = data?.items || (Array.isArray(data) ? data : []);
   const pagination = data?.pagination || { page: 1, totalPages: 1, total: 0 };
 
-  const runMutation = async (fn) => {
-    setPageError(null);
-    try {
-      await fn();
-      return true;
-    } catch (err) {
-      setPageError(err?.message || 'حدث خطأ أثناء تنفيذ العملية.');
-      return false;
-    }
-  };
-
-  const handleSaveRole = async (formData) => {
-    const ok = await runMutation(() =>
-      selectedRole
-        ? updateMutation.mutateAsync({ id: selectedRole.id, payload: formData })
-        : createMutation.mutateAsync(formData)
-    );
-    if (ok) {
-      setIsRoleModalOpen(false);
-      setSelectedRole(null);
-    }
-  };
-
   const handleConfirmDelete = async () => {
     if (!roleToDelete) return;
-    const ok = await runMutation(() => deleteMutation.mutateAsync(roleToDelete.id));
-    if (ok) {
+    setPageError(null);
+    try {
+      await deleteMutation.mutateAsync(roleToDelete.id);
       setIsDeleteModalOpen(false);
       setRoleToDelete(null);
+    } catch (err) {
+      setPageError(err?.message || 'حدث خطأ أثناء تنفيذ الحذف.');
     }
   };
 
@@ -74,12 +46,12 @@ export const RolesListPage = () => {
           <div className="flex items-center gap-2">
             <span className="font-bold text-txt-primary">{row.name}</span>
             {row.isSystem && (
-              <StatusPill status="info" className="text-[10px] py-0 px-1.5">
+              <StatusPill status="info" className="text-xs py-0 px-2">
                 دور نظام
               </StatusPill>
             )}
           </div>
-          <span className="text-[11px] text-txt-muted mt-0.5">{row.description || 'بدون وصف'}</span>
+          <span className="text-xs text-txt-muted mt-1">{row.description || 'بدون وصف'}</span>
         </div>
       ),
     },
@@ -88,8 +60,17 @@ export const RolesListPage = () => {
       accessorKey: 'permissions',
       render: (row) => {
         const perms = row.permissions || [];
+        if (row.isSystem || row.name === 'owner') {
+          return (
+            <StatusPill status="success" className="text-xs py-0.5 px-2.5 font-bold">
+              وصول كامل (Super Admin)
+            </StatusPill>
+          );
+        }
         return (
-          <span className="text-xs font-semibold text-txt-primary">{perms.length} صلاحيات</span>
+          <span className="text-xs font-semibold text-txt-primary">
+            {perms.length} صلاحيات محددة
+          </span>
         );
       },
     },
@@ -99,16 +80,22 @@ export const RolesListPage = () => {
       render: (row) => (
         <div className="flex items-center gap-1">
           <PermissionGate permission="employees.manage_roles">
-            <button
-              onClick={() => {
-                setSelectedRole(row);
-                setIsRoleModalOpen(true);
-              }}
-              className="p-1.5 text-txt-muted hover:text-brand-primary hover:bg-bg-surface-elevated rounded transition-colors"
-              title="تعديل الصلاحيات"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
+            {!row.isSystem ? (
+              <button
+                onClick={() => navigate(`/settings/roles/${row.id}/edit`)}
+                className="p-1.5 text-txt-muted hover:text-brand-primary hover:bg-bg-surface-elevated rounded transition-colors"
+                title="تعديل الصلاحيات"
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            ) : (
+              <span
+                className="p-1.5 text-txt-muted/40 cursor-not-allowed rounded"
+                title="أدوار النظام لا يمكن تعديلها"
+              >
+                <Edit3 className="w-4 h-4" />
+              </span>
+            )}
           </PermissionGate>
 
           {!row.isSystem && (
@@ -132,11 +119,11 @@ export const RolesListPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-brand-primary" />
+            <ShieldCheck className="w-5 h-5 text-brand-primary" />
             <span>إدارة الأدوار والصلاحيات</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
@@ -148,10 +135,7 @@ export const RolesListPage = () => {
           <Button
             variant="primary"
             icon={Plus}
-            onClick={() => {
-              setSelectedRole(null);
-              setIsRoleModalOpen(true);
-            }}
+            onClick={() => navigate('/settings/roles/new')}
           >
             إنشاء دور جديد
           </Button>
@@ -165,7 +149,7 @@ export const RolesListPage = () => {
         </div>
       )}
 
-      {/* Table section */}
+      {}
       <DataTable
         columns={columns}
         data={rolesList}
@@ -186,16 +170,7 @@ export const RolesListPage = () => {
         }}
       />
 
-      {/* Create / Edit Role Modal */}
-      <RoleFormModal
-        isOpen={isRoleModalOpen}
-        onClose={() => setIsRoleModalOpen(false)}
-        initialValues={selectedRole}
-        onSubmit={handleSaveRole}
-        isLoading={createMutation.isPending || updateMutation.isPending}
-      />
-
-      {/* Delete Confirmation Modal */}
+      {}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}

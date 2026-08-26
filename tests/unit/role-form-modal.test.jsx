@@ -20,7 +20,7 @@ const renderModal = (initialValues) => {
   );
 };
 
-describe('RoleFormModal — permission normalization (regression)', () => {
+describe('RoleFormModal — permission normalization & localization (regression)', () => {
   it('checks permissions nested as { permission: { key } } (backend RolePermission rows)', async () => {
     renderModal({
       id: 'r1',
@@ -29,18 +29,18 @@ describe('RoleFormModal — permission normalization (regression)', () => {
       permissions: [{ permission: { key: 'employees.view' } }],
     });
 
-    const checked = await screen.findByRole('checkbox', { name: 'View employees' });
+    const checked = await screen.findByRole('checkbox', { name: /employees.view/i });
     expect(checked).toBeInTheDocument();
     expect(checked.checked).toBe(true);
 
-    const unchecked = screen.getByRole('checkbox', { name: 'Create orders' });
+    const unchecked = screen.getByRole('checkbox', { name: /orders.create/i });
     expect(unchecked.checked).toBe(false);
   });
 
   it('checks plain string permissions too', async () => {
     renderModal({ id: 'r2', name: 'manager', description: '', permissions: ['orders.create'] });
 
-    const checked = await screen.findByRole('checkbox', { name: 'Create orders' });
+    const checked = await screen.findByRole('checkbox', { name: /orders.create/i });
     expect(checked.checked).toBe(true);
   });
 
@@ -57,12 +57,11 @@ describe('RoleFormModal — permission normalization (regression)', () => {
       </QueryClientProvider>
     );
 
-    const checked = await screen.findByRole('checkbox', { name: 'View employees' });
-    expect(checked.checked).toBe(false); // waiter only has orders.view
-    const createOrders = screen.getByRole('checkbox', { name: 'Create orders' });
+    const checked = await screen.findByRole('checkbox', { name: /employees.view/i });
+    expect(checked.checked).toBe(false);
+    const createOrders = screen.getByRole('checkbox', { name: /orders.create/i });
     expect(createOrders.checked).toBe(false);
 
-    // No undefined keys are stored — selected state is clean strings only.
     expect(checked.checked).toBe(false);
   });
 });

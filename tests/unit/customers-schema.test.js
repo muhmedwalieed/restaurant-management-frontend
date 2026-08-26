@@ -2,22 +2,24 @@ import { describe, it, expect } from 'vitest';
 import { customerFormSchema, addressFormSchema, ADDRESS_LABELS } from '../../src/modules/customers/schemas/customer.schema.js';
 
 describe('Module 7 Customers Schema', () => {
-  it('should accept a valid customer payload', () => {
-    const result = customerFormSchema.safeParse({ name: 'Ali', phone: '+2010' });
+  it('should accept a valid customer payload (firstName + phone)', () => {
+    const result = customerFormSchema.safeParse({ firstName: 'Ali', phone: '+2010' });
     expect(result.success).toBe(true);
   });
 
-  it('should reject missing name or phone', () => {
+  it('should accept firstName + lastName + extra phones', () => {
+    const result = customerFormSchema.safeParse({
+      firstName: 'Ali',
+      lastName: 'Hassan',
+      phone: '+2010',
+      phones: ['+2011'],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject missing firstName or phone', () => {
     expect(customerFormSchema.safeParse({ phone: '+2010' }).success).toBe(false);
-    expect(customerFormSchema.safeParse({ name: 'Ali' }).success).toBe(false);
-  });
-
-  it('should reject invalid email', () => {
-    expect(customerFormSchema.safeParse({ name: 'Ali', phone: '+2010', email: 'bad' }).success).toBe(false);
-  });
-
-  it('should allow empty email', () => {
-    expect(customerFormSchema.safeParse({ name: 'Ali', phone: '+2010', email: '' }).success).toBe(true);
+    expect(customerFormSchema.safeParse({ firstName: 'Ali' }).success).toBe(false);
   });
 
   it('should accept a valid address with default label HOME', () => {

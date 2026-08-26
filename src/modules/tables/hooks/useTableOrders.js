@@ -1,10 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getOrdersApi } from '../../../lib/api/orders.api.js';
 
-/**
- * Active orders currently occupying a table (PENDING/CONFIRMED/PREPARING/READY).
- * Keeps the table OCCUPIED per ADR-015 — this is the "why is the table busy" data.
- */
 export const useTableActiveOrdersQuery = (branchId, tableId) => {
   return useQuery({
     queryKey: ['table-orders', branchId, tableId],

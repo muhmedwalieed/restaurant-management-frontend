@@ -12,7 +12,7 @@ export const Select = forwardRef(
       id,
       name,
       options = [],
-      placeholder = 'اختر من القائمة...',
+      placeholder = null,
       className = '',
       required = false,
       ...props
@@ -23,7 +23,7 @@ export const Select = forwardRef(
     const selectId = id || name || generatedId;
 
     return (
-      <div className="flex flex-col gap-1.5 w-full text-right">
+      <div className="flex flex-col gap-2 w-full text-right">
         {label && (
           <label
             htmlFor={selectId}
@@ -67,12 +67,12 @@ export const Select = forwardRef(
           </div>
         </div>
         {error && (
-          <p id={`${selectId}-error`} className="text-xs text-status-danger font-medium mt-0.5">
+          <p id={`${selectId}-error`} className="text-xs text-status-danger font-medium mt-1">
             {error}
           </p>
         )}
         {!error && helperText && (
-          <p id={`${selectId}-helper`} className="text-xs text-txt-muted mt-0.5">
+          <p id={`${selectId}-helper`} className="text-xs text-txt-muted mt-1">
             {helperText}
           </p>
         )}

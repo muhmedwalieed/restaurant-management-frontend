@@ -1,15 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getCategoriesApi,
-  getCategoryByIdApi,
   createCategoryApi,
   updateCategoryApi,
-  deleteCategoryApi,
   getProductsApi,
   getProductByIdApi,
   createProductApi,
   updateProductApi,
-  deleteProductApi,
   getModifiersApi,
   createModifierApi,
   updateModifierApi,
@@ -17,20 +14,10 @@ import {
   getPublicMenuApi,
 } from '../../../lib/api/menu.api.js';
 
-// ==================== CATEGORIES HOOKS ====================
-
 export const useCategoriesQuery = (params = {}) => {
   return useQuery({
     queryKey: ['categories', params],
     queryFn: () => getCategoriesApi(params),
-  });
-};
-
-export const useCategoryQuery = (id) => {
-  return useQuery({
-    queryKey: ['category', id],
-    queryFn: () => getCategoryByIdApi(id),
-    enabled: Boolean(id),
   });
 };
 
@@ -56,20 +43,6 @@ export const useUpdateCategoryMutation = () => {
     },
   });
 };
-
-export const useDeleteCategoryMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id) => deleteCategoryApi(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['public-menu'] });
-    },
-  });
-};
-
-// ==================== PRODUCTS HOOKS ====================
 
 export const useProductsQuery = (params = {}) => {
   return useQuery({
@@ -110,32 +83,6 @@ export const useUpdateProductMutation = () => {
     },
   });
 };
-
-export const useToggleProductAvailabilityMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, isAvailable }) => updateProductApi(id, { isAvailable }),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['product', id] });
-      queryClient.invalidateQueries({ queryKey: ['public-menu'] });
-    },
-  });
-};
-
-export const useDeleteProductMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id) => deleteProductApi(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
-      queryClient.invalidateQueries({ queryKey: ['public-menu'] });
-    },
-  });
-};
-
-// ==================== MODIFIERS HOOKS ====================
 
 export const useModifiersQuery = (productId) => {
   return useQuery({
@@ -182,8 +129,6 @@ export const useDeleteModifierMutation = () => {
     },
   });
 };
-
-// ==================== PUBLIC MENU HOOK ====================
 
 export const usePublicMenuQuery = (params = {}) => {
   return useQuery({

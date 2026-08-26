@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getOrdersApi,
+  getAllOrdersApi,
   getOrderByIdApi,
   createOrderApi,
   updateOrderStatusApi,
@@ -18,6 +19,13 @@ export const useOrdersQuery = (branchId, params = {}) => {
     queryKey: ['orders', branchId, params],
     queryFn: () => getOrdersApi(branchId, params),
     enabled: Boolean(branchId),
+  });
+};
+
+export const useAllOrdersQuery = (params = {}) => {
+  return useQuery({
+    queryKey: ['all-orders', params],
+    queryFn: () => getAllOrdersApi(params),
   });
 };
 
@@ -112,7 +120,6 @@ export const useKdsOrdersQuery = (branchId, params = {}) => {
     queryKey: ['kds', branchId, params],
     queryFn: () => getKdsOrdersApi(branchId, params),
     enabled: Boolean(branchId),
-    refetchInterval: 30000,
   });
 };
 

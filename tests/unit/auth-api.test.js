@@ -36,12 +36,12 @@ describe('Module 2 API Functions Unit Tests', () => {
     expect(getSpy).toHaveBeenCalledWith('/auth/me');
   });
 
-  it('refreshTokenApi should send the refresh token without an auth header', async () => {
+  it('refreshTokenApi relies on the httpOnly cookie (no token in the body, no auth header)', async () => {
     const postSpy = vi.spyOn(apiClient, 'post').mockResolvedValueOnce({ accessToken: 'new' });
 
-    await refreshTokenApi('refresh-abc');
+    await refreshTokenApi();
 
-    expect(postSpy).toHaveBeenCalledWith('/auth/refresh', { refreshToken: 'refresh-abc' }, { skipAuth: true });
+    expect(postSpy).toHaveBeenCalledWith('/auth/refresh', {}, { skipAuth: true });
   });
 
   it('employees API functions should call correct endpoints with params and payload', async () => {

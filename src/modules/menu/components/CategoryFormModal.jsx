@@ -18,6 +18,7 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(categoryFormSchema),
@@ -61,7 +62,7 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
       }
       onClose();
     } catch (err) {
-      // Handled by query/toast/interceptor or error state
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ التصنيف.' });
     }
   };
 
@@ -72,7 +73,7 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? 'تعديل التصنيف' : 'إضافة تصنيف جديد'}
-      subtitle={isEditing ? 'تعديل اسم وبيانات التصنيف في المنيو' : 'أدخل بيانات التصنيف الجديد لإضافته للمنيو'}
+      subtitle={isEditing ? 'تعديل اسم وبيانات التصنيف في قائمة الطعام' : 'أدخل بيانات التصنيف الجديد لإضافته للمنيو'}
       size="md"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -85,8 +86,8 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
           {...register('name')}
         />
 
-        <div className="flex flex-col gap-1.5 w-full text-right">
-          <label className="text-xs font-medium text-txt-primary">وصف التصنيف (اختياري)</label>
+        <div className="flex flex-col gap-2 w-full text-right">
+          <label className="text-xs font-medium text-txt-primary">وصف التصنيف </label>
           <textarea
             rows={3}
             placeholder="وصف مختصر لمحتويات هذا التصنيف..."
@@ -94,7 +95,7 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
             {...register('description')}
           />
           {errors.description && (
-            <p className="text-xs text-status-danger font-medium mt-0.5">{errors.description.message}</p>
+            <p className="text-xs text-status-danger font-medium mt-1">{errors.description.message}</p>
           )}
         </div>
 
@@ -118,6 +119,12 @@ export const CategoryFormModal = ({ isOpen, onClose, categoryToEdit = null }) =>
             {...register('status')}
           />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">

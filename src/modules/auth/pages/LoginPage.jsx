@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +10,6 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { Store, Mail, Lock, AlertTriangle, ShieldCheck } from 'lucide-react';
 
-// Zod Login Form Validation Schema
 export const loginSchema = z.object({
   email: z
     .string()
@@ -47,9 +46,9 @@ export const LoginPage = () => {
     try {
       await login(data.email, data.password, forceLogout);
       setShowForceLogoutModal(false);
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (err) {
-      // Active session on another device → 422 BUSINESS_RULE_ERROR with details.forceLogoutRequired
+
       const isActiveSession = err.code === 'BUSINESS_RULE_ERROR' && err.details?.forceLogoutRequired;
       if (isActiveSession) {
         setPendingCredentials(data);
@@ -71,12 +70,10 @@ export const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 sm:p-8 space-y-6 shadow-2xl">
-        {/* Header Branding */}
+      <div className="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 sm:p-8 space-y-6">
+        {}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-brand-primary flex items-center justify-center mx-auto">
-            <Store className="w-6 h-6" />
-          </div>
+          <Store className="w-6 h-6 text-brand-primary mx-auto" />
           <h1 className="text-xl font-bold text-txt-primary">تسجيل الدخول للنظام</h1>
           <p className="text-xs text-txt-muted">
             ادخل بيانات الحساب للوصول إلى لوحة إدارة المطعم
@@ -90,7 +87,7 @@ export const LoginPage = () => {
           </div>
         )}
 
-        {/* Form */}
+        {}
         <form onSubmit={handleSubmit((data) => handleLoginSubmit(data, false))} className="space-y-4" noValidate>
           <Input
             label="البريد الإلكتروني"
@@ -114,23 +111,24 @@ export const LoginPage = () => {
             {...register('password')}
           />
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            isLoading={isSubmitting}
-            className="w-full mt-2"
-          >
-            تسجيل الدخول
-          </Button>
+          <div className="flex justify-center pt-2">
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              isLoading={isSubmitting}
+            >
+              تسجيل الدخول
+            </Button>
+          </div>
         </form>
 
         <div className="text-center text-xs text-txt-muted border-t border-border-subtle pt-4">
-          نظام إدارة المطاعم SaaS — الإصدار 1.0 (Module 2 Active)
+          نظام إدارة المطاعم SaaS، الإصدار 1.0
         </div>
       </div>
 
-      {/* Force Logout Confirmation Modal (Section 16 UX) */}
+      {}
       <Modal
         isOpen={showForceLogoutModal}
         onClose={() => setShowForceLogoutModal(false)}
@@ -139,9 +137,7 @@ export const LoginPage = () => {
         size="sm"
       >
         <div className="space-y-4 text-right">
-          <div className="w-12 h-12 rounded-full bg-status-warning-bg text-status-warning flex items-center justify-center mx-auto">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
+          <ShieldCheck className="w-6 h-6 text-status-warning" />
           <p className="text-xs text-txt-muted leading-relaxed">
             هذا الحساب مسجّل دخوله حالياً على جهاز أو متصفح آخر
             {sessionDevice ? ` (${sessionDevice})` : ''}. هل تريد إلغاء الجلسة السابقة وتسجيل الدخول من هذا الجهاز؟

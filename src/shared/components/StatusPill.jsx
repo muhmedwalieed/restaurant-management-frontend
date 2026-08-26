@@ -1,12 +1,12 @@
-﻿import { clsx } from 'clsx';
+import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 const statusVariants = {
-  success: 'bg-status-success-bg text-status-success border-status-success/20',
-  warning: 'bg-status-warning-bg text-status-warning border-status-warning/20',
-  danger: 'bg-status-danger-bg text-status-danger border-status-danger/20',
-  info: 'bg-status-info-bg text-status-info border-status-info/20',
-  neutral: 'bg-status-neutral-bg text-status-neutral border-status-neutral/20',
+  success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  danger: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  info: 'bg-sky-500/10 text-sky-300 border-sky-500/20',
+  neutral: 'bg-white/[0.05] text-slate-300 border-white/10',
 };
 
 export const StatusPill = ({
@@ -23,13 +23,13 @@ export const StatusPill = ({
     <span
       className={twMerge(
         clsx(
-          'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium rounded-pill border select-none',
+          'inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-pill border select-none',
           variantClass,
           className
         )
       )}
     >
-      {Icon && <Icon className="w-3 h-3 shrink-0" />}
+      {Icon && <Icon className="w-4 h-4 shrink-0" />}
       <span>{content}</span>
     </span>
   );

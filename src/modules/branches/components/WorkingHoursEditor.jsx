@@ -1,9 +1,10 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
+import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   Clock,
@@ -48,7 +49,7 @@ const TIMEZONE_OPTIONS = [
 ];
 
 const timeInputClass =
-  'w-24 bg-bg-base border border-border-default rounded-md py-1.5 pl-2 pr-8 text-center text-xs text-txt-primary font-mono focus-visible:outline-none focus-visible:border-brand-primary disabled:opacity-40 disabled:cursor-not-allowed';
+  'w-24 bg-bg-base border border-border-default rounded-md py-2 pl-2 pr-8 text-center text-xs text-txt-primary font-mono focus-visible:outline-none focus-visible:border-brand-primary disabled:opacity-40 disabled:cursor-not-allowed';
 
 export const WorkingHoursEditor = ({
   initialData = [],
@@ -57,7 +58,7 @@ export const WorkingHoursEditor = ({
   timezone = 'Africa/Cairo',
   onTimezoneChange,
 }) => {
-  const [mode, setMode] = useState('custom'); // '247' | 'custom'
+  const [mode, setMode] = useState('custom');
   const [schedule, setSchedule] = useState(DEFAULT_SCHEDULE);
   const [validationError, setValidationError] = useState(null);
   const [successMessage, setSuccessMessage] = useAutoDismiss();
@@ -143,17 +144,19 @@ export const WorkingHoursEditor = ({
         </div>
       )}
 
-      {/* Time zone & mode */}
+      {}
           <div className="space-y-4">
             <div className="max-w-sm">
               <label className="block text-xs font-medium text-txt-primary mb-1.5">
                 المنطقة الزمنية
               </label>
-              <Select
-                options={timezoneOptions}
-                value={timezone}
-                onChange={(e) => onTimezoneChange?.(e.target.value)}
-              />
+              <PermissionGate permission="branches.manage" disableOnly>
+                <Select
+                  options={timezoneOptions}
+                  value={timezone}
+                  onChange={(e) => onTimezoneChange?.(e.target.value)}
+                />
+              </PermissionGate>
             </div>
 
             <div className="flex items-center gap-6">
@@ -181,7 +184,7 @@ export const WorkingHoursEditor = ({
             </div>
           </div>
 
-          {/* Working days table */}
+          {}
           <div
             className={`overflow-x-auto bg-bg-surface border border-border-default rounded-lg ${
               is247 ? 'opacity-50 pointer-events-none' : ''
@@ -222,7 +225,7 @@ export const WorkingHoursEditor = ({
 
                       <td className="px-4 py-3">
                         <div className="relative mx-auto w-fit">
-                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-txt-muted pointer-events-none" />
+                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
                           <input
                             type="text"
                             value={item.openTime}
@@ -230,7 +233,7 @@ export const WorkingHoursEditor = ({
                             placeholder="09:00"
                             maxLength={5}
                             disabled={!item.isOpen || is247}
-                            aria-label={`${labelAr} — ساعة البداية`}
+                            aria-label={`${labelAr}، ساعة البداية`}
                             className={timeInputClass}
                           />
                         </div>
@@ -238,7 +241,7 @@ export const WorkingHoursEditor = ({
 
                       <td className="px-4 py-3">
                         <div className="relative mx-auto w-fit">
-                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-txt-muted pointer-events-none" />
+                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
                           <input
                             type="text"
                             value={item.closeTime}
@@ -246,7 +249,7 @@ export const WorkingHoursEditor = ({
                             placeholder="23:00"
                             maxLength={5}
                             disabled={!item.isOpen || is247}
-                            aria-label={`${labelAr} — ساعة النهاية`}
+                            aria-label={`${labelAr}، ساعة النهاية`}
                             className={timeInputClass}
                           />
                         </div>
@@ -259,9 +262,11 @@ export const WorkingHoursEditor = ({
           </div>
 
       <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
-        <Button type="submit" variant="primary" size="sm" isLoading={isLoading} icon={Save}>
-          حفظ
-        </Button>
+        <PermissionGate permission="branches.manage">
+          <Button type="submit" variant="primary" size="sm" isLoading={isLoading} icon={Save}>
+            حفظ
+          </Button>
+        </PermissionGate>
       </div>
     </form>
   );

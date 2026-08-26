@@ -44,7 +44,7 @@ export const ChangeRoleModal = ({
           <Shield className="w-5 h-5 text-brand-primary shrink-0" />
           <div className="text-xs">
             <span className="text-txt-muted">الدور الحالي: </span>
-            <span className="font-bold text-txt-primary">{employee?.role?.name || employee?.role || '—'}</span>
+            <span className="font-bold text-txt-primary">{employee?.role?.name || employee?.role || 'غير محدد'}</span>
           </div>
         </div>
 

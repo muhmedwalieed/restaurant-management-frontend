@@ -17,38 +17,30 @@ import { Select } from '../../../shared/components/Select.jsx';
 import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
-import { EmptyState } from '../../../shared/components/EmptyState.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
+import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import {
   Utensils,
   Layers,
   ChevronRight,
-  DollarSign,
-  Image,
   PlusCircle,
-  Edit,
+  Edit3,
   Trash2,
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
 
-const PRODUCT_STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'نشط (ظاهر في المنيو)' },
-  { value: 'INACTIVE', label: 'غير نشط (مخفي من المنيو)' },
-];
-
 export const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('general'); // 'general' | 'modifiers'
   const [generalSuccess, setGeneralSuccess] = useAutoDismiss();
   const [generalError, setGeneralError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [isModifierModalOpen, setIsModifierModalOpen] = useState(false);
   const [modifierToEdit, setModifierToEdit] = useState(null);
+  const [modifierToDelete, setModifierToDelete] = useState(null);
 
-  // Queries & Mutations
   const { data: product, isLoading, isError, error, refetch } = useProductQuery(id);
   const updateProductMutation = useUpdateProductMutation();
   const categoriesQuery = useCategoriesQuery();
@@ -60,7 +52,6 @@ export const ProductDetailPage = () => {
 
   const categoryOptions = categories.map((cat) => ({ value: cat.id, label: cat.name }));
 
-  // General Form setup (same schema as the create/edit modal)
   const {
     register,
     handleSubmit,
@@ -79,14 +70,17 @@ export const ProductDetailPage = () => {
       status: product?.status || 'ACTIVE',
     },
   });
+
   const isAvailableValue = watch('isAvailable');
+  const statusValue = watch('status');
+  const isMenuVisible = statusValue === 'ACTIVE';
 
   const handleGeneralSubmit = async (formData) => {
     setGeneralSuccess(null);
     setGeneralError(null);
     try {
       await updateProductMutation.mutateAsync({ id, payload: formData });
-      setGeneralSuccess('تم تحديث بيانات المنتج بنجاح.');
+      setGeneralSuccess('تم حفظ بيانات المنتج بنجاح.');
     } catch (err) {
       setGeneralError(err?.message || 'حدث خطأ أثناء تحديث بيانات المنتج.');
     }
@@ -97,11 +91,12 @@ export const ProductDetailPage = () => {
     setIsModifierModalOpen(true);
   };
 
-  const handleDeleteModifier = async (mod) => {
+  const handleDeleteModifier = async () => {
+    if (!modifierToDelete) return;
     setActionError(null);
-    if (!window.confirm(`هل أنت متأكد من حذف الإضافة "${mod.name}"؟`)) return;
     try {
-      await deleteModifierMutation.mutateAsync({ productId: id, modifierId: mod.id });
+      await deleteModifierMutation.mutateAsync({ productId: id, modifierId: modifierToDelete.id });
+      setModifierToDelete(null);
     } catch (err) {
       setActionError(err?.message || 'حدث خطأ أثناء حذف الإضافة.');
     }
@@ -119,7 +114,7 @@ export const ProductDetailPage = () => {
   if (isError) {
     return (
       <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
-        <AlertCircle className="w-8 h-8 text-status-danger mx-auto" />
+        <AlertCircle className="w-6 h-6 text-status-danger mx-auto" />
         <h3 className="text-base font-bold text-txt-primary">فشل في تحميل تفاصيل المنتج</h3>
         <p className="text-xs text-txt-muted">{error?.message || 'تعذر التواصل مع الخادم.'}</p>
         <Button size="sm" variant="outline" onClick={refetch}>
@@ -130,241 +125,260 @@ export const ProductDetailPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header section with back button */}
-      <div className="flex items-center gap-3 pb-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => navigate('/menu')}
-          icon={ChevronRight}
-        >
-          العودة للمنيو
-        </Button>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-xl font-bold text-txt-primary">{product?.name || 'تفاصيل المنتج'}</h1>
-          {product?.status === 'ACTIVE' ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-status-success-bg text-status-success border border-status-success/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-success" />
-              نشط
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-status-neutral-bg text-status-neutral border border-status-neutral/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-neutral" />
-              معطل
-            </span>
-          )}
+    <div className="space-y-5">
+      {}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate('/menu')}
+            icon={ChevronRight}
+            className="border-white/10 text-xs"
+          >
+            العودة لقائمة الطعام
+          </Button>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
+              <Utensils className="w-5 h-5 text-brand-primary" />
+              <span>{product?.name || 'تفاصيل المنتج'}</span>
+            </h1>
+            {product?.status === 'ACTIVE' ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                نشط
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/[0.05] text-slate-400 border border-white/[0.08]">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                معطل
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <PermissionGate permission="menu.manage">
+            <Button
+              type="submit"
+              form="product-edit-form"
+              size="sm"
+              isLoading={updateProductMutation.isPending}
+              className="bg-white text-slate-950 font-medium hover:bg-slate-200 border-none shadow-sm text-xs"
+            >
+              حفظ التعديلات
+            </Button>
+          </PermissionGate>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
-        <button
-          onClick={() => setActiveTab('general')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'general'
-              ? 'border-brand-primary text-brand-primary'
-              : 'border-transparent text-txt-muted hover:text-txt-primary'
-          }`}
-        >
-          <Utensils className="w-4 h-4" />
-          <span>البيانات العامة</span>
-        </button>
+      {}
+      {generalSuccess && (
+        <div className="p-3 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{generalSuccess}</span>
+        </div>
+      )}
+      {generalError && (
+        <div className="p-3 rounded-lg text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{generalError}</span>
+        </div>
+      )}
+      {actionError && (
+        <div className="p-3 rounded-lg text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{actionError}</span>
+        </div>
+      )}
 
-        <button
-          onClick={() => setActiveTab('modifiers')}
-          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
-            activeTab === 'modifiers'
-              ? 'border-brand-primary text-brand-primary'
-              : 'border-transparent text-txt-muted hover:text-txt-primary'
-          }`}
-        >
-          <Layers className="w-4 h-4" />
-          <span>الإضافات والخيارات ({modifiers.length})</span>
-        </button>
-      </div>
-
-      {/* Tab Content Panels */}
-      <div className="bg-bg-surface border border-border-default border-t-0 rounded-b-lg p-6">
-        {/* Tab 1: General Info */}
-        {activeTab === 'general' && (
-          <form onSubmit={handleSubmit(handleGeneralSubmit)} className="space-y-6 text-right" noValidate>
-            {generalSuccess && (
-              <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>{generalSuccess}</span>
+      {}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {}
+        <div className="lg:col-span-7 space-y-5">
+          <div className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <Utensils className="w-4 h-4 text-brand-primary" />
+                <h3 className="text-xs font-bold text-txt-primary">البيانات العامة للصنف</h3>
               </div>
-            )}
-
-            {generalError && (
-              <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{generalError}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Select
-                label="التصنيف"
-                options={categoryOptions}
-                placeholder="اختر التصنيف..."
-                required
-                error={errors.categoryId?.message}
-                {...register('categoryId')}
-              />
-
-              <Input
-                label="اسم المنتج"
-                icon={Utensils}
-                required
-                error={errors.name?.message}
-                {...register('name')}
-              />
+              <span className="text-[11px] text-txt-muted">
+                معرف الصنف: <span className="font-mono">{id?.slice(0, 8)}...</span>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="السعر (EGP)"
-                type="number"
-                step="0.01"
-                icon={DollarSign}
-                required
-                error={errors.price?.message}
-                {...register('price')}
-              />
+            <form
+              id="product-edit-form"
+              onSubmit={handleSubmit(handleGeneralSubmit)}
+              className="space-y-4 text-right"
+              noValidate
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="اسم المنتج"
+                  required
+                  error={errors.name?.message}
+                  {...register('name')}
+                />
 
-              <Input
-                label="رابط الصورة (Image URL)"
-                type="url"
-                icon={Image}
-                error={errors.imageUrl?.message}
-                {...register('imageUrl')}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5 w-full text-right">
-              <label className="text-xs font-medium text-txt-primary">وصف المنتج (اختياري)</label>
-              <textarea
-                rows={3}
-                placeholder="أدخل مكونات أو تفاصيل المنتج..."
-                className="w-full bg-bg-surface text-txt-primary placeholder:text-txt-muted border border-border-default rounded-md text-sm px-3 py-2 transition-colors focus-visible:outline-none focus-visible:border-brand-primary"
-                {...register('description')}
-              />
-              {errors.description && (
-                <p className="text-xs text-status-danger font-medium mt-0.5">{errors.description.message}</p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              <div className="flex items-center justify-between p-3 bg-bg-surface-elevated/50 border border-border-default rounded-md">
-                <div>
-                  <span className="text-xs font-medium text-txt-primary block">التوافر الفوري للمطبخ</span>
-                  <span className="text-[11px] text-txt-muted">متاح للطلب الآن على الكاشير/الواتساب</span>
-                </div>
-                <Toggle
-                  checked={isAvailableValue}
-                  onChange={(val) => setValue('isAvailable', val)}
-                  label="تغيير التوافر"
+                <Select
+                  label="التصنيف"
+                  options={categoryOptions}
+                  placeholder="اختر التصنيف..."
+                  required
+                  error={errors.categoryId?.message}
+                  {...register('categoryId')}
                 />
               </div>
 
-              <Select
-                label="حالة المنتج الإدارية"
-                options={PRODUCT_STATUS_OPTIONS}
-                error={errors.status?.message}
-                {...register('status')}
-              />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  label="سعر الصنف"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  suffix="ج.م"
+                  required
+                  error={errors.price?.message}
+                  {...register('price')}
+                />
 
-            <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
+                <ImageUploadInput
+                  label="صورة الصنف"
+                  value={watch('imageUrl')}
+                  onChange={(url) => setValue('imageUrl', url, { shouldValidate: true })}
+                  hint="ارفع صورة من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5 w-full text-right">
+                <label className="text-xs font-medium text-txt-primary">وصف ومكونات الصنف</label>
+                <textarea
+                  rows={3}
+                  dir="auto"
+                  placeholder="أدخل مكونات أو تفاصيل الصنف..."
+                  className="w-full bg-bg-surface text-txt-primary placeholder:text-txt-muted border border-border-default rounded-lg text-sm px-3 py-2 transition-colors focus-visible:outline-none focus-visible:border-brand-primary"
+                  {...register('description')}
+                />
+                {errors.description && (
+                  <p className="text-xs text-status-danger font-medium mt-1">{errors.description.message}</p>
+                )}
+              </div>
+
+              {}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="flex items-center justify-between p-3.5 bg-bg-base/60 border border-border-subtle rounded-xl">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-txt-primary block">التوافر الفوري</span>
+                    <span className="text-[11px] text-txt-muted block">متاح للطلب الآن بالمطبخ</span>
+                  </div>
+                  <Toggle
+                    checked={isAvailableValue}
+                    onChange={(val) => setValue('isAvailable', val)}
+                    label="التوافر الفوري"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 bg-bg-base/60 border border-border-subtle rounded-xl">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-semibold text-txt-primary block">القائمة الرقمية</span>
+                    <span className="text-[11px] text-txt-muted block">إظهار في منيو الـ QR</span>
+                  </div>
+                  <Toggle
+                    checked={isMenuVisible}
+                    onChange={(val) => setValue('status', val ? 'ACTIVE' : 'INACTIVE')}
+                    label="إظهار في القائمة"
+                  />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-brand-primary" />
+                <h3 className="text-xs font-bold text-txt-primary">خيارات وإضافات الصنف</h3>
+              </div>
+
               <PermissionGate permission="menu.manage">
-                <Button type="submit" variant="primary" size="sm" isLoading={updateProductMutation.isPending}>
-                  حفظ البيانات العامة
+                <Button
+                  variant="outline"
+                  size="sm"
+                  icon={PlusCircle}
+                  onClick={() => handleOpenModifierModal()}
+                  className="border-white/10 text-xs h-7 px-2.5"
+                >
+                  إضافة خيار
                 </Button>
               </PermissionGate>
             </div>
-          </form>
-        )}
 
-        {/* Tab 2: Product Modifiers */}
-        {activeTab === 'modifiers' && (
-          <div className="space-y-4">
-            {actionError && (
-              <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{actionError}</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-bold text-txt-primary flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-brand-primary" />
-                  <span>خيارات المنتج والإضافات</span>
-                </h2>
-              </div>
-
-              <PermissionGate permission="menu.manage">
-                <Button variant="secondary" size="sm" icon={PlusCircle} onClick={() => handleOpenModifierModal()}>
-                  إضافة خيار جديد
-                </Button>
-              </PermissionGate>
-            </div>
+            <p className="text-xs text-txt-muted leading-relaxed">
+              إتاحة أحجام، صوصات، أو إضافات خاصة (Add-ons) يختار منها العميل عند الطلب.
+            </p>
 
             {modifiersQuery.isLoading ? (
               <LoadingSkeleton height={120} className="w-full" />
             ) : modifiersQuery.isError ? (
-              <div className="p-4 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger text-center">
+              <div className="p-4 bg-status-danger/10 border border-status-danger/30 rounded-lg text-xs text-status-danger text-center">
                 {modifiersQuery.error?.message || 'تعذر جلب إضافات المنتج'}
               </div>
             ) : modifiers.length === 0 ? (
-              <EmptyState
-                title="لا توجد إضافات معرفة لهذا المنتج"
-                description="يمكنك إضافة خيارات مثل: حجم كبير (+20), جبنة إضافية (+15) لإتاحتها للعملاء والكاشير."
-                actionLabel="إضافة الخيار الأول"
-                onAction={() => handleOpenModifierModal()}
-                icon={Layers}
-              />
+              <div className="py-6 text-center space-y-1 bg-bg-base/30 rounded-lg border border-border-subtle">
+                <Layers className="w-5 h-5 text-txt-muted mx-auto" />
+                <p className="text-xs font-semibold text-txt-primary">لا توجد إضافات لهذا الصنف بعد</p>
+                <p className="text-[11px] text-txt-muted">مثل: جبنة إضافية (+15 ج.م)، حجم كبير (+20 ج.م).</p>
+              </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-lg border border-border-subtle">
                 <table className="w-full text-right text-xs">
-                  <thead className="bg-bg-surface-elevated border-b border-border-default text-txt-muted font-bold">
+                  <thead className="bg-bg-base/60 border-b border-border-subtle text-txt-muted font-bold">
                     <tr>
-                      <th className="p-3">اسم الخيار / الإضافة</th>
-                      <th className="p-3">الفرق في السعر</th>
-                      <th className="p-3">نوع الخيار</th>
-                      <th className="p-3 text-left">الإجراءات</th>
+                      <th className="p-2.5">الخيار</th>
+                      <th className="p-2.5">الفرق</th>
+                      <th className="p-2.5 text-center">إجراءات</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border-default">
+                  <tbody className="divide-y divide-white/[0.04]">
                     {modifiers.map((mod) => (
-                      <tr key={mod.id} className="hover:bg-bg-surface-elevated/40 transition-colors">
-                        <td className="p-3 font-bold text-txt-primary">{mod.name}</td>
-                        <td className="p-3 font-bold text-brand-primary">
-                          {Number(mod.priceDelta) > 0 ? `+${mod.priceDelta} EGP` : 'بدون زيادة (0 EGP)'}
-                        </td>
-                        <td className="p-3">
-                          <StatusPill status={mod.isRequired ? 'warning' : 'neutral'}>
-                            {mod.isRequired ? 'إجباري عند الطلب' : 'اختياري'}
-                          </StatusPill>
-                        </td>
-                        <td className="p-3 text-left">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              icon={Edit}
-                              onClick={() => handleOpenModifierModal(mod)}
-                              title="تعديل الإضافة"
-                            />
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              icon={Trash2}
-                              onClick={() => handleDeleteModifier(mod)}
-                              title="حذف الإضافة"
-                            />
+                      <tr key={mod.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-2.5">
+                          <div className="space-y-0.5">
+                            <span className="font-semibold text-txt-primary block">{mod.name}</span>
+                            {mod.isRequired && (
+                              <span className="text-[10px] text-amber-400 font-medium">إجباري</span>
+                            )}
                           </div>
+                        </td>
+                        <td className="p-2.5 font-mono font-bold text-white whitespace-nowrap">
+                          {Number(mod.priceDelta) > 0 ? `+${mod.priceDelta} ج.م` : 'مجاني'}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <PermissionGate permission="menu.manage">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenModifierModal(mod)}
+                                className="p-1 rounded-md text-txt-muted hover:text-white hover:bg-white/[0.06] transition-colors"
+                                title="تعديل الإضافة"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setModifierToDelete(mod)}
+                                className="p-1 rounded-md text-txt-muted hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                title="حذف الإضافة"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </PermissionGate>
                         </td>
                       </tr>
                     ))}
@@ -373,15 +387,29 @@ export const ProductDetailPage = () => {
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Modals */}
+      {}
       <ModifierFormModal
         isOpen={isModifierModalOpen}
-        onClose={() => setIsModifierModalOpen(false)}
+        onClose={() => {
+          setIsModifierModalOpen(false);
+          setModifierToEdit(null);
+        }}
         productId={id}
         modifierToEdit={modifierToEdit}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(modifierToDelete)}
+        onClose={() => setModifierToDelete(null)}
+        title="حذف الإضافة"
+        message={`هل أنت متأكد من حذف الإضافة "${modifierToDelete?.name}"؟`}
+        confirmLabel="حذف"
+        variant="danger"
+        isLoading={deleteModifierMutation.isPending}
+        onConfirm={handleDeleteModifier}
       />
     </div>
   );

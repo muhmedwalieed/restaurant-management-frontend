@@ -11,9 +11,9 @@ const variants = {
 };
 
 const sizes = {
-  sm: 'text-xs px-2.5 py-1.5 min-h-[32px]',
+  sm: 'text-xs px-3 py-1 min-h-[32px]',
   md: 'text-sm px-4 py-2 min-h-[40px]',
-  lg: 'text-base px-5 py-2.5 min-h-[48px]',
+  lg: 'text-base px-5 py-2 min-h-[44px]',
 };
 
 const radiuses = {

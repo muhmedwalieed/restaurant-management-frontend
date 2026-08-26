@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../shared/layout/AppShell.jsx';
@@ -6,6 +6,7 @@ import { LoginPage } from '../modules/auth/pages/LoginPage.jsx';
 import { EmployeesListPage } from '../modules/employees/pages/EmployeesListPage.jsx';
 import { EmployeeDetailPage } from '../modules/employees/pages/EmployeeDetailPage.jsx';
 import { RolesListPage } from '../modules/roles/pages/RolesListPage.jsx';
+import { RoleEditPage } from '../modules/roles/pages/RoleEditPage.jsx';
 import { RestaurantSettingsPage } from '../modules/restaurant/pages/RestaurantSettingsPage.jsx';
 import { BranchesListPage } from '../modules/branches/pages/BranchesListPage.jsx';
 import { BranchDetailPage } from '../modules/branches/pages/BranchDetailPage.jsx';
@@ -15,7 +16,6 @@ import { TablesListPage } from '../modules/tables/pages/TablesListPage.jsx';
 import { TableDetailPage } from '../modules/tables/pages/TableDetailPage.jsx';
 import { PublicTableMenuPage } from '../modules/tables/pages/PublicTableMenuPage.jsx';
 import { WebsiteOrderingPage } from '../modules/website/pages/WebsiteOrderingPage.jsx';
-import { PhoneOrderPage } from '../modules/phone-order/pages/PhoneOrderPage.jsx';
 import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
 import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
 import { PosPage } from '../modules/orders/pages/PosPage.jsx';
@@ -44,27 +44,25 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Section 13 — permission-gated routes are enforced before render, not just hidden
 const RequirePermission = ({ permission, children }) => {
   const { hasPermission } = useAuth();
   if (!hasPermission(permission)) {
-    return <Navigate to="/" replace />;
+    return <NotFoundPage />;
   }
   return children;
 };
 
-// Landing page picker: a manager with dashboard.view sees the dashboard; a cashier
-// (no dashboard.view) is sent to the most useful page they CAN open (POS → orders → customers).
 const HomeRedirect = () => {
   const { hasPermission } = useAuth();
   if (hasPermission('dashboard.view')) return <DashboardPage />;
-  if (hasPermission('orders.create')) return <Navigate to="/pos" replace />;
+  if (hasPermission(['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website'])) {
+    return <Navigate to="/pos" replace />;
+  }
   if (hasPermission('orders.view')) return <Navigate to="/orders" replace />;
   if (hasPermission('customers.view')) return <Navigate to="/customers" replace />;
   return <DashboardPage />;
 };
 
-// 404 Fallback View
 const NotFoundPage = () => (
   <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
     <h1 className="text-4xl font-bold text-status-danger">404</h1>
@@ -73,8 +71,6 @@ const NotFoundPage = () => (
   </div>
 );
 
-// Guest-only route: no login flash on refresh while the session is being restored,
-// and authenticated users are sent back to the app.
 const GuestRoute = ({ children }) => {
   const { isAuthenticated, isBootstrapping } = useAuth();
   if (isBootstrapping) {
@@ -143,7 +139,9 @@ export const router = createBrowserRouter(
       {
         path: 'pos',
         element: (
-          <RequirePermission permission="orders.create">
+          <RequirePermission
+            permission={['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website']}
+          >
             <PosPage />
           </RequirePermission>
         ),
@@ -152,14 +150,14 @@ export const router = createBrowserRouter(
         path: 'phone-order',
         element: (
           <RequirePermission permission="orders.create">
-            <PhoneOrderPage />
+            <Navigate to="/pos" replace />
           </RequirePermission>
         ),
       },
       {
         path: 'kds',
         element: (
-          <RequirePermission permission="orders.view">
+          <RequirePermission permission="kds.view">
             <KdsPage />
           </RequirePermission>
         ),
@@ -167,7 +165,7 @@ export const router = createBrowserRouter(
       {
         path: 'tables',
         element: (
-          <RequirePermission permission="tables.manage">
+          <RequirePermission permission={['tables.view', 'tables.manage']}>
             <TablesListPage />
           </RequirePermission>
         ),
@@ -175,7 +173,7 @@ export const router = createBrowserRouter(
       {
         path: 'tables/:id',
         element: (
-          <RequirePermission permission="tables.manage">
+          <RequirePermission permission={['tables.view', 'tables.manage']}>
             <TableDetailPage />
           </RequirePermission>
         ),
@@ -303,8 +301,24 @@ export const router = createBrowserRouter(
       {
         path: 'settings/roles',
         element: (
-          <RequirePermission permission="employees.view">
+          <RequirePermission permission="employees.manage_roles">
             <RolesListPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/roles/new',
+        element: (
+          <RequirePermission permission="employees.manage_roles">
+            <RoleEditPage />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: 'settings/roles/:id/edit',
+        element: (
+          <RequirePermission permission="employees.manage_roles">
+            <RoleEditPage />
           </RequirePermission>
         ),
       },

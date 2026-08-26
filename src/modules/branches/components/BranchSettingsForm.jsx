@@ -1,16 +1,24 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Select } from '../../../shared/components/Select.jsx';
+import { Input } from '../../../shared/components/Input.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
+import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
-import { DollarSign, Globe, CheckCircle2, Sliders, AlertCircle } from 'lucide-react';
+import { DollarSign, Globe, CheckCircle2, Sliders, AlertCircle, Hash } from 'lucide-react';
 
 export const branchSettingsSchema = z.object({
   currency: z.string().min(2, 'رمز العملة مطلوب'),
   timezone: z.string().min(2, 'التوقيت المحلي مطلوب'),
+  dailyOrderStartNumber: z.coerce
+    .number({ invalid_type_error: 'يرجى إدخال رقم صحيح' })
+    .int()
+    .min(1)
+    .max(99999)
+    .default(200),
 });
 
 const CURRENCY_OPTIONS = [
@@ -41,6 +49,7 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
     defaultValues: {
       currency: 'EGP',
       timezone: 'Africa/Cairo',
+      dailyOrderStartNumber: 200,
     },
   });
 
@@ -49,6 +58,7 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
       reset({
         currency: initialData.currency || 'EGP',
         timezone: initialData.timezone || 'Africa/Cairo',
+        dailyOrderStartNumber: initialData.dailyOrderStartNumber ?? 200,
       });
     }
   }, [initialData, reset]);
@@ -72,7 +82,7 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
             <Sliders className="w-4 h-4 text-brand-primary" />
             <span>إعدادات تشغيل الفرع الحسابية</span>
           </h3>
-          <p className="text-xs text-txt-muted mt-0.5">
+          <p className="text-xs text-txt-muted mt-1">
             ضبط العملة والتوقيت المحلي الخاص بالفرع
           </p>
         </div>
@@ -112,10 +122,25 @@ export const BranchSettingsForm = ({ initialData, onSave, isLoading = false }) =
         />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+        <Input
+          label="رقم بداية الأوردر اليومي"
+          type="number"
+          min="1"
+          max="99999"
+          icon={Hash}
+          helperText="بعد الساعة 12 بليل، الأوردرات تبدأ من الرقم دا (مثال: 200 ثم 201، 202...)"
+          error={errors.dailyOrderStartNumber?.message}
+          {...register('dailyOrderStartNumber')}
+        />
+      </div>
+
       <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
-        <Button type="submit" variant="primary" size="sm" isLoading={isLoading}>
-          حفظ إعدادات الفرع
-        </Button>
+        <PermissionGate permission="branches.manage">
+          <Button type="submit" variant="primary" size="sm" isLoading={isLoading}>
+            حفظ إعدادات الفرع
+          </Button>
+        </PermissionGate>
       </div>
     </form>
   );

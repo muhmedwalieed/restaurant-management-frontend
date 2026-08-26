@@ -26,6 +26,7 @@ import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   MessageSquare,
@@ -47,6 +48,7 @@ export const WhatsAppPage = () => {
   const [errorMsg, setErrorMsg] = useState(null);
   const [messagesPage, setMessagesPage] = useState(1);
   const [directionFilter, setDirectionFilter] = useState('ALL');
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
 
   const { data: connection, isLoading: isConnLoading, isError: isConnError, error: connError, refetch: refetchConn } = useConnectionQuery();
   const connectMutation = useConnectConnectionMutation();
@@ -104,9 +106,11 @@ export const WhatsAppPage = () => {
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('هل تريد فصل اتصال الواتساب؟')) return;
     const ok = await runAction(() => disconnectMutation.mutateAsync());
-    if (ok) setSuccessMsg('تم فصل الاتصال.');
+    if (ok) {
+      setSuccessMsg('تم فصل الاتصال.');
+      setConfirmDisconnect(false);
+    }
   };
 
   const handleReconnect = async () => {
@@ -148,7 +152,7 @@ export const WhatsAppPage = () => {
     {
       header: 'الرسالة',
       accessorKey: 'content',
-      render: (row) => <span className="text-txt-muted truncate max-w-[260px] inline-block">{row.content || '—'}</span>,
+      render: (row) => <span className="text-txt-muted truncate max-w-[260px] inline-block">{row.content || 'غير محدد'}</span>,
     },
     {
       header: 'الحالة',
@@ -161,17 +165,17 @@ export const WhatsAppPage = () => {
       header: 'الوقت',
       accessorKey: 'createdAt',
       width: '130px',
-      render: (row) => <span className="text-txt-muted text-[11px]">{new Date(row.createdAt).toLocaleString('ar-EG')}</span>,
+      render: (row) => <span className="text-txt-muted text-xs">{new Date(row.createdAt).toLocaleString('ar-EG')}</span>,
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <MessageSquare className="w-6 h-6 text-brand-primary" />
+            <MessageSquare className="w-5 h-5 text-brand-primary" />
             <span>الواتساب والرسائل</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">ربط حساب الواتساب وإرسال الرسائل ومتابعة حالتها</p>
@@ -199,7 +203,7 @@ export const WhatsAppPage = () => {
         </div>
       )}
 
-      {/* Tabs */}
+      {}
       <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
         {[
           { key: 'connection', label: 'الاتصال', icon: Phone },
@@ -210,7 +214,7 @@ export const WhatsAppPage = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
+              className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
                 activeTab === tab.key
                   ? 'border-brand-primary text-brand-primary'
                   : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -224,7 +228,7 @@ export const WhatsAppPage = () => {
       </div>
 
       <div className="bg-bg-surface border border-border-default border-t-0 rounded-b-lg p-6">
-        {/* Tab 1: Connection */}
+        {}
         {activeTab === 'connection' && (
           <div className="max-w-2xl">
             {isConnLoading ? (
@@ -247,9 +251,9 @@ export const WhatsAppPage = () => {
 
                 <Input label="Account ID (WABA ID)" dir="ltr" icon={Phone} error={connectErrors.providerAccountId?.message} {...registerConnect('providerAccountId')} />
                 <Input label="Phone Number ID" dir="ltr" icon={Phone} error={connectErrors.providerPhoneNumberId?.message} {...registerConnect('providerPhoneNumberId')} />
-                <Input label="اسم العرض (اختياري)" icon={MessageSquare} {...registerConnect('displayName')} />
+                <Input label="اسم العرض" icon={MessageSquare} {...registerConnect('displayName')} />
                 <Input
-                  label="Webhook Secret (اختياري — 16 حرفًا على الأقل)"
+                  label="Webhook Secret (اختياري، 16 حرفًا على الأقل)"
                   dir="ltr"
                   type="password"
                   error={connectErrors.webhookSecret?.message}
@@ -273,7 +277,7 @@ export const WhatsAppPage = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-txt-muted">
                     <p>
-                      اسم العرض: <strong className="text-txt-primary">{connection.displayName || '—'}</strong>
+                      اسم العرض: <strong className="text-txt-primary">{connection.displayName || 'غير محدد'}</strong>
                     </p>
                     <p>
                       الـProvider: <strong className="text-txt-primary">{PROVIDER_LABELS[connection.provider] || connection.provider}</strong>
@@ -290,7 +294,7 @@ export const WhatsAppPage = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   <PermissionGate permission="whatsapp.manage">
                     {connection.status === 'ACTIVE' ? (
-                      <Button variant="danger" size="sm" icon={LogOut} isLoading={disconnectMutation.isPending} onClick={handleDisconnect}>
+                      <Button variant="danger" size="sm" icon={LogOut} isLoading={disconnectMutation.isPending} onClick={() => setConfirmDisconnect(true)}>
                         فصل الاتصال
                       </Button>
                     ) : (
@@ -312,10 +316,10 @@ export const WhatsAppPage = () => {
           </div>
         )}
 
-        {/* Tab 2: Messages */}
+        {}
         {activeTab === 'messages' && (
           <div className="space-y-5">
-            {/* Send form */}
+            {}
             <PermissionGate permission="whatsapp.manage">
               <form onSubmit={handleSubmitSend(handleSend)} className="bg-bg-base border border-border-default rounded-lg p-4 space-y-3">
                 <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2">
@@ -332,7 +336,7 @@ export const WhatsAppPage = () => {
               </form>
             </PermissionGate>
 
-            {/* Messages list */}
+            {}
             <DataTable
               columns={messageColumns}
               data={messages}
@@ -368,6 +372,17 @@ export const WhatsAppPage = () => {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDisconnect}
+        onClose={() => setConfirmDisconnect(false)}
+        title="فصل اتصال الواتساب"
+        message="هل تريد فصل اتصال الواتساب؟ لن تستقبل أو ترسل رسائل من الواتساب بعد الفصل."
+        confirmLabel="فصل الاتصال"
+        variant="danger"
+        isLoading={disconnectMutation.isPending}
+        onConfirm={handleDisconnect}
+      />
     </div>
   );
 };

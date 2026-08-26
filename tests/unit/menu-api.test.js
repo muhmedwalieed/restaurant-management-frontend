@@ -32,7 +32,6 @@ describe('Module 4 Menu API Services Unit Tests', () => {
     vi.clearAllMocks();
   });
 
-  // ==================== CATEGORIES TESTS ====================
   it('getCategoriesApi should call GET /categories with params', async () => {
     apiClient.get.mockResolvedValueOnce({ items: [{ id: 'cat-1', name: 'وجبات رئيسية' }] });
     const res = await getCategoriesApi({ page: 1, limit: 10, status: 'ACTIVE' });
@@ -70,7 +69,6 @@ describe('Module 4 Menu API Services Unit Tests', () => {
     expect(res.message).toBe('Category deleted');
   });
 
-  // ==================== PRODUCTS TESTS ====================
   it('getProductsApi should call GET /products with query filters', async () => {
     apiClient.get.mockResolvedValueOnce({ items: [{ id: 'prod-1', name: 'تشيز برجر' }] });
     const params = { categoryId: 'cat-1', isAvailable: true, search: 'برجر', page: 1, limit: 20 };
@@ -110,7 +108,6 @@ describe('Module 4 Menu API Services Unit Tests', () => {
     expect(res.message).toBe('Product deleted');
   });
 
-  // ==================== MODIFIERS TESTS ====================
   it('getModifiersApi should call GET /products/:productId/modifiers', async () => {
     apiClient.get.mockResolvedValueOnce([{ id: 'mod-1', name: 'جبنة إضافية', priceDelta: 20 }]);
     const res = await getModifiersApi('prod-1');
@@ -141,7 +138,6 @@ describe('Module 4 Menu API Services Unit Tests', () => {
     expect(res.message).toBe('Modifier deleted');
   });
 
-  // ==================== PUBLIC MENU TESTS ====================
   it('getPublicMenuApi should call GET /menu/public with slug query param', async () => {
     apiClient.get.mockResolvedValueOnce({ restaurant: { slug: 'burger-house' }, categories: [] });
     const res = await getPublicMenuApi({ slug: 'burger-house' });

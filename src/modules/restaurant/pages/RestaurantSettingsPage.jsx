@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 
@@ -23,6 +24,12 @@ export const restaurantProfileSchema = z.object({
   phone: z.string().min(6, 'رقم الهاتف غير صحيح'),
   currency: z.string().min(2, 'رمز العملة مطلوب'),
   timezone: z.string().min(2, 'التوقيت المحلي مطلوب'),
+  logoUrl: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.startsWith('/uploads/') || z.string().url().safeParse(val).success, {
+      message: 'أرفع لوجو من جهازك أو أدخل رابط صحيح',
+    }),
 });
 
 const CURRENCY_OPTIONS = [
@@ -50,6 +57,8 @@ export const RestaurantSettingsPage = () => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(restaurantProfileSchema),
@@ -59,6 +68,7 @@ export const RestaurantSettingsPage = () => {
       phone: '',
       currency: 'EGP',
       timezone: 'Africa/Cairo',
+      logoUrl: '',
     },
   });
 
@@ -70,6 +80,7 @@ export const RestaurantSettingsPage = () => {
         phone: restaurant.phone || '',
         currency: restaurant.currency || 'EGP',
         timezone: restaurant.timezone || 'Africa/Cairo',
+        logoUrl: restaurant.logoUrl || '',
       });
     }
   }, [restaurant, reset]);
@@ -78,7 +89,7 @@ export const RestaurantSettingsPage = () => {
     setSuccessMessage(null);
     setErrorMessage(null);
     try {
-      await updateMutation.mutateAsync(formData);
+      await updateMutation.mutateAsync({ ...formData, logoUrl: watch('logoUrl') || undefined });
       setSuccessMessage('تم حفظ بيانات المطعم بنجاح.');
     } catch (err) {
       setErrorMessage(err?.message || 'حدث خطأ أثناء حفظ بيانات المطعم.');
@@ -113,7 +124,7 @@ export const RestaurantSettingsPage = () => {
   if (isError) {
     return (
       <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
-        <ShieldAlert className="w-8 h-8 text-status-danger mx-auto" />
+        <ShieldAlert className="w-6 h-6 text-status-danger mx-auto" />
         <h3 className="text-base font-bold text-txt-primary">فشل في تحميل بيانات المطعم</h3>
         <p className="text-xs text-txt-muted">{error?.message || 'تعذر الاتصال بالسيرفر.'}</p>
         <Button size="sm" variant="outline" onClick={refetch}>
@@ -127,12 +138,12 @@ export const RestaurantSettingsPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-              <Store className="w-6 h-6 text-brand-primary" />
+              <Store className="w-5 h-5 text-brand-primary" />
               <span>إعدادات المطعم الرئيسية</span>
             </h1>
             <StatusPill status={isStatusActive ? 'success' : 'neutral'}>
@@ -170,9 +181,16 @@ export const RestaurantSettingsPage = () => {
         </div>
       )}
 
-      {/* Main Form */}
+      {}
       <div className="bg-bg-surface border border-border-default rounded-lg p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-right" noValidate>
+          <ImageUploadInput
+            label="شعار المطعم"
+            value={watch('logoUrl')}
+            onChange={(url) => setValue('logoUrl', url, { shouldValidate: true })}
+            hint="ارفع لوجو من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               label="اسم المطعم"

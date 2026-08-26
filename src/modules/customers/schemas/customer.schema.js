@@ -1,15 +1,10 @@
 import { z } from 'zod';
 
 export const customerFormSchema = z.object({
-  name: z.string().trim().min(2, 'اسم العميل يجب أن يكون حرفين على الأقل'),
+  firstName: z.string().trim().min(2, 'الاسم الأول يجب أن يكون حرفين على الأقل'),
+  lastName: z.string().trim().optional(),
   phone: z.string().trim().min(3, 'رقم الهاتف مطلوب'),
-  email: z
-    .string()
-    .trim()
-    .optional()
-    .refine((val) => !val || z.string().email().safeParse(val).success, {
-      message: 'يرجى إدخال بريد إلكتروني صحيح',
-    }),
+  phones: z.array(z.string().trim()).optional(),
   notes: z.string().optional(),
 });
 

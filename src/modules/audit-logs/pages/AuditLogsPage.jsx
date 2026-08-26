@@ -22,7 +22,7 @@ const ACTION_LABELS = {
 };
 
 const formatDate = (iso) => {
-  if (!iso) return '—';
+  if (!iso) return 'غير محدد';
   return new Date(iso).toLocaleString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
@@ -63,7 +63,7 @@ export const AuditLogsPage = () => {
       render: (row) => (
         <span className="text-xs text-txt-muted">
           {row.entityType}
-          {row.entityId ? <span className="block text-[10px] dir-ltr truncate max-w-[160px]">{row.entityId}</span> : null}
+          {row.entityId ? <span className="block text-xs dir-ltr truncate max-w-[160px]">{row.entityId}</span> : null}
         </span>
       ),
     },
@@ -81,11 +81,11 @@ export const AuditLogsPage = () => {
       accessorKey: 'metadata',
       render: (row) =>
         row.metadata ? (
-          <span className="text-[11px] text-txt-muted dir-ltr truncate max-w-[220px]" title={JSON.stringify(row.metadata)}>
+          <span className="text-xs text-txt-muted dir-ltr truncate max-w-[220px]" title={JSON.stringify(row.metadata)}>
             {JSON.stringify(row.metadata)}
           </span>
         ) : (
-          <span className="text-txt-muted">—</span>
+          <span className="text-txt-muted">غير محدد</span>
         ),
     },
     {
@@ -101,10 +101,10 @@ export const AuditLogsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <ScrollText className="w-6 h-6 text-brand-primary" />
+            <ScrollText className="w-5 h-5 text-brand-primary" />
             <span>سجل التدقيق (Audit Logs)</span>
           </h1>
-          <p className="text-xs text-txt-muted mt-1">سجل append-only لكل الأحداث الحساسة — الأوردرات، الصلاحيات، الكوبونات، الجلسات</p>
+          <p className="text-xs text-txt-muted mt-1">سجل append-only لكل الأحداث الحساسة، الطلبات، الصلاحيات، الكوبونات، الجلسات</p>
         </div>
       </div>
 
@@ -117,8 +117,8 @@ export const AuditLogsPage = () => {
         onRetry={refetch}
         filters={
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="flex items-center gap-1 text-[10px] text-txt-muted">
-              <Filter className="w-3 h-3" />
+            <span className="flex items-center gap-1 text-xs text-txt-muted">
+              <Filter className="w-4 h-4" />
             </span>
             <select
               value={actionFilter}

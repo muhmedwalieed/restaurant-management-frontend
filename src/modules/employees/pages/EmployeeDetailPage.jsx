@@ -63,26 +63,26 @@ const InfoRow = ({ icon: Icon, label, value }) => (
       <Icon className="w-4 h-4" />
     </span>
     <div className="min-w-0">
-      <p className="text-[11px] text-txt-muted">{label}</p>
-      <p className="text-sm font-semibold text-txt-primary truncate">{value || '—'}</p>
+      <p className="text-xs text-txt-muted">{label}</p>
+      <p className="text-sm font-semibold text-txt-primary truncate">{value || 'غير محدد'}</p>
     </div>
   </div>
 );
 
 const QuickViewRow = ({ icon: Icon, label, value }) => (
-  <div className="flex items-center justify-between py-2.5">
+  <div className="flex items-center justify-between py-3">
     <span className="flex items-center gap-2 text-xs text-txt-muted">
       <Icon className="w-4 h-4 text-brand-primary" />
       {label}
     </span>
-    <span className="text-xs font-semibold text-txt-primary">{value || '—'}</span>
+    <span className="text-xs font-semibold text-txt-primary">{value || 'غير محدد'}</span>
   </div>
 );
 
 const formatDate = (date) => {
-  if (!date) return '—';
+  if (!date) return 'غير محدد';
   const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return '—';
+  if (Number.isNaN(d.getTime())) return 'غير محدد';
   return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
@@ -159,7 +159,7 @@ export const EmployeeDetailPage = () => {
   if (isError) {
     return (
       <div className="bg-status-danger-bg border border-status-danger/30 rounded-lg p-6 text-center space-y-3">
-        <AlertCircle className="w-8 h-8 text-status-danger mx-auto" />
+        <AlertCircle className="w-6 h-6 text-status-danger mx-auto" />
         <h3 className="text-base font-bold text-txt-primary">فشل في تحميل بيانات الموظف</h3>
         <p className="text-xs text-txt-muted">{error?.message || 'تعذر التواصل مع الخادم.'}</p>
         <Button size="sm" variant="outline" onClick={refetch}>
@@ -173,7 +173,7 @@ export const EmployeeDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-3 pb-2">
         <Button
           size="sm"
@@ -186,11 +186,11 @@ export const EmployeeDetailPage = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl font-bold text-txt-primary">{employee?.name || 'ملف الموظف'}</h1>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-bg-surface-elevated text-brand-primary border border-border-subtle">
-            {employee?.role?.name || '—'}
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-bg-surface-elevated text-brand-primary border border-border-subtle">
+            {employee?.role?.name || 'غير محدد'}
           </span>
           <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${
               status.label === 'نشط'
                 ? 'bg-status-success-bg text-status-success border border-status-success/20'
                 : 'bg-status-neutral-bg text-status-neutral border border-status-neutral/20'
@@ -202,9 +202,9 @@ export const EmployeeDetailPage = () => {
         </div>
       </div>
 
-      {/* Action buttons */}
+      {}
       <div className="flex flex-wrap items-center gap-2">
-        <PermissionGate permission="employees.manage_roles">
+        <PermissionGate permission="employees.manage">
           <Button
             variant="primary"
             size="sm"
@@ -254,11 +254,11 @@ export const EmployeeDetailPage = () => {
         </div>
       )}
 
-      {/* Content: two columns */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main details (right column) */}
+        {}
         <div className="lg:col-span-2 space-y-6">
-          {/* Tabs */}
+          {}
           <div className="flex items-center gap-1 border-b border-border-default">
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -268,7 +268,7 @@ export const EmployeeDetailPage = () => {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-3.5 py-2.5 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 focus-visible:outline-none ${
+                  className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 focus-visible:outline-none ${
                     isActive
                       ? 'border-brand-primary text-brand-primary'
                       : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -296,9 +296,9 @@ export const EmployeeDetailPage = () => {
           )}
         </div>
 
-        {/* Profile & quick view (left column) */}
+        {}
         <div className="space-y-6">
-          {/* Quick view card */}
+          {}
           <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b border-border-default">
               <h3 className="text-sm font-bold text-txt-primary">نظرة سريعة</h3>
@@ -307,12 +307,12 @@ export const EmployeeDetailPage = () => {
               <QuickViewRow
                 icon={ShieldCheck}
                 label="الدور الوظيفي"
-                value={employee?.role?.name || '—'}
+                value={employee?.role?.name || 'غير محدد'}
               />
               <QuickViewRow
                 icon={Building2}
                 label="الفرع"
-                value={employee?.branch?.name || '—'}
+                value={employee?.branch?.name || 'غير محدد'}
               />
               <QuickViewRow
                 icon={CalendarDays}
@@ -329,7 +329,7 @@ export const EmployeeDetailPage = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {}
       <EmployeeFormModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
@@ -338,7 +338,7 @@ export const EmployeeDetailPage = () => {
         isLoading={updateMutation.isPending}
       />
 
-      {/* Change Password Modal */}
+      {}
       <ChangePasswordModal
         isOpen={isPasswordOpen}
         onClose={() => setIsPasswordOpen(false)}
@@ -347,7 +347,7 @@ export const EmployeeDetailPage = () => {
         isLoading={changePasswordMutation.isPending}
       />
 
-      {/* Change Role Modal */}
+      {}
       <ChangeRoleModal
         isOpen={isRoleOpen}
         onClose={() => setIsRoleOpen(false)}
@@ -356,7 +356,7 @@ export const EmployeeDetailPage = () => {
         isLoading={changeRoleMutation.isPending}
       />
 
-      {/* Delete Confirm Modal */}
+      {}
       <Modal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
@@ -384,7 +384,7 @@ export const EmployeeDetailPage = () => {
         </div>
       </Modal>
 
-      {/* Force Logout Confirm Modal */}
+      {}
       <Modal
         isOpen={isForceLogoutOpen}
         onClose={() => setIsForceLogoutOpen(false)}

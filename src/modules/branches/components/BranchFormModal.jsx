@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -139,7 +139,7 @@ export const BranchFormModal = ({
             className="w-4 h-4 rounded border-border-default text-brand-primary focus:ring-brand-primary cursor-pointer"
             {...register('isMain')}
           />
-          <label htmlFor="isMain" className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-1.5">
+          <label htmlFor="isMain" className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-primary" />
             <span>تعيين كـ &quot;الفرع الرئيسي للمطعم&quot; (isMain)</span>
           </label>

@@ -60,7 +60,7 @@ export const EmployeesListPage = () => {
           <span className={`font-bold ${row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
             {row.name}
           </span>
-          <span className="text-[11px] text-txt-muted">{row.email}</span>
+          <span className="text-xs text-txt-muted">{row.email}</span>
         </div>
       ),
     },
@@ -69,7 +69,7 @@ export const EmployeesListPage = () => {
       accessorKey: 'phone',
       render: (row) => (
         <span className={`dir-ltr inline-block ${row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-txt-primary'}`}>
-          {row.phone || '—'}
+          {row.phone || 'غير محدد'}
         </span>
       ),
     },
@@ -78,7 +78,7 @@ export const EmployeesListPage = () => {
       accessorKey: 'role',
       render: (row) => (
         <span className={`font-semibold ${row.status !== 'ACTIVE' ? 'text-txt-muted' : 'text-brand-primary'}`}>
-          {row.role?.name || row.role || '—'}
+          {row.role?.name || row.role || 'غير محدد'}
         </span>
       ),
     },
@@ -102,11 +102,11 @@ export const EmployeesListPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header section */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-            <Users className="w-6 h-6 text-brand-primary" />
+            <Users className="w-5 h-5 text-brand-primary" />
             <span>إدارة الموظفين الحسابية</span>
           </h1>
           <p className="text-xs text-txt-muted mt-1">
@@ -132,7 +132,7 @@ export const EmployeesListPage = () => {
         </div>
       )}
 
-      {/* Filter Options */}
+      {}
       <DataTable
         columns={columns}
         data={employeesList}
@@ -184,7 +184,7 @@ export const EmployeesListPage = () => {
         }
       />
 
-      {/* Create Employee Modal */}
+      {}
       <EmployeeFormModal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}

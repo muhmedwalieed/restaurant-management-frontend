@@ -21,6 +21,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
     reset,
     watch,
     setValue,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(couponFormSchema),
@@ -87,7 +88,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
       }
       onClose();
     } catch (err) {
-      // Handled by interceptor / inline error
+      setError('root', { message: err?.message || 'حدث خطأ أثناء حفظ الكوبون.' });
     }
   };
 
@@ -100,7 +101,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? 'تعديل الكوبون' : 'إضافة كوبون جديد'}
-      subtitle={isEditing ? 'تعديل خصومات وشروط الكوبون' : 'أنشئ كود خصم يطبّق تلقائيًا على الأوردرات'}
+      subtitle={isEditing ? 'تعديل خصومات وشروط الكوبون' : 'أنشئ كود خصم يطبّق تلقائيًا على الطلبات'}
       size="md"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -116,6 +117,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="نوع الخصم"
+            required
             options={[
               { value: 'PERCENTAGE', label: 'نسبة مئوية (%)' },
               { value: 'FIXED', label: 'مبلغ ثابت' },
@@ -125,6 +127,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
           />
           <Input
             label={couponType === 'PERCENTAGE' ? 'نسبة الخصم (%)' : 'قيمة الخصم (ج.م)'}
+            required
             type="number"
             min="0"
             step="0.01"
@@ -144,7 +147,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
           />
           {couponType === 'PERCENTAGE' && (
             <Input
-              label="أقصى خصم (ج.م) — اختياري"
+              label="أقصى خصم (ج.م)، اختياري"
               type="number"
               min="0"
               step="0.01"
@@ -157,20 +160,26 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="حد الاستخدام الكلي — اختياري"
+            label="حد الاستخدام الكلي، اختياري"
             type="number"
             min="1"
             placeholder="بدون حد"
             error={errors.usageLimit?.message}
             {...register('usageLimit')}
           />
-          <Input label="ينتهي في — اختياري" type="datetime-local" error={errors.expiresAt?.message} {...register('expiresAt')} />
+          <Input label="ينتهي في، اختياري" type="datetime-local" error={errors.expiresAt?.message} {...register('expiresAt')} />
         </div>
 
         <div className="flex items-center justify-between px-3 py-2 rounded-md border border-border-default">
           <span className="text-xs text-txt-primary">الكوبون مفعّل</span>
           <Toggle checked={isActive} onChange={(v) => setValue('isActive', v)} label="تفعيل الكوبون" />
         </div>
+
+        {errors.root?.message && (
+          <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
+            {errors.root.message}
+          </div>
+        )}
 
         {(createMutation.isError || updateMutation.isError) && (
           <div className="p-3 bg-status-danger/10 border border-status-danger/30 rounded-md text-xs text-status-danger">
