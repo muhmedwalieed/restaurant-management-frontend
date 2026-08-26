@@ -117,6 +117,13 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
         if (onUnauthorizedCallback) onUnauthorizedCallback(normalizedError);
         return Promise.reject(normalizedError);
       }
+
+      // Table self-ordering member routes use their own JWT — never retry them
+      // with the staff access token (a staff refresh must not log the user out).
+      if (originalRequest.url && /^\/sessions\//.test(originalRequest.url)) {
+        return Promise.reject(normalizedError);
+      }
+
       originalRequest._retry = true;
       if (onRefreshCallback) {
         try {

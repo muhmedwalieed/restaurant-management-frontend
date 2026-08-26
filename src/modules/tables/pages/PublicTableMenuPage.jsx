@@ -177,6 +177,14 @@ export const PublicTableMenuPage = () => {
     setPin('');
   };
 
+  const handleMemberExpired = () => {
+    localStorage.removeItem(sessionStorageKey);
+    localStorage.removeItem(memberStorageKey);
+    setSessionId(null);
+    setMemberToken(null);
+    setJoinError('انتهت صلاحية الجلسة، سجّل دخولك تاني بالاسم والـ PIN.');
+  };
+
   const handleJoin = async (e) => {
     e.preventDefault();
     setJoinError(null);
@@ -203,6 +211,10 @@ export const PublicTableMenuPage = () => {
       setLocalFlash(`${myName || 'أنت'} أضفت: ${p.name}`);
       setTimeout(() => setLocalFlash(null), 2500);
     } catch (err) {
+      if (err?.status === 401) {
+        handleMemberExpired();
+        return;
+      }
       setLocalFlash(err?.message || 'تعذر إضافة الصنف، حاول تاني.');
       setTimeout(() => setLocalFlash(null), 4000);
     }
@@ -218,6 +230,10 @@ export const PublicTableMenuPage = () => {
       setWaiterCooldownActive(true);
       setTimeout(() => setWaiterSent(false), 8000);
     } catch (err) {
+      if (err?.status === 401) {
+        handleMemberExpired();
+        return;
+      }
       setLocalFlash(err?.message || 'تعذر استدعاء الويتر، حاول تاني.');
       setTimeout(() => setLocalFlash(null), 4000);
     }
@@ -229,6 +245,10 @@ export const PublicTableMenuPage = () => {
       await submitMutation.mutateAsync();
       setIsCartOpen(false);
     } catch (err) {
+      if (err?.status === 401) {
+        handleMemberExpired();
+        return;
+      }
       setLocalFlash(err?.message || 'تعذر إرسال الطلب، حاول تاني.');
       setTimeout(() => setLocalFlash(null), 4000);
     }
@@ -632,8 +652,20 @@ export const PublicTableMenuPage = () => {
         onClose={() => setIsCartOpen(false)}
         session={session}
         restaurant={restaurant}
-        onUpdateQuantity={(itemId, quantity) => updateMutation.mutate({ itemId, quantity })}
-        onRemoveItem={(itemId) => removeMutation.mutate(itemId)}
+        onUpdateQuantity={async (itemId, quantity) => {
+          try {
+            await updateMutation.mutateAsync({ itemId, quantity });
+          } catch (err) {
+            if (err?.status === 401) handleMemberExpired();
+          }
+        }}
+        onRemoveItem={async (itemId) => {
+          try {
+            await removeMutation.mutateAsync(itemId);
+          } catch (err) {
+            if (err?.status === 401) handleMemberExpired();
+          }
+        }}
         onCallWaiter={requestWaiter}
         onSubmitOrder={requestSubmit}
         isCallWaiterPending={callWaiterMutation.isPending}
