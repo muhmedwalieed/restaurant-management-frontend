@@ -4,6 +4,7 @@ import { Modal } from '../../../shared/components/Modal.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { printHtml } from '../../../lib/print.js';
 import {
   useStartTableSession,
@@ -93,6 +94,7 @@ export const TableSessionPanel = ({ tableId }) => {
   const [copied, setCopied] = useState(false);
   const [actionError, setActionError] = useState(null);
   const [actionSuccess, setActionSuccess] = useState(null);
+  const [confirmClose, setConfirmClose] = useState(false);
 
   const startMutation = useStartTableSession();
   const { data: session, isLoading, refetch } = useActiveTableSessionQuery(tableId, true);
@@ -105,6 +107,8 @@ export const TableSessionPanel = ({ tableId }) => {
 
   const status = SESSION_STATUS[session?.status] || SESSION_STATUS.ACTIVE;
   const pendingOrder = (session?.orders || []).find((o) => o.status === 'AWAITING_CONFIRMATION');
+  const confirmedOrders = (session?.orders || []).filter((o) => o.status === 'CONFIRMED');
+  const confirmedTotal = confirmedOrders.reduce((s, o) => s + Number(o.total || 0), 0);
   const currentItems = session?.items || [];
   const historyOrders = (session?.orders || []).filter((o) => o.status !== 'AWAITING_CONFIRMATION');
   const grandTotal = Number(session?.grandTotal || 0).toFixed(2);
@@ -350,7 +354,7 @@ export const TableSessionPanel = ({ tableId }) => {
                 icon={XCircle}
                 isLoading={closeMutation.isPending}
                 disabled={session.status === 'CLOSED'}
-                onClick={handleClose}
+                onClick={() => setConfirmClose(true)}
               >
                 إغلاق الجلسة
               </Button>
@@ -377,6 +381,24 @@ export const TableSessionPanel = ({ tableId }) => {
           </div>
         </div>
       </Modal>
+
+      {}
+      <ConfirmDialog
+        isOpen={confirmClose}
+        onClose={() => setConfirmClose(false)}
+        title="إغلاق الجلسة"
+        message={
+          pendingOrder
+            ? `فيه أوردر #${pendingOrder.orderNumber} بانتظار التأكيد — الإغلاق هيبطله. هل متأكد من إغلاق الجلسة؟`
+            : confirmedTotal > 0
+              ? `الجلسة فيها ${confirmedOrders.length} أوردر مؤكد بإجمالي ${confirmedTotal.toFixed(2)} — الأوردرات المؤكدة متسجلة في الفاتورة ولن تتأثر. هل متأكد من إغلاق الجلسة؟`
+              : 'متأكد من إغلاق الجلسة؟'
+        }
+        confirmLabel="نعم، إغلاق الجلسة"
+        variant="danger"
+        isLoading={closeMutation.isPending}
+        onConfirm={handleClose}
+      />
     </div>
   );
 };
