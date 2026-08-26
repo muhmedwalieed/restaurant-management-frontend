@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProductsQuery, useCategoriesQuery } from '../../menu/hooks/useMenu.js';
 import { useTablesQuery } from '../../tables/hooks/useTables.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
+import { useAuth } from '../../auth/context/AuthContext.jsx';
 import { useCreatePosOrderMutation } from '../hooks/useOrders.js';
 import { lookupCallerApi } from '../../../lib/api/phone-order.api.js';
 import { resolveAssetUrl } from '../../../lib/asset-url.js';
@@ -38,7 +39,6 @@ export const PosPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cart, setCart] = useState([]);
   const [orderType, setOrderType] = useState('DINE_IN');
-  const [source, setSource] = useState('CASHIER');
   const [tableId, setTableId] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -51,6 +51,24 @@ export const PosPage = () => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [modifierProduct, setModifierProduct] = useState(null);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
+
+  const { hasPermission } = useAuth();
+  const SOURCE_PERMISSIONS = [
+    { value: 'CASHIER', key: 'orders.source_cashier' },
+    { value: 'PHONE', key: 'orders.source_phone' },
+    { value: 'WHATSAPP', key: 'orders.source_whatsapp' },
+    { value: 'WEBSITE', key: 'orders.source_website' },
+  ];
+  const availableSources = SOURCE_PERMISSIONS.filter((s) => hasPermission(s.key)).map((s) => s.value);
+  const [source, setSource] = useState(() =>
+    availableSources.includes('CASHIER') ? 'CASHIER' : availableSources[0] || 'CASHIER'
+  );
+
+  useEffect(() => {
+    if (availableSources.length > 0 && !availableSources.includes(source)) {
+      setSource(availableSources.includes('CASHIER') ? 'CASHIER' : availableSources[0]);
+    }
+  }, [availableSources, source]);
 
   useEffect(() => {
     const cleanPhone = customerPhone.trim();
@@ -210,6 +228,7 @@ export const PosPage = () => {
     total,
     source,
     setSource,
+    sources: availableSources,
     orderType,
     setOrderType,
     tables,
@@ -233,6 +252,18 @@ export const PosPage = () => {
     handleSubmit,
     isPending: createPosMutation.isPending,
   };
+
+  if (availableSources.length === 0) {
+    return (
+      <div className="h-[calc(100dvh-7rem)] flex items-center justify-center">
+        <div className="text-center space-y-2">
+          <AlertCircle className="w-8 h-8 text-status-danger mx-auto" />
+          <p className="text-sm font-bold text-txt-primary">ليس لديك صلاحية لأي مصدر طلب</p>
+          <p className="text-xs text-txt-muted">تواصل مع صاحب المطعم لتفعيل مصدر طلب لحسابك.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100dvh-7rem)] flex flex-col min-h-0 overflow-hidden gap-3">

@@ -11,6 +11,7 @@ export const PosOrderTicket = ({
   total,
   source,
   setSource,
+  sources,
   orderType,
   setOrderType,
   tables,
@@ -75,7 +76,7 @@ export const PosOrderTicket = ({
           )}
         </div>
 
-        <OrderSourcePicker value={source} onChange={setSource} />
+        <OrderSourcePicker value={source} onChange={setSource} sources={sources} />
 
         <div className="space-y-1">
           <label className="text-[11px] font-medium text-txt-primary block">نوع الطلب</label>

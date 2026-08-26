@@ -8,12 +8,15 @@ const SOURCE_OPTIONS = [
   { value: 'WEBSITE', label: 'أونلاين', icon: Globe },
 ];
 
-export const OrderSourcePicker = ({ value, onChange }) => {
+export const OrderSourcePicker = ({ value, onChange, sources }) => {
+  const options = sources ? SOURCE_OPTIONS.filter((o) => sources.includes(o.value)) : SOURCE_OPTIONS;
+  if (options.length <= 1) return null;
+
   return (
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-txt-primary block">مصدر الطلب</label>
-      <div className="grid grid-cols-4 gap-1 p-1 bg-bg-base/80 border border-border-default rounded-lg">
-        {SOURCE_OPTIONS.map((opt) => {
+      <div className="grid grid-flow-col auto-cols-fr gap-1 p-1 bg-bg-base/80 border border-border-default rounded-lg">
+        {options.map((opt) => {
           const Icon = opt.icon;
           const isSelected = value === opt.value;
           return (
@@ -37,3 +40,5 @@ export const OrderSourcePicker = ({ value, onChange }) => {
     </div>
   );
 };
+
+export default OrderSourcePicker;

@@ -55,7 +55,9 @@ const RequirePermission = ({ permission, children }) => {
 const HomeRedirect = () => {
   const { hasPermission } = useAuth();
   if (hasPermission('dashboard.view')) return <DashboardPage />;
-  if (hasPermission('orders.create')) return <Navigate to="/pos" replace />;
+  if (hasPermission(['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website'])) {
+    return <Navigate to="/pos" replace />;
+  }
   if (hasPermission('orders.view')) return <Navigate to="/orders" replace />;
   if (hasPermission('customers.view')) return <Navigate to="/customers" replace />;
   return <DashboardPage />;
@@ -137,7 +139,9 @@ export const router = createBrowserRouter(
       {
         path: 'pos',
         element: (
-          <RequirePermission permission="orders.create">
+          <RequirePermission
+            permission={['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website']}
+          >
             <PosPage />
           </RequirePermission>
         ),
