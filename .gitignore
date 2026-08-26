@@ -13,6 +13,7 @@ vite.config.js.timestamp-*
 
 # Personal working documentation (not part of the repo)
 Frontend_Project_Guide.md
+FRONTEND_ARCHITECTURE.md
 
 # Environment variables (never commit secrets)
 .env
