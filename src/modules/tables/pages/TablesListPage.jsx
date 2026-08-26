@@ -235,10 +235,11 @@ export const TablesListPage = () => {
                 <button
                   type="button"
                   onClick={(e) => handleStartSession(e, table)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-bold bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors"
+                  disabled={startMutation.isPending}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-bold bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  {table.session ? 'عرض الـ PIN' : 'بدء جلسة'}
+                  {startMutation.isPending ? 'جارٍ الإنشاء…' : table.session ? 'عرض الـ PIN' : 'بدء جلسة'}
                 </button>
                 <button
                   type="button"
