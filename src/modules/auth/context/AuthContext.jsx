@@ -4,6 +4,30 @@ import { setAuthToken, setApiCallbacks } from '../../../lib/api-client.js';
 import { loginApi, logoutApi, refreshTokenApi, getCurrentUserApi } from '../../../lib/api/auth.api.js';
 
 const REFRESH_STORAGE_KEY = 'saas_refresh_token';
+const BRANCH_STORAGE_KEY = 'saas_active_branch_id';
+
+// The refresh token lives in sessionStorage (per-tab), NOT localStorage:
+// a shared localStorage key lets one open tab overwrite another's session
+// (e.g. an old owner tab refreshes and clobbers the cashier tab's token,
+// which then reloads straight into the owner account). sessionStorage is
+// isolated per tab, so each tab keeps its own session and reloads stay on
+// the same account. clearSession also drops the previous account's branch
+// selection so nothing sensitive leaks to the next user.
+const readRefreshToken = () => {
+  try {
+    return sessionStorage.getItem(REFRESH_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+const writeRefreshToken = (value) => {
+  try {
+    if (value) sessionStorage.setItem(REFRESH_STORAGE_KEY, value);
+    else sessionStorage.removeItem(REFRESH_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+};
 
 const AuthContext = createContext(null);
 
@@ -19,12 +43,24 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(token);
   }, [token]);
 
+  useEffect(() => {
+    // One-time cleanup: previously the refresh token lived in localStorage
+    // (shared across tabs — the source of cross-account session takeover).
+    // Remove any legacy copy so a stale owner token can never resurface.
+    try {
+      localStorage.removeItem(REFRESH_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const clearSession = useCallback(() => {
     setUser(null);
     setToken(null);
     refreshTokenRef.current = null;
     setAuthToken(null);
-    localStorage.removeItem(REFRESH_STORAGE_KEY);
+    writeRefreshToken(null);
+    localStorage.removeItem(BRANCH_STORAGE_KEY);
   }, []);
 
 const refreshPromiseRef = useRef(null);
@@ -38,7 +74,7 @@ const handleRefresh = useCallback(async () => {
       const res = await refreshTokenApi(refreshTokenRef.current);
       if (res?.accessToken) {
         refreshTokenRef.current = res.refreshToken ?? refreshTokenRef.current;
-        localStorage.setItem(REFRESH_STORAGE_KEY, refreshTokenRef.current);
+        writeRefreshToken(refreshTokenRef.current);
         setToken(res.accessToken);
         setAuthToken(res.accessToken);
         return res.accessToken;
@@ -58,7 +94,7 @@ const restoreStartedRef = useRef(false);
 
 useEffect(() => {
   const restoreSession = async () => {
-    const storedRefresh = localStorage.getItem(REFRESH_STORAGE_KEY);
+    const storedRefresh = readRefreshToken();
     if (!storedRefresh) {
       setIsBootstrapping(false);
       return;
@@ -107,9 +143,7 @@ useEffect(() => {
 
       setToken(accessToken);
       refreshTokenRef.current = refreshToken;
-      if (refreshToken) {
-        localStorage.setItem(REFRESH_STORAGE_KEY, refreshToken);
-      }
+      writeRefreshToken(refreshToken || null);
       setAuthToken(accessToken);
 
       let me;
