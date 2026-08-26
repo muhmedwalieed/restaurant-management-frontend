@@ -58,6 +58,8 @@ const ERROR_MESSAGE_MAP = {
   EXTERNAL_SERVICE_ERROR: 'الخدمة الخارجية مش متاحة دلوقتي، جرب تاني',
   DATABASE_ERROR: 'حصل خطأ غير متوقع، جرب تاني',
   INTERNAL_SERVER_ERROR: 'حصل خطأ غير متوقع، جرب تاني',
+  NETWORK_ERROR: 'تعذر الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت أو المحاولة بعد قليل',
+  SERVICE_UNAVAILABLE: 'الخادم غير متاح حالياً أو قيد إعادة التشغيل، يرجى المحاولة بعد لحظات',
 };
 
 apiClient.interceptors.request.use(
@@ -92,15 +94,34 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
     const status = error.response?.status;
     const errorBody = error.response?.data?.error || {};
 
-    const code = errorBody.code || 'INTERNAL_SERVER_ERROR';
+    const isNetworkError = !error.response || error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED';
+    const isServiceDown = status === 502 || status === 503 || status === 504;
+
+    let code = errorBody.code || 'INTERNAL_SERVER_ERROR';
+    if (isNetworkError) {
+      code = 'NETWORK_ERROR';
+    } else if (isServiceDown && !errorBody.code) {
+      code = 'SERVICE_UNAVAILABLE';
+    }
+
     const mappedMessage = ERROR_MESSAGE_MAP[code];
 
+    let message;
+    if (isNetworkError) {
+      message = ERROR_MESSAGE_MAP.NETWORK_ERROR;
+    } else if (isServiceDown && !mappedMessage && !errorBody.message) {
+      message = ERROR_MESSAGE_MAP.SERVICE_UNAVAILABLE;
+    } else {
+      message = mappedMessage || errorBody.message || error.message || 'حدث خطأ في الاتصال بالخادم';
+    }
+
     const normalizedError = {
-      status: status || 500,
+      status: status || 0,
       code,
-      message: mappedMessage || errorBody.message || error.message || 'حدث خطأ في الاتصال بالخادم',
+      message,
       requestId: errorBody.requestId || error.response?.headers?.['x-request-id'] || null,
       details: errorBody.details || null,
+      isConnectionIssue: isNetworkError || isServiceDown,
       raw: error,
     };
 
