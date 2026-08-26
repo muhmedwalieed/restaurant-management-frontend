@@ -15,6 +15,8 @@ import {
   useRegeneratePin,
   useUpdateSessionItemStaff,
   useRemoveSessionItemStaff,
+  useAcceptWaiterCall,
+  useDismissWaiterCall,
 } from '../hooks/useTableSessions.js';
 import {
   KeyRound,
@@ -23,6 +25,7 @@ import {
   XCircle,
   Plus,
   Minus,
+  Bell,
   Trash2,
   Receipt,
   Eye,
@@ -104,6 +107,8 @@ export const TableSessionPanel = ({ tableId }) => {
   const regenerateMutation = useRegeneratePin(session?.id);
   const updateMutation = useUpdateSessionItemStaff(session?.id);
   const removeMutation = useRemoveSessionItemStaff(session?.id);
+  const acceptWaiterCallMutation = useAcceptWaiterCall(session?.id);
+  const dismissWaiterCallMutation = useDismissWaiterCall(session?.id);
 
   const status = SESSION_STATUS[session?.status] || SESSION_STATUS.ACTIVE;
   const pendingOrder = (session?.orders || []).find((o) => o.status === 'AWAITING_CONFIRMATION');
@@ -244,6 +249,51 @@ export const TableSessionPanel = ({ tableId }) => {
               {(session.orders || []).length} أوردرات • إجمالي {grandTotal}
             </span>
           </div>
+
+          {session.waiterCall && (
+            <div
+              className={`rounded-lg border p-3 space-y-2 ${
+                session.waiterCall.status === 'ACCEPTED'
+                  ? 'border-status-success/30 bg-status-success/5'
+                  : 'border-status-warning/30 bg-status-warning/5'
+              }`}
+            >
+              <p
+                className={`text-xs font-bold flex items-center gap-1.5 ${
+                  session.waiterCall.status === 'ACCEPTED' ? 'text-status-success' : 'text-status-warning'
+                }`}
+              >
+                <Bell className="w-3.5 h-3.5" />
+                {session.waiterCall.status === 'ACCEPTED'
+                  ? 'الويتر في الطريق للعميل'
+                  : `استدعاء ويتر من ${session.waiterCall.requesterName}`}
+              </p>
+              {session.waiterCall.note && <p className="text-[11px] text-txt-muted">{session.waiterCall.note}</p>}
+              <div className="flex flex-wrap gap-2 pt-1">
+                {session.waiterCall.status === 'PENDING' && (
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    icon={Check}
+                    isLoading={acceptWaiterCallMutation.isPending}
+                    onClick={() => acceptWaiterCallMutation.mutate()}
+                  >
+                    قبول والذهاب للعميل
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={Check}
+                  isLoading={dismissWaiterCallMutation.isPending}
+                  onClick={() => dismissWaiterCallMutation.mutate()}
+                  title="تم الوصول للعميل"
+                >
+                  تم الوصول
+                </Button>
+              </div>
+            </div>
+          )}
 
           {}
           {pendingOrder && (

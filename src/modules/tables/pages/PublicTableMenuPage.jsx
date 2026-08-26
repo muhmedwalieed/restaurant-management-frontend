@@ -428,9 +428,19 @@ export const PublicTableMenuPage = () => {
             {localFlash}
           </StatusBanner>
         )}
-        {waiterSent && (
+        {waiterSent && session?.waiterCall?.status !== 'ACCEPTED' && (
           <StatusBanner tone="success" icon={Bell}>
             تم استدعاء الويتر إلى طاولتك، هيوصلك حالاً.
+          </StatusBanner>
+        )}
+        {session?.waiterCall?.status === 'PENDING' && (
+          <StatusBanner tone="warning" icon={Bell}>
+            تم استدعاء الويتر، بانتظار تأكيد الويتر.
+          </StatusBanner>
+        )}
+        {session?.waiterCall?.status === 'ACCEPTED' && (
+          <StatusBanner tone="success" icon={CheckCircle2}>
+            الويتر جايلك حالاً.
           </StatusBanner>
         )}
         {isAwaiting && (

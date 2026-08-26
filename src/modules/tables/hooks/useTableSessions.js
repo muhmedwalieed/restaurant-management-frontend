@@ -12,6 +12,8 @@ import {
   closeTableSessionApi,
   updateSessionItemStaffApi,
   removeSessionItemStaffApi,
+  acceptWaiterCallApi,
+  dismissWaiterCallApi,
   regeneratePinApi,
   rejectPendingOrderApi,
   getActiveTableSessionApi,
@@ -159,6 +161,28 @@ export const useRejectPendingOrder = (sessionId) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['table-session', sessionId] });
       qc.invalidateQueries({ queryKey: ['table-session-active'] });
+    },
+  });
+};
+
+export const useAcceptWaiterCall = (sessionId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => acceptWaiterCallApi(sessionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+    },
+  });
+};
+
+export const useDismissWaiterCall = (sessionId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => dismissWaiterCallApi(sessionId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
     },
   });
 };

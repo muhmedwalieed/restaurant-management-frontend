@@ -13,7 +13,7 @@ import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
 import { TableDetailDrawer } from '../components/TableDetailDrawer.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
-import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check } from 'lucide-react';
+import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, Bell } from 'lucide-react';
 
 const statusPill = (status) => {
   const map = {
@@ -227,6 +227,12 @@ export const TablesListPage = () => {
                   <span className="mr-auto inline-flex items-center gap-1 text-[10px] font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
                     <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
                     {table.session.status === 'AWAITING_CONFIRMATION' ? 'بانتظار التأكيد' : `جلسة نشطة (${table.session.members?.length || 0})`}
+                  </span>
+                )}
+                {table.session?.waiterCall?.status === 'PENDING' && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-status-warning bg-status-warning/10 px-2 py-0.5 rounded-full">
+                    <Bell className="w-3 h-3 animate-pulse" />
+                    استدعاء ويتر
                   </span>
                 )}
               </div>

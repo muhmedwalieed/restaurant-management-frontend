@@ -60,6 +60,14 @@ export const removeSessionItemStaffApi = async (sessionId, itemId) => {
   return apiClient.delete(`/tables/${sessionId}/items/${itemId}`);
 };
 
+export const acceptWaiterCallApi = async (sessionId) => {
+  return apiClient.post(`/tables/${sessionId}/waiter-call/accept`);
+};
+
+export const dismissWaiterCallApi = async (sessionId) => {
+  return apiClient.post(`/tables/${sessionId}/waiter-call/dismiss`);
+};
+
 export const getActiveTableSessionApi = async (tableId) => {
   return apiClient.get(`/tables/table/${tableId}/session`);
 };
