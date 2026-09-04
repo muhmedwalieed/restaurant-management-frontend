@@ -69,6 +69,7 @@ export const PhysicalTableCard = ({
       }}
       className={`group relative cursor-pointer select-none rounded-2xl bg-bg-surface p-4 border transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 flex flex-col justify-between overflow-hidden ${toneBorder}`}
     >
+      <div className={`absolute inset-0 bg-gradient-to-br ${toneGlow} pointer-events-none opacity-40`} />
       {/* Top Header: Table Name & Live Status Badge */}
       <div className="flex items-center justify-between gap-2 z-10">
         <div className="flex items-center gap-2">

@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAllOrdersQuery } from '../hooks/useOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { DataTable } from '../../../shared/components/DataTable.jsx';
-import { Button } from '../../../shared/components/Button.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
-import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { OrderFormModal } from '../components/OrderFormModal.jsx';
 import {
   ORDER_STATUS_LABELS,
@@ -14,7 +12,7 @@ import {
   ORDER_SOURCE_LABELS,
   orderStatusPill,
 } from '../schemas/order.schema.js';
-import { ShoppingCart, Plus, ReceiptText, ChevronLeft, Building2, Layers, CheckCircle2, Clock, XCircle, Store } from 'lucide-react';
+import { ShoppingCart, ReceiptText, ChevronLeft, Building2, Layers, CheckCircle2, Clock, XCircle, Store } from 'lucide-react';
 
 const TYPE_FILTER_OPTIONS = [
   { value: 'ALL', label: 'جميع الأنواع' },
