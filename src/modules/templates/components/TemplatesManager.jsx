@@ -3,11 +3,15 @@ import {
   useTemplatesQuery,
   useUpdateTemplatesMutation,
   useResetTemplatesMutation,
+  useCreateTemplateMutation,
+  useDeleteTemplateMutation,
 } from '../hooks/useTemplates.js';
+import { CreateTemplateModal } from './CreateTemplateModal.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { useAuth } from '../../auth/context/AuthContext.jsx';
 import {
   Search,
   RotateCcw,
@@ -21,6 +25,10 @@ import {
   Sparkles,
   Eye,
   Edit3,
+  Plus,
+  Trash2,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 const MOCK_VARIABLES = {
@@ -49,7 +57,10 @@ const CATEGORY_META = {
   WHATSAPP_BOT: { label: 'بوت الواتساب التفاعلي', icon: MessageSquare },
   ORDER_STATUS: { label: 'إشعارات حالات الطلب', icon: ShoppingBag },
   INBOX_SUPPORT: { label: 'خدمة العملاء والدعم', icon: Headphones },
+  QUICK_REPLY: { label: 'ردود سريعة', icon: MessageSquare },
+  GENERAL: { label: 'عام / تسويقي', icon: Sparkles },
 };
+
 
 function renderPreviewText(text) {
   if (!text) return '';
@@ -61,9 +72,16 @@ function renderPreviewText(text) {
 }
 
 export const TemplatesManager = () => {
-  const { data: templatesResponse, isLoading, isError, error, refetch } = useTemplatesQuery();
+  const { hasPermission } = useAuth();
+  const canManage = Boolean(hasPermission?.(['restaurants.manage', 'whatsapp.manage']));
+
+  const { data: templatesResponse, isLoading, isError, error, refetch } = useTemplatesQuery({
+    enabled: canManage,
+  });
   const updateMutation = useUpdateTemplatesMutation();
   const resetMutation = useResetTemplatesMutation();
+  const createMutation = useCreateTemplateMutation();
+  const deleteMutation = useDeleteTemplateMutation();
 
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,6 +90,10 @@ export const TemplatesManager = () => {
   const [resettingKey, setResettingKey] = useState(null);
   const [confirmResetAll, setConfirmResetAll] = useState(false);
   const [confirmResetSingle, setConfirmResetSingle] = useState(null);
+  const [confirmDeleteTemplate, setConfirmDeleteTemplate] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(null);
   const [successMsg, setSuccessMsg] = useAutoDismiss();
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -107,6 +129,34 @@ export const TemplatesManager = () => {
     const textToInsert = `{{${varName}}}`;
     const newText = (currentVal || '') + textToInsert;
     handleTextChange(key, newText);
+  };
+
+  const handleCreateTemplate = async (data) => {
+    await createMutation.mutateAsync(data);
+    setSuccessMsg('تم إنشاء القالب الجديد بنجاح!');
+    refetch();
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!confirmDeleteTemplate) return;
+    setIsDeleting(true);
+    setErrorMsg(null);
+    try {
+      await deleteMutation.mutateAsync(confirmDeleteTemplate.key);
+      setSuccessMsg(`تم حذف قالب "${confirmDeleteTemplate.title}" بنجاح.`);
+      setConfirmDeleteTemplate(null);
+      refetch();
+    } catch (err) {
+      setErrorMsg(err.message || 'فشل في حذف القالب');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCopyText = (text, key) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
 
   const handleSave = async (key) => {
@@ -155,6 +205,7 @@ export const TemplatesManager = () => {
     }
   };
 
+
   const handleResetAll = async () => {
     setErrorMsg(null);
     try {
@@ -167,6 +218,10 @@ export const TemplatesManager = () => {
       setErrorMsg(err.message || 'فشل في استعادة القوالب');
     }
   };
+
+  if (!canManage) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -220,17 +275,28 @@ export const TemplatesManager = () => {
             <span className="font-bold text-txt-muted font-mono">{defaultCount}</span>
           </div>
 
-          <PermissionGate permission="restaurants.manage">
-            {customCount > 0 && (
+          <PermissionGate permission={['restaurants.manage', 'whatsapp.manage']}>
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
-                variant="outline"
-                icon={RotateCcw}
-                onClick={() => setConfirmResetAll(true)}
+                variant="primary"
+                icon={Plus}
+                onClick={() => setIsCreateModalOpen(true)}
               >
-                استعادة الكل للافتراضي
+                إضافة قالب جديد
               </Button>
-            )}
+
+              {customCount > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={RotateCcw}
+                  onClick={() => setConfirmResetAll(true)}
+                >
+                  استعادة الكل للافتراضي
+                </Button>
+              )}
+            </div>
           </PermissionGate>
         </div>
       </div>
@@ -261,11 +327,10 @@ export const TemplatesManager = () => {
                 key={catKey}
                 type="button"
                 onClick={() => setActiveCategory(catKey)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border ${
-                  isSelected
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border ${isSelected
                     ? 'bg-brand-primary text-txt-inverted border-brand-primary font-bold shadow-sm'
                     : 'bg-bg-surface text-txt-muted border-border-default hover:text-txt-primary hover:border-border-subtle'
-                }`}
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{meta.label}</span>
@@ -315,15 +380,20 @@ export const TemplatesManager = () => {
                       <span className="font-mono text-[10px] text-txt-dim px-2 py-0.5 rounded bg-bg-base border border-border-default">
                         {template.key}
                       </span>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded font-bold border ${
-                          template.isCustom
-                            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/30'
-                            : 'bg-bg-base text-txt-dim border-border-default'
-                        }`}
-                      >
-                        {template.isCustom ? 'مخصص' : 'افتراضي'}
-                      </span>
+                      {template.isUserCreated ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-bold border bg-brand-primary/10 text-brand-primary border-brand-primary/30">
+                          قالب مخصص لك
+                        </span>
+                      ) : (
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded font-bold border ${template.isCustom
+                              ? 'bg-status-warning/10 text-status-warning border-status-warning/30'
+                              : 'bg-bg-base text-txt-dim border-border-default'
+                            }`}
+                        >
+                          {template.isCustom ? 'معدل' : 'افتراضي'}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-txt-muted">{template.description}</p>
                   </div>
@@ -416,17 +486,40 @@ export const TemplatesManager = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={copiedKey === key ? Check : Copy}
+                      onClick={() => handleCopyText(previewText, key)}
+                      className="text-xs text-txt-muted hover:text-txt-primary"
+                      title="نسخ نص المعاينة"
+                    >
+                      {copiedKey === key ? 'تم النسخ' : 'نسخ النص'}
+                    </Button>
+
                     <PermissionGate permission="restaurants.manage">
-                      {template.isCustom && (
+                      {template.isUserCreated ? (
                         <Button
                           size="sm"
                           variant="ghost"
-                          icon={RotateCcw}
-                          isLoading={resettingKey === key}
-                          onClick={() => setConfirmResetSingle(template)}
+                          icon={Trash2}
+                          className="text-status-danger hover:bg-status-danger-bg hover:text-status-danger"
+                          onClick={() => setConfirmDeleteTemplate(template)}
                         >
-                          استعادة الافتراضي
+                          حذف القالب
                         </Button>
+                      ) : (
+                        template.isCustom && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={RotateCcw}
+                            isLoading={resettingKey === key}
+                            onClick={() => setConfirmResetSingle(template)}
+                          >
+                            استعادة الافتراضي
+                          </Button>
+                        )
                       )}
 
                       <Button
@@ -470,8 +563,29 @@ export const TemplatesManager = () => {
         cancelLabel="إلغاء"
         variant="danger"
       />
+
+      <ConfirmDialog
+        isOpen={Boolean(confirmDeleteTemplate)}
+        onClose={() => setConfirmDeleteTemplate(null)}
+        onConfirm={handleDeleteTemplate}
+        title="حذف القالب المخصص"
+        message={`هل أنت متأكد من حذف قالب "${confirmDeleteTemplate?.title}" نهائياً؟ لن تتمكن من استعادته.`}
+        confirmLabel="حذف نهائي"
+        cancelLabel="إلغاء"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+
+      {/* Create Custom Template Modal */}
+      <CreateTemplateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateTemplate}
+        isLoading={createMutation.isPending}
+      />
     </div>
   );
 };
 
 export default TemplatesManager;
+

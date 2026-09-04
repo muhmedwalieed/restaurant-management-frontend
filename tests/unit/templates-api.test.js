@@ -4,10 +4,12 @@ import {
   getTemplatesApi,
   updateTemplatesApi,
   resetTemplatesApi,
+  createTemplateApi,
+  deleteTemplateApi,
 } from '../../src/lib/api/templates.api.js';
 
 vi.mock('../../src/lib/api-client.js', () => ({
-  apiClient: { get: vi.fn(), patch: vi.fn(), post: vi.fn() },
+  apiClient: { get: vi.fn(), patch: vi.fn(), post: vi.fn(), delete: vi.fn() },
 }));
 
 describe('Templates API Client Layer', () => {
@@ -28,6 +30,25 @@ describe('Templates API Client Layer', () => {
     expect(res.data.message).toBe('Updated');
   });
 
+  it('createTemplateApi should call POST /restaurant/templates with custom template payload', async () => {
+    const payload = {
+      title: 'قالب تأخير',
+      category: 'INBOX_SUPPORT',
+      text: 'نعتذر عن التأخير {{customerName}}',
+    };
+    apiClient.post.mockResolvedValueOnce({ data: { success: true, data: { key: 'CUSTOM_DELAY' } } });
+    const res = await createTemplateApi(payload);
+    expect(apiClient.post).toHaveBeenCalledWith('/restaurant/templates', payload);
+    expect(res.data.data.key).toBe('CUSTOM_DELAY');
+  });
+
+  it('deleteTemplateApi should call DELETE /restaurant/templates/:key', async () => {
+    apiClient.delete.mockResolvedValueOnce({ data: { success: true } });
+    const res = await deleteTemplateApi('CUSTOM_DELAY');
+    expect(apiClient.delete).toHaveBeenCalledWith('/restaurant/templates/CUSTOM_DELAY');
+    expect(res.data.success).toBe(true);
+  });
+
   it('resetTemplatesApi should call POST /restaurant/templates/reset with specific key', async () => {
     const payload = { key: 'WHATSAPP_WELCOME' };
     apiClient.post.mockResolvedValueOnce({ data: { message: 'Reset' } });
@@ -44,3 +65,4 @@ describe('Templates API Client Layer', () => {
     expect(res.data.message).toBe('All Reset');
   });
 });
+

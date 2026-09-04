@@ -23,6 +23,7 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { Input } from '../../../shared/components/Input.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
+import { TemplatePickerModal } from './TemplatePickerModal.jsx';
 import {
   Search,
   Send,
@@ -43,6 +44,7 @@ import {
   UserCheck,
   Shield,
   CheckCircle2,
+  BookOpen,
 } from 'lucide-react';
 
 export const WhatsAppTicketsView = () => {
@@ -58,6 +60,7 @@ export const WhatsAppTicketsView = () => {
   // Modals
   const [isNewTicketModalOpen, setIsNewTicketModalOpen] = useState(false);
   const [isCloseResolutionModalOpen, setIsCloseResolutionModalOpen] = useState(false);
+  const [isTemplatePickerOpen, setIsTemplatePickerOpen] = useState(false);
 
   const [newTicketForm, setNewTicketForm] = useState({
     customerPhone: '',
@@ -733,33 +736,48 @@ export const WhatsAppTicketsView = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setMessageMode('REPLY')}
-                          className={`text-xs px-3 py-1 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
-                            messageMode === 'REPLY'
-                              ? 'bg-brand-primary text-txt-inverted font-bold'
-                              : 'bg-bg-base text-txt-muted hover:text-txt-primary border border-border-default'
-                          }`}
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          <span>رد واتساب للعميل</span>
-                        </button>
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setMessageMode('REPLY')}
+                            className={`text-xs px-3 py-1 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+                              messageMode === 'REPLY'
+                                ? 'bg-brand-primary text-txt-inverted font-bold'
+                                : 'bg-bg-base text-txt-muted hover:text-txt-primary border border-border-default'
+                            }`}
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>رد واتساب للعميل</span>
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() => setMessageMode('NOTE')}
-                          className={`text-xs px-3 py-1 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
-                            messageMode === 'NOTE'
-                              ? 'bg-status-warning text-txt-inverted font-bold'
-                              : 'bg-bg-base text-txt-muted hover:text-txt-primary border border-border-default'
-                          }`}
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>ملاحظة داخلية</span>
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => setMessageMode('NOTE')}
+                            className={`text-xs px-3 py-1 rounded-md font-medium transition-colors flex items-center gap-1.5 ${
+                              messageMode === 'NOTE'
+                                ? 'bg-status-warning text-txt-inverted font-bold'
+                                : 'bg-bg-base text-txt-muted hover:text-txt-primary border border-border-default'
+                            }`}
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>ملاحظة داخلية</span>
+                          </button>
+                        </div>
+
+                        {messageMode === 'REPLY' && (
+                          <button
+                            type="button"
+                            onClick={() => setIsTemplatePickerOpen(true)}
+                            className="text-xs px-2.5 py-1 rounded-md font-medium transition-colors flex items-center gap-1.5 bg-bg-base text-brand-primary border border-brand-primary/30 hover:bg-brand-primary/10 cursor-pointer"
+                            title="اختيار قالب رد سريع وتعبئة رسالة العميل فوراً"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            <span>قوالب الرد السريع</span>
+                          </button>
+                        )}
                       </div>
+
 
                       <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                         <input
@@ -1015,6 +1033,18 @@ export const WhatsAppTicketsView = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Quick Templates Picker Modal */}
+      <TemplatePickerModal
+        isOpen={isTemplatePickerOpen}
+        onClose={() => setIsTemplatePickerOpen(false)}
+        onSelect={(renderedText) => {
+          setMessageMode('REPLY');
+          setMessageText(renderedText);
+        }}
+        ticket={activeTicket}
+      />
     </div>
   );
 };
+

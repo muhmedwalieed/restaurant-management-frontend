@@ -25,3 +25,22 @@ export const updateTemplatesApi = async (payload) => {
 export const resetTemplatesApi = async (payload) => {
   return apiClient.post('/restaurant/templates/reset', payload);
 };
+
+/**
+ * Create a new custom template.
+ * @param {{ title: string, text: string, category?: string, description?: string, allowedVariables?: string[] }} payload
+ * @returns {Promise<{ success: boolean, data: object }>}
+ */
+export const createTemplateApi = async (payload) => {
+  return apiClient.post('/restaurant/templates', payload);
+};
+
+/**
+ * Delete a custom template or reset a system template.
+ * @param {string} key
+ * @returns {Promise<{ success: boolean, data: Array<object> }>}
+ */
+export const deleteTemplateApi = async (key) => {
+  return apiClient.delete(`/restaurant/templates/${key}`);
+};
+

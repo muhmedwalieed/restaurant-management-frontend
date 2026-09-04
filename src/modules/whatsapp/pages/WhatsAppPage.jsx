@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -24,6 +24,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { WhatsAppSettingsModal } from '../components/WhatsAppSettingsModal.jsx';
 import { WhatsAppTicketsView } from '../components/WhatsAppTicketsView.jsx';
 import { TemplatesManager } from '../../templates/components/TemplatesManager.jsx';
+import { useAuth } from '../../auth/context/AuthContext.jsx';
 import {
   Phone,
   Link2,
@@ -42,12 +43,25 @@ import {
 } from 'lucide-react';
 
 export const WhatsAppPage = () => {
+  const { hasPermission } = useAuth();
+  const canManageTemplates = Boolean(hasPermission?.(['restaurants.manage', 'whatsapp.manage']));
+  const canViewConnection = Boolean(hasPermission?.('whatsapp.manage'));
+
   const [activeTab, setActiveTab] = useState('tickets');
   const [successMsg, setSuccessMsg] = useAutoDismiss();
   const [errorMsg, setErrorMsg] = useState(null);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [copiedField, setCopiedField] = useState(null);
+
+  useEffect(() => {
+    if (activeTab === 'templates' && !canManageTemplates) {
+      setActiveTab('tickets');
+    }
+    if (activeTab === 'connection' && !canViewConnection) {
+      setActiveTab('tickets');
+    }
+  }, [activeTab, canManageTemplates, canViewConnection]);
 
   const {
     data: connection,
@@ -205,8 +219,12 @@ export const WhatsAppPage = () => {
       <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
         {[
           { key: 'tickets', label: 'تذاكر الدعم والطلبات (Tickets)', icon: Tag },
-          { key: 'templates', label: 'قوالب الرسائل والإشعارات (Templates)', icon: Sparkles },
-          { key: 'connection', label: 'الاتصال والإعدادات', icon: Phone },
+          ...(canManageTemplates
+            ? [{ key: 'templates', label: 'قوالب الرسائل والإشعارات (Templates)', icon: Sparkles }]
+            : []),
+          ...(canViewConnection
+            ? [{ key: 'connection', label: 'الاتصال والإعدادات', icon: Phone }]
+            : []),
         ].map((tab) => {
           const Icon = tab.icon;
           return (
@@ -233,13 +251,13 @@ export const WhatsAppPage = () => {
           </div>
         )}
 
-        {activeTab === 'templates' && (
+        {activeTab === 'templates' && canManageTemplates && (
           <div>
             <TemplatesManager />
           </div>
         )}
 
-        {activeTab === 'connection' && (
+        {activeTab === 'connection' && canViewConnection && (
           <div className="space-y-6">
             {isConnLoading ? (
               <p className="text-sm text-txt-muted">جاري تحميل بيانات الاتصال...</p>

@@ -9,6 +9,8 @@ vi.mock('../../src/lib/api/templates.api.js', () => ({
   getTemplatesApi: vi.fn(),
   updateTemplatesApi: vi.fn(),
   resetTemplatesApi: vi.fn(),
+  createTemplateApi: vi.fn(),
+  deleteTemplateApi: vi.fn(),
 }));
 
 describe('TemplatesManager Component Unit Tests', () => {
@@ -25,6 +27,7 @@ describe('TemplatesManager Component Unit Tests', () => {
       defaultText: 'أهلاً بك في مطعمنا! كيف يمكننا مساعدتك اليوم؟',
       activeText: 'أهلاً بك في مطعمنا! كيف يمكننا مساعدتك اليوم؟',
       isCustom: false,
+      isUserCreated: false,
     },
     {
       key: 'ORDER_STATUS_CONFIRMED',
@@ -36,6 +39,19 @@ describe('TemplatesManager Component Unit Tests', () => {
       defaultText: 'تحديث طلبك #{{orderNumber}}: تم تأكيد طلبك بنجاح!',
       activeText: 'تحديث طلبك #{{orderNumber}}: تم تأكيد طلبك بنجاح وبدأ الطهي!',
       isCustom: true,
+      isUserCreated: false,
+    },
+    {
+      key: 'CUSTOM_DELAY',
+      category: 'INBOX_SUPPORT',
+      categoryLabel: 'خدمة العملاء والدعم',
+      title: 'اعتذار عن تأخير الطلب',
+      description: 'قالب إشعار التأخير المخصص',
+      allowedVariables: ['customerName'],
+      defaultText: 'نعتذر عن التأخير يا {{customerName}}',
+      activeText: 'نعتذر عن التأخير يا {{customerName}}',
+      isCustom: true,
+      isUserCreated: true,
     },
   ];
 
@@ -59,7 +75,16 @@ describe('TemplatesManager Component Unit Tests', () => {
     templatesApi.resetTemplatesApi.mockResolvedValue({
       data: { message: 'Reset' },
     });
+    templatesApi.createTemplateApi.mockResolvedValue({
+      success: true,
+      data: { key: 'CUSTOM_NEW' },
+    });
+    templatesApi.deleteTemplateApi.mockResolvedValue({
+      success: true,
+      data: [],
+    });
   });
+
 
   const renderComponent = () => {
     return render(
@@ -171,4 +196,82 @@ describe('TemplatesManager Component Unit Tests', () => {
       });
     });
   });
+
+  it('renders custom badge for user-created template and allows deleting it', async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('اعتذار عن تأخير الطلب')).toBeInTheDocument();
+    });
+
+    // Check user-created badge
+    expect(screen.getByText('قالب مخصص لك')).toBeInTheDocument();
+
+    // Click 'حذف القالب'
+    const deleteButton = screen.getByRole('button', { name: /حذف القالب/i });
+    fireEvent.click(deleteButton);
+
+    // Confirm dialog appears
+    await waitFor(() => {
+      expect(
+        screen.getByText('هل أنت متأكد من حذف قالب "اعتذار عن تأخير الطلب" نهائياً؟ لن تتمكن من استعادته.')
+      ).toBeInTheDocument();
+    });
+
+    const confirmDeleteBtn = screen.getByRole('button', { name: /حذف نهائي/i });
+    fireEvent.click(confirmDeleteBtn);
+
+    await waitFor(() => {
+      expect(templatesApi.deleteTemplateApi).toHaveBeenCalledWith('CUSTOM_DELAY');
+    });
+  });
+
+  it('opens CreateTemplateModal and calls createTemplateApi on submit', async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('رسالة الترحيب الرئيسية')).toBeInTheDocument();
+    });
+
+    const addBtn = screen.getByRole('button', { name: /إضافة قالب جديد/i });
+    fireEvent.click(addBtn);
+
+    // Modal opens
+    await waitFor(() => {
+      expect(screen.getByText('إضافة قالب رسالة جديد')).toBeInTheDocument();
+    });
+
+    // Fill form
+    const titleInput = screen.getByPlaceholderText('مثال: اعتذار عن تأخر تحضير الطلب');
+    const textInput = screen.getByPlaceholderText(/اكتب نص الرسالة هنا/i);
+
+    fireEvent.change(titleInput, { target: { value: 'عرض خاص جديد' } });
+    fireEvent.change(textInput, { target: { value: 'أهلاً بك {{customerName}} في عرضنا الخاص!' } });
+
+    // Submit form
+    const submitBtn = screen.getByRole('button', { name: /إنشاء القالب/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(templatesApi.createTemplateApi).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'عرض خاص جديد',
+          text: 'أهلاً بك {{customerName}} في عرضنا الخاص!',
+          category: 'INBOX_SUPPORT',
+        })
+      );
+    });
+  });
+
+  it('returns null and does not query templates if user lacks manage permission', () => {
+    vi.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: { id: 'emp_2', role: 'STAFF' },
+      hasPermission: () => false,
+    });
+
+    const { container } = renderComponent();
+    expect(container).toBeEmptyDOMElement();
+    expect(templatesApi.getTemplatesApi).not.toHaveBeenCalled();
+  });
 });
+
