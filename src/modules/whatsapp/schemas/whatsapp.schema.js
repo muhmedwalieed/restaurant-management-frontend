@@ -2,10 +2,33 @@ import { z } from 'zod';
 
 export const connectConnectionSchema = z.object({
   provider: z.enum(['META', 'MOCK']).default('META'),
-  providerAccountId: z.string().min(1, 'Account ID مطلوب'),
+  providerAccountId: z.string().min(1, 'Account ID (WABA ID) مطلوب'),
   providerPhoneNumberId: z.string().min(1, 'Phone Number ID مطلوب'),
   displayName: z.string().optional(),
-  webhookSecret: z.string().min(16, 'الـsecret يجب أن يكون 16 حرفًا على الأقل').optional(),
+  apiToken: z.string().optional(),
+  webhookSecret: z
+    .string()
+    .refine((val) => !val || val.length >= 16, {
+      message: 'الـsecret يجب أن يكون 16 حرفًا على الأقل',
+    })
+    .optional(),
+  verifyToken: z.string().optional(),
+});
+
+export const updateConnectionSchema = z.object({
+  provider: z.enum(['META', 'MOCK']).optional(),
+  providerAccountId: z.string().optional(),
+  providerPhoneNumberId: z.string().optional(),
+  displayName: z.string().optional(),
+  apiToken: z.string().optional(),
+  webhookSecret: z
+    .string()
+    .refine((val) => !val || val.length >= 16, {
+      message: 'الـsecret يجب أن يكون 16 حرفًا على الأقل',
+    })
+    .optional(),
+  verifyToken: z.string().optional(),
+  status: z.enum(['ACTIVE', 'DISCONNECTED']).optional(),
 });
 
 export const sendMessageSchema = z.object({
@@ -39,6 +62,6 @@ export const messageStatusPill = (status) => {
 };
 
 export const PROVIDER_LABELS = {
-  META: 'Meta Cloud API',
-  MOCK: 'Mock (اختباري)',
+  META: 'Meta Cloud API (إنتاج)',
+  MOCK: 'Mock (اختباري محلي)',
 };

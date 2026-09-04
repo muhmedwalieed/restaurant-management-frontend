@@ -44,8 +44,18 @@ const EVENT_INVALIDATIONS = {
     'dashboard-branch-comparison',
   ],
   'notification.created': ['notifications', 'notifications-unread'],
-  'conversation.assigned': ['whatsapp-conversations', 'whatsapp-conversation'],
-  'conversation.updated': ['whatsapp-conversations', 'whatsapp-conversation'],
+  'conversation.assigned': [
+    'whatsapp-conversations',
+    'whatsapp-conversation',
+    'inbox-tickets',
+    'inbox-ticket',
+  ],
+  'conversation.updated': [
+    'whatsapp-conversations',
+    'whatsapp-conversation',
+    'inbox-tickets',
+    'inbox-ticket',
+  ],
   'customer.updated': ['customers', 'customer', 'customer-orders', 'customer-addresses'],
   'tableSession.updated': ['table-session', 'table-session-active', 'table-sessions-branch', 'tables'],
 };

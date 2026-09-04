@@ -21,7 +21,7 @@ import {
 } from '../../../lib/api/table-sessions.api.js';
 
 export const useTableSessionQuery = (sessionId, options = {}) => {
-  const { enabled = true, poll = true } = options;
+  const { enabled = true, poll = false } = options;
   return useQuery({
     queryKey: ['table-session', sessionId],
     queryFn: () => getTableSessionApi(sessionId),
