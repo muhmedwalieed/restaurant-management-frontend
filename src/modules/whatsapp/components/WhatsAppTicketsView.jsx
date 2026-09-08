@@ -32,7 +32,6 @@ import {
   Headset,
   Lock,
   Plus,
-  RefreshCw,
   Tag,
   FileText,
   ShoppingBag,
@@ -216,67 +215,58 @@ export const WhatsAppTicketsView = () => {
   };
 
   return (
-    <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden flex flex-col md:flex-row h-[780px] w-full shadow-sm">
-      {}
+    <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden flex flex-col md:flex-row h-[780px] w-full shadow-md">
       <div className="w-full md:w-[330px] lg:w-[360px] h-full flex flex-col shrink-0 border-l border-border-default bg-bg-base overflow-hidden">
-        {}
-        <div className="p-3 border-b border-border-default space-y-2.5 shrink-0">
+        {/* Sidebar Header */}
+        <div className="p-3.5 border-b border-border-default space-y-3 shrink-0 bg-gradient-to-b from-bg-surface to-bg-base">
           <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-txt-primary flex items-center gap-1.5 uppercase tracking-wider">
-              <Tag className="w-4 h-4 text-brand-primary" />
-              <span>قائمة التذاكر ({tickets.length})</span>
-            </h2>
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={RefreshCw}
-                className="p-1.5 text-txt-muted hover:text-txt-primary"
-                onClick={() => {
-                  refetchTickets();
-                  refetchDetail();
-                }}
-                title="تحديث قائمة التذاكر"
-              />
-              <Button
-                size="sm"
-                variant="primary"
-                icon={Plus}
-                className="text-xs px-2.5 py-1 h-7 font-bold"
-                onClick={() => setIsNewTicketModalOpen(true)}
-              >
-                تذكرة جديدة
-              </Button>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
+                <Tag className="w-3.5 h-3.5 text-brand-primary" />
+              </div>
+              <div>
+                <h2 className="text-xs font-bold text-txt-primary leading-tight">التذاكر</h2>
+                <span className="text-[10px] text-txt-muted font-medium">{tickets.length} تذكرة</span>
+              </div>
             </div>
+            <Button
+              size="sm"
+              variant="primary"
+              icon={Plus}
+              className="text-[11px] px-2.5 py-1 h-7 font-bold rounded-lg shadow-sm"
+              onClick={() => setIsNewTicketModalOpen(true)}
+            >
+              جديدة
+            </Button>
           </div>
 
-          {}
+          {/* Search */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted pointer-events-none" />
+            <Search className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-txt-dim pointer-events-none" />
             <input
               type="text"
-              placeholder="بحث برقم الهاتف، الموضوع، العميل..."
+              placeholder="بحث بالهاتف، الموضوع، العميل..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8 pr-9 pl-3 rounded-md bg-bg-surface border border-border-default text-txt-primary text-xs focus:outline-none focus:border-brand-primary transition-colors"
+              className="w-full h-8 pr-8 pl-3 rounded-lg bg-bg-surface border border-border-default text-txt-primary text-[11px] focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 transition-all placeholder:text-txt-dim"
             />
           </div>
 
-          {}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px]">
+          {/* Type Filter Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-thin">
             {[
               { key: 'ALL', label: 'الكل' },
-              { key: 'SUPPORT', label: 'دعم فني' },
+              { key: 'SUPPORT', label: 'دعم' },
               { key: 'COMPLAINT', label: 'شكاوى' },
               { key: 'ORDER', label: 'طلبات' },
             ].map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTypeFilter(t.key)}
-                className={`px-2 py-0.5 rounded-full whitespace-nowrap transition-colors ${
+                className={`px-2.5 py-1 rounded-lg whitespace-nowrap transition-all text-[11px] font-medium ${
                   typeFilter === t.key
-                    ? 'bg-brand-primary text-txt-inverted font-bold'
-                    : 'bg-bg-surface text-txt-muted hover:text-txt-primary border border-border-default'
+                    ? 'bg-brand-primary text-txt-inverted font-bold shadow-sm'
+                    : 'bg-bg-surface text-txt-muted hover:text-txt-primary hover:bg-bg-surface/80 border border-border-default'
                 }`}
               >
                 {t.label}
@@ -284,51 +274,58 @@ export const WhatsAppTicketsView = () => {
             ))}
           </div>
 
-          {}
-          <div className="flex items-center gap-2">
-            <Select
-              options={[
-                { value: 'ALL', label: 'جميع الحالات' },
-                { value: 'WAITING', label: 'بانتظار موظف' },
-                { value: 'ACTIVE', label: 'قيد المتابعة' },
-                { value: 'PENDING', label: 'بانتظار العميل' },
-                { value: 'RESOLVED', label: 'تم الحل' },
-                { value: 'CLOSED', label: 'مغلقة' },
-              ]}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-7 text-xs py-0 w-full"
-            />
-          </div>
+          {/* Status Filter */}
+          <Select
+            options={[
+              { value: 'ALL', label: 'جميع الحالات' },
+              { value: 'WAITING', label: '⏳ بانتظار موظف' },
+              { value: 'ACTIVE', label: '🟢 قيد المتابعة' },
+              { value: 'PENDING', label: '🔵 بانتظار العميل' },
+              { value: 'RESOLVED', label: '✅ تم الحل' },
+              { value: 'CLOSED', label: '🔒 مغلقة' },
+            ]}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-7 text-[11px] py-0 w-full rounded-lg"
+          />
         </div>
 
-        {}
-        <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-border-subtle">
+        {/* Ticket List */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {isTicketsLoading ? (
-            <div className="p-4 text-center text-xs text-txt-muted">جاري تحميل التذاكر...</div>
+            <div className="p-8 text-center flex flex-col items-center justify-center gap-2">
+              <div className="w-8 h-8 rounded-full border-2 border-brand-primary/30 border-t-brand-primary animate-spin" />
+              <p className="text-[11px] text-txt-muted">جاري تحميل التذاكر...</p>
+            </div>
           ) : tickets.length === 0 ? (
-            <div className="p-8 text-center space-y-2">
-              <Tag className="w-8 h-8 text-txt-dim mx-auto stroke-1" />
-              <p className="text-xs text-txt-muted">لا توجد تذاكر مطابقة</p>
+            <div className="p-8 text-center space-y-3 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-2xl bg-bg-surface border border-border-default flex items-center justify-center">
+                <Tag className="w-6 h-6 text-txt-dim stroke-1" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-txt-primary">لا توجد تذاكر</p>
+                <p className="text-[11px] text-txt-muted mt-0.5">جرب تغيير الفلتر أو البحث</p>
+              </div>
             </div>
           ) : (
             tickets.map((t) => {
               const isSelected = selectedTicketId === t.id;
               const ticketNum = t.ticketNumber ? `#T-${t.ticketNumber}` : `#${t.id.slice(-4)}`;
+              const isClosed_ = t.status === 'CLOSED';
 
               return (
                 <button
                   key={t.id}
                   onClick={() => setSelectedTicketId(t.id)}
-                  className={`w-full p-3 text-right flex flex-col gap-1.5 transition-colors ${
+                  className={`w-full p-3 text-right flex flex-col gap-1.5 transition-all border-b border-border-subtle/50 ${
                     isSelected
-                      ? 'bg-bg-surface border-r-4 border-brand-primary'
-                      : 'hover:bg-bg-surface/60'
+                      ? 'bg-brand-primary/5 border-r-[3px] border-r-brand-primary'
+                      : `hover:bg-bg-surface/70 ${isClosed_ ? 'opacity-70' : ''}`
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-[11px] font-bold text-txt-dim dir-ltr">
+                      <span className="font-mono text-[10px] font-bold text-txt-dim dir-ltr bg-bg-surface px-1.5 py-0.5 rounded">
                         {ticketNum}
                       </span>
                       <span
@@ -345,10 +342,10 @@ export const WhatsAppTicketsView = () => {
                   </div>
 
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-xs font-bold text-txt-primary truncate">
+                    <span className="text-xs font-bold text-txt-primary truncate leading-tight">
                       {t.subject || 'تذكرة بدون عنوان'}
                     </span>
-                    <span className="text-[10px] text-txt-dim shrink-0">
+                    <span className="text-[10px] text-txt-dim shrink-0 font-mono">
                       {new Date(t.lastMessageAt || t.createdAt).toLocaleTimeString('ar-EG', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -356,22 +353,23 @@ export const WhatsAppTicketsView = () => {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 text-xs text-txt-muted">
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-txt-muted">
                     <span className="dir-ltr text-right truncate font-medium">
                       {t.customer?.name ? `${t.customer.name} · ${t.customerPhone}` : t.customerPhone}
                     </span>
                     {t.assignedAgent && (
-                      <span className="text-[10px] text-txt-dim truncate">
-                        المسؤول: {t.assignedAgent.name}
+                      <span className="text-[10px] text-txt-dim truncate flex items-center gap-0.5">
+                        <UserCheck className="w-3 h-3 shrink-0" />
+                        {t.assignedAgent.name}
                       </span>
                     )}
                   </div>
 
                   {t.relatedOrder && (
-                    <div className="flex items-center gap-1 text-[11px] text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded border border-brand-primary/10 w-fit mt-0.5">
+                    <div className="flex items-center gap-1 text-[10px] text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded-md border border-brand-primary/10 w-fit mt-0.5">
                       <ShoppingBag className="w-3 h-3" />
                       <span>أوردر #{t.relatedOrder.orderNumber}</span>
-                      <span className="text-txt-dim">({Number(t.relatedOrder.total).toFixed(2)} EGP)</span>
+                      <span className="text-txt-dim">({Number(t.relatedOrder.total).toFixed(2)} ج.م)</span>
                     </div>
                   )}
                 </button>
@@ -381,22 +379,22 @@ export const WhatsAppTicketsView = () => {
         </div>
       </div>
 
-      {}
+      {/* Main Content Area */}
       <div className="flex-1 h-full min-w-0 flex flex-col bg-bg-surface overflow-hidden">
         {activeTicket ? (
           <>
-            {}
+            {/* Ticket Detail Header */}
             <div className="shrink-0 z-10 bg-bg-base border-b border-border-default p-3.5 space-y-2.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-bg-surface border border-border-default text-txt-primary dir-ltr">
+                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-bg-surface border border-border-default text-txt-primary dir-ltr">
                     {activeTicket.ticketNumber ? `#T-${activeTicket.ticketNumber}` : `#${activeTicket.id.slice(-4)}`}
                   </span>
                   <h3 className="text-sm font-bold text-txt-primary">
                     {activeTicket.subject || 'محادثة تذكرة'}
                   </h3>
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded border font-medium ${ticketTypeBadgeClass(
+                    className={`text-[10px] px-1.5 py-0.5 rounded border font-medium ${ticketTypeBadgeClass(
                       activeTicket.ticketType
                     )}`}
                   >
@@ -407,55 +405,62 @@ export const WhatsAppTicketsView = () => {
                   </StatusPill>
                 </div>
 
-                {/* Header Action Buttons */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {!isClosed && isUnassigned && (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      icon={Headset}
-                      className="text-xs h-8 px-3.5 font-bold shadow-xs"
-                      isLoading={assignMutation.isPending}
-                      onClick={handleAssignToMe}
-                    >
-                      تولّي التذكرة
-                    </Button>
-                  )}
+                {/* Header Action Buttons — Only show when ticket is NOT closed */}
+                {!isClosed ? (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {isUnassigned && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        icon={Headset}
+                        className="text-xs h-8 px-3.5 font-bold shadow-sm rounded-lg"
+                        isLoading={assignMutation.isPending}
+                        onClick={handleAssignToMe}
+                      >
+                        تولّي التذكرة
+                      </Button>
+                    )}
 
-                  {!isClosed && isAssignedToMe && (
-                    <span className="text-xs px-2.5 py-1 rounded bg-status-success-bg text-status-success border border-status-success/30 font-bold flex items-center gap-1">
-                      <UserCheck className="w-3.5 h-3.5" />
-                      أنت المسؤول عن التذكرة
-                    </span>
-                  )}
+                    {isAssignedToMe && (
+                      <span className="text-[11px] px-2.5 py-1 rounded-lg bg-status-success-bg text-status-success border border-status-success/30 font-bold flex items-center gap-1">
+                        <UserCheck className="w-3.5 h-3.5" />
+                        أنت المسؤول
+                      </span>
+                    )}
 
-                  {!isClosed && isOwnerOrAdmin && isAssignedToOther && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      icon={Shield}
-                      className="text-xs h-8 px-2.5 text-brand-primary border-brand-primary/30 font-medium"
-                      isLoading={takeoverMutation.isPending}
-                      onClick={handleTakeover}
-                      title="سحب التذكرة للمشرف"
-                    >
-                      سحب للمشرف
-                    </Button>
-                  )}
+                    {isOwnerOrAdmin && isAssignedToOther && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        icon={Shield}
+                        className="text-xs h-8 px-2.5 text-brand-primary border-brand-primary/30 font-medium rounded-lg"
+                        isLoading={takeoverMutation.isPending}
+                        onClick={handleTakeover}
+                        title="سحب التذكرة للمشرف"
+                      >
+                        سحب للمشرف
+                      </Button>
+                    )}
 
-                  {!isClosed && (
                     <Button
                       size="sm"
                       variant="outline"
                       icon={XCircle}
-                      className="text-xs h-8 px-3.5 text-status-danger bg-status-danger-bg/20 hover:bg-status-danger-bg border-status-danger/40 font-bold"
+                      className="text-xs h-8 px-3 text-status-danger bg-status-danger-bg/10 hover:bg-status-danger-bg/30 border-status-danger/30 font-bold rounded-lg"
                       onClick={() => setIsCloseResolutionModalOpen(true)}
                       title="إغلاق التذكرة وتعبئة نموذج الحل"
                     >
-                      إغلاق التذكرة
+                      إغلاق
                     </Button>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-3 py-1 rounded-lg bg-bg-surface border border-border-default text-txt-muted font-medium flex items-center gap-1.5 shadow-sm">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-status-success" />
+                      <span>تذكرة مغلقة</span>
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between gap-2 text-xs text-txt-muted border-t border-border-subtle pt-2 flex-wrap">
@@ -872,12 +877,25 @@ export const WhatsAppTicketsView = () => {
             )}
           </>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
-            <Tag className="w-10 h-10 text-txt-dim" />
-            <h3 className="text-sm font-bold text-txt-primary">اختر تذكرة لعرض شات الدعم</h3>
-            <p className="text-xs text-txt-muted">
-              أو افتح تذكرة جديدة للبدء في حل مشكلة العميل
-            </p>
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4 bg-bg-base/30">
+            <div className="w-16 h-16 rounded-2xl bg-bg-surface border border-border-default flex items-center justify-center shadow-sm">
+              <MessageSquare className="w-7 h-7 text-txt-dim stroke-1" />
+            </div>
+            <div className="space-y-1.5 max-w-xs">
+              <h3 className="text-sm font-bold text-txt-primary">اختر تذكرة لعرض المحادثة</h3>
+              <p className="text-xs text-txt-muted leading-relaxed">
+                اختر تذكرة من القائمة لعرض تفاصيلها ومحادثة الدعم، أو افتح تذكرة جديدة
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              icon={Plus}
+              className="text-xs font-bold rounded-lg"
+              onClick={() => setIsNewTicketModalOpen(true)}
+            >
+              فتح تذكرة جديدة
+            </Button>
           </div>
         )}
       </div>

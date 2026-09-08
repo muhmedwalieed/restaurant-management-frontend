@@ -44,7 +44,15 @@ import {
 
 export const WhatsAppPage = () => {
   const { hasPermission } = useAuth();
-  const canManageTemplates = Boolean(hasPermission?.(['restaurants.manage', 'whatsapp.manage']));
+  const canManageTemplates = Boolean(
+    hasPermission?.([
+      'restaurants.manage',
+      'whatsapp.manage',
+      'whatsapp.view',
+      'chats.view',
+      'chats.reply',
+    ])
+  );
   const canViewConnection = Boolean(hasPermission?.('whatsapp.manage'));
 
   const [activeTab, setActiveTab] = useState('tickets');

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import {
   useTemplatesQuery,
   useUpdateTemplatesMutation,
@@ -24,11 +24,22 @@ import {
   Sliders,
   Sparkles,
   Eye,
+  EyeOff,
   Edit3,
   Plus,
   Trash2,
   Copy,
   Check,
+  Undo2,
+  FileCode,
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  ChevronDown,
+  ChevronUp,
+  Bookmark,
+  Share2,
 } from 'lucide-react';
 
 const MOCK_VARIABLES = {
@@ -61,7 +72,6 @@ const CATEGORY_META = {
   GENERAL: { label: 'عام / تسويقي', icon: Sparkles },
 };
 
-
 function renderPreviewText(text) {
   if (!text) return '';
   let rendered = text;
@@ -73,10 +83,19 @@ function renderPreviewText(text) {
 
 export const TemplatesManager = () => {
   const { hasPermission } = useAuth();
+  const canView = Boolean(
+    hasPermission?.([
+      'restaurants.manage',
+      'whatsapp.manage',
+      'whatsapp.view',
+      'chats.view',
+      'chats.reply',
+    ])
+  );
   const canManage = Boolean(hasPermission?.(['restaurants.manage', 'whatsapp.manage']));
 
   const { data: templatesResponse, isLoading, isError, error, refetch } = useTemplatesQuery({
-    enabled: canManage,
+    enabled: canView,
   });
   const updateMutation = useUpdateTemplatesMutation();
   const resetMutation = useResetTemplatesMutation();
@@ -84,39 +103,67 @@ export const TemplatesManager = () => {
   const deleteMutation = useDeleteTemplateMutation();
 
   const [activeCategory, setActiveCategory] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'DEFAULT' | 'MODIFIED' | 'USER_CREATED'
   const [searchQuery, setSearchQuery] = useState('');
   const [editedTemplates, setEditedTemplates] = useState({});
+  const [expandedDefaults, setExpandedDefaults] = useState(new Set());
   const [savingKey, setSavingKey] = useState(null);
   const [resettingKey, setResettingKey] = useState(null);
   const [confirmResetAll, setConfirmResetAll] = useState(false);
   const [confirmResetSingle, setConfirmResetSingle] = useState(null);
   const [confirmDeleteTemplate, setConfirmDeleteTemplate] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    initialData: null,
+    mode: 'create', // 'create' | 'duplicate' | 'edit'
+  });
   const [copiedKey, setCopiedKey] = useState(null);
   const [successMsg, setSuccessMsg] = useAutoDismiss();
   const [errorMsg, setErrorMsg] = useState(null);
 
+  const textareaRefs = useRef({});
+
   const templatesList = useMemo(() => {
-    return Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
-  }, [templatesResponse?.data]);
+    if (Array.isArray(templatesResponse)) return templatesResponse;
+    if (Array.isArray(templatesResponse?.data)) return templatesResponse.data;
+    if (Array.isArray(templatesResponse?.items)) return templatesResponse.items;
+    return [];
+  }, [templatesResponse]);
+
+  const totalTemplates = templatesList.length;
+  const userCreatedCount = templatesList.filter((t) => t.isUserCreated).length;
+  const customCount = templatesList.filter((t) => t.isCustom && !t.isUserCreated).length;
+  const defaultCount = templatesList.filter((t) => !t.isCustom && !t.isUserCreated).length;
 
   const filteredTemplates = useMemo(() => {
     return templatesList.filter((item) => {
+      // Category filter
       const matchesCategory = activeCategory === 'ALL' || item.category === activeCategory;
+
+      // Status filter
+      let matchesStatus = true;
+      if (statusFilter === 'DEFAULT') {
+        matchesStatus = !item.isCustom && !item.isUserCreated;
+      } else if (statusFilter === 'MODIFIED') {
+        matchesStatus = item.isCustom && !item.isUserCreated;
+      } else if (statusFilter === 'USER_CREATED') {
+        matchesStatus = item.isUserCreated;
+      }
+
+      // Search query filter
       const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
         !q ||
         item.title?.toLowerCase().includes(q) ||
         item.key?.toLowerCase().includes(q) ||
-        item.description?.toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
-    });
-  }, [templatesList, activeCategory, searchQuery]);
+        item.description?.toLowerCase().includes(q) ||
+        item.activeText?.toLowerCase().includes(q) ||
+        item.defaultText?.toLowerCase().includes(q);
 
-  const totalTemplates = templatesList.length;
-  const customCount = templatesList.filter((t) => t.isCustom).length;
-  const defaultCount = totalTemplates - customCount;
+      return matchesCategory && matchesStatus && matchesSearch;
+    });
+  }, [templatesList, activeCategory, statusFilter, searchQuery]);
 
   const handleTextChange = (key, text) => {
     setEditedTemplates((prev) => ({
@@ -125,15 +172,86 @@ export const TemplatesManager = () => {
     }));
   };
 
-  const insertVariable = (key, currentVal, varName) => {
-    const textToInsert = `{{${varName}}}`;
-    const newText = (currentVal || '') + textToInsert;
-    handleTextChange(key, newText);
+  const handleDiscardChanges = (key) => {
+    setEditedTemplates((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
-  const handleCreateTemplate = async (data) => {
-    await createMutation.mutateAsync(data);
-    setSuccessMsg('تم إنشاء القالب الجديد بنجاح!');
+  const toggleDefaultText = (key) => {
+    setExpandedDefaults((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const insertVariableAtCursor = (key, currentVal, varName) => {
+    const el = textareaRefs.current[key];
+    const textToInsert = `{{${varName}}}`;
+    if (!el) {
+      handleTextChange(key, (currentVal || '') + textToInsert);
+      return;
+    }
+    const start = el.selectionStart ?? currentVal.length;
+    const end = el.selectionEnd ?? currentVal.length;
+    const newText = (currentVal || '').substring(0, start) + textToInsert + (currentVal || '').substring(end);
+    handleTextChange(key, newText);
+    setTimeout(() => {
+      el.focus();
+      const pos = start + textToInsert.length;
+      el.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  const wrapSelectionWithFormat = (key, currentVal, wrapper) => {
+    const el = textareaRefs.current[key];
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const val = currentVal || '';
+    const selected = val.substring(start, end);
+    const replacement = `${wrapper}${selected || 'نص'}${wrapper}`;
+    const newText = val.substring(0, start) + replacement + val.substring(end);
+    handleTextChange(key, newText);
+    setTimeout(() => {
+      el.focus();
+      const pos = selected ? start + replacement.length : start + wrapper.length + 2;
+      el.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  const handleModalSubmit = async (data) => {
+    if (modalConfig.mode === 'edit' && data.targetKey) {
+      // Update custom template metadata & text
+      await updateMutation.mutateAsync({
+        templates: {
+          [data.targetKey]: {
+            title: data.title,
+            category: data.category,
+            description: data.description,
+            activeText: data.text,
+          },
+        },
+      });
+      setSuccessMsg('تم تحديث بيانات القالب بنجاح!');
+    } else {
+      // Create new template (standard or duplicated)
+      await createMutation.mutateAsync({
+        title: data.title,
+        key: data.key,
+        category: data.category,
+        description: data.description,
+        text: data.text,
+      });
+      setSuccessMsg('تم إنشاء القالب الجديد بنجاح!');
+    }
     refetch();
   };
 
@@ -189,7 +307,7 @@ export const TemplatesManager = () => {
     setErrorMsg(null);
     setResettingKey(key);
     try {
-      await resetMutation.mutateAsync({ key });
+      await resetMutation.mutateAsync({ templateKey: key });
       setSuccessMsg('تمت استعادة القالب إلى النص الافتراضي بنجاح.');
       setEditedTemplates((prev) => {
         const next = { ...prev };
@@ -205,11 +323,10 @@ export const TemplatesManager = () => {
     }
   };
 
-
   const handleResetAll = async () => {
     setErrorMsg(null);
     try {
-      await resetMutation.mutateAsync({ resetAll: true });
+      await resetMutation.mutateAsync({ templateKey: null });
       setSuccessMsg('تمت استعادة كافة القوالب إلى القيم الافتراضية بنجاح.');
       setEditedTemplates({});
       setConfirmResetAll(false);
@@ -219,7 +336,7 @@ export const TemplatesManager = () => {
     }
   };
 
-  if (!canManage) {
+  if (!canView) {
     return null;
   }
 
@@ -249,18 +366,22 @@ export const TemplatesManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header & Stats */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-bg-base/60 border border-border-default rounded-xl p-4 sm:p-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-brand-primary shrink-0" />
-            <h2 className="text-base font-bold text-txt-primary">
-              قوالب الرسائل والإشعارات الذكية
-            </h2>
+      {/* Header & Stats Banner */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-l from-bg-base to-bg-surface border border-border-default rounded-xl p-4 sm:p-5 shadow-sm">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center shadow-sm">
+              <Sparkles className="w-4.5 h-4.5 text-brand-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-txt-primary">
+                قوالب الرسائل والإشعارات
+              </h2>
+              <p className="text-[11px] text-txt-muted leading-relaxed">
+                استعرض قوالب النظام الافتراضية، خصص نصوصها بحرية، أو أضف رسائل وقوالب جديدة بروابط ومتغيرات ذكية
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-txt-muted max-w-2xl leading-relaxed">
-            خصص رسائل بوت الواتساب التفاعلي، وإشعارات تحديث حالات الطلبات، ورسائل تذاكر الدعم والإنبوكس الخاصة بمطعمك بسهولة مع ميزة التعويض التلقائي للمتغيرات.
-          </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
@@ -268,11 +389,18 @@ export const TemplatesManager = () => {
             <span className="text-txt-muted">الإجمالي:</span>
             <span className="font-bold text-txt-primary font-mono">{totalTemplates}</span>
             <span className="text-border-default">|</span>
-            <span className="text-brand-primary font-medium">مخصص:</span>
-            <span className="font-bold text-brand-primary font-mono">{customCount}</span>
-            <span className="text-border-default">|</span>
-            <span className="text-txt-dim font-medium">افتراضي:</span>
+            <span className="text-txt-muted">افتراضي:</span>
             <span className="font-bold text-txt-muted font-mono">{defaultCount}</span>
+            <span className="text-border-default">|</span>
+            <span className="text-status-warning font-medium">معدل:</span>
+            <span className="font-bold text-status-warning font-mono">{customCount}</span>
+            {userCreatedCount > 0 && (
+              <>
+                <span className="text-border-default">|</span>
+                <span className="text-brand-primary font-medium">مخصص:</span>
+                <span className="font-bold text-brand-primary font-mono">{userCreatedCount}</span>
+              </>
+            )}
           </div>
 
           <PermissionGate permission={['restaurants.manage', 'whatsapp.manage']}>
@@ -281,7 +409,7 @@ export const TemplatesManager = () => {
                 size="sm"
                 variant="primary"
                 icon={Plus}
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={() => setModalConfig({ isOpen: true, initialData: null, mode: 'create' })}
               >
                 إضافة قالب جديد
               </Button>
@@ -292,6 +420,7 @@ export const TemplatesManager = () => {
                   variant="outline"
                   icon={RotateCcw}
                   onClick={() => setConfirmResetAll(true)}
+                  title="إلغاء جميع التعديلات والعودة للنصوص الافتراضية"
                 >
                   استعادة الكل للافتراضي
                 </Button>
@@ -315,64 +444,115 @@ export const TemplatesManager = () => {
         </div>
       )}
 
-      {/* Search & Category Filter */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin">
-          {Object.entries(CATEGORY_META).map(([catKey, meta]) => {
-            const Icon = meta.icon;
-            const isSelected = activeCategory === catKey;
-            return (
-              <button
-                key={catKey}
-                type="button"
-                onClick={() => setActiveCategory(catKey)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border ${isSelected
-                    ? 'bg-brand-primary text-txt-inverted border-brand-primary font-bold shadow-sm'
-                    : 'bg-bg-surface text-txt-muted border-border-default hover:text-txt-primary hover:border-border-subtle'
+      {/* Search & Category Filter Section */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin">
+            {Object.entries(CATEGORY_META).map(([catKey, meta]) => {
+              const Icon = meta.icon;
+              const isSelected = activeCategory === catKey;
+              return (
+                <button
+                  key={catKey}
+                  type="button"
+                  onClick={() => setActiveCategory(catKey)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 whitespace-nowrap border ${
+                    isSelected
+                      ? 'bg-brand-primary text-txt-inverted border-brand-primary font-bold shadow-sm'
+                      : 'bg-bg-surface text-txt-muted border-border-default hover:text-txt-primary hover:border-border-subtle'
                   }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{meta.label}</span>
-              </button>
-            );
-          })}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{meta.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Box */}
+          <div className="relative min-w-[240px]">
+            <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-txt-dim pointer-events-none" />
+            <input
+              type="text"
+              placeholder="بحث بالعنوان، المفتاح، أو النص..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-3 pr-9 py-1.5 text-xs bg-bg-surface border border-border-default rounded-lg text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors"
+            />
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="relative min-w-[240px]">
-          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-txt-dim pointer-events-none" />
-          <input
-            type="text"
-            placeholder="بحث في القوالب..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-3 pr-9 py-1.5 text-xs bg-bg-surface border border-border-default rounded-lg text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors"
-          />
+        {/* Sub-Filters: Status Filter Pills */}
+        <div className="flex items-center gap-1.5 flex-wrap text-xs">
+          <span className="text-[11px] text-txt-dim font-medium ml-1">تصفية حسب الحالة:</span>
+          {[
+            { id: 'ALL', label: `الكل (${totalTemplates})` },
+            { id: 'DEFAULT', label: `الافتراضية فقط (${defaultCount})` },
+            { id: 'MODIFIED', label: `المعدلة فقط (${customCount})` },
+            ...(userCreatedCount > 0
+              ? [{ id: 'USER_CREATED', label: `المخصصة يدوياً (${userCreatedCount})` }]
+              : []),
+          ].map((pill) => (
+            <button
+              key={pill.id}
+              type="button"
+              onClick={() => setStatusFilter(pill.id)}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border ${
+                statusFilter === pill.id
+                  ? 'bg-bg-surface border-brand-primary text-brand-primary font-bold shadow-sm'
+                  : 'bg-bg-base/50 border-border-default text-txt-muted hover:text-txt-primary hover:bg-bg-surface'
+              }`}
+            >
+              {pill.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Templates Cards Grid */}
       {filteredTemplates.length === 0 ? (
-        <div className="p-8 text-center bg-bg-base/40 rounded-xl border border-border-default text-xs text-txt-muted">
-          لا توجد قوالب مطابقة لمعايير البحث الحالية.
+        <div className="p-8 text-center bg-bg-base/40 rounded-xl border border-border-default text-xs text-txt-muted space-y-2">
+          <p>لا توجد قوالب مطابقة لمعايير البحث الحالية.</p>
+          {(searchQuery || statusFilter !== 'ALL' || activeCategory !== 'ALL') && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('ALL');
+                setActiveCategory('ALL');
+              }}
+            >
+              إعادة ضبط الفلاتر
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
           {filteredTemplates.map((template) => {
             const key = template.key;
+            const isUserCreated = Boolean(template.isUserCreated);
+            const isSystemModified = Boolean(template.isCustom && !isUserCreated);
+            const isDefault = !template.isCustom && !isUserCreated;
+
             const currentText =
               editedTemplates[key] !== undefined ? editedTemplates[key] : template.activeText;
             const isDirty =
               editedTemplates[key] !== undefined && editedTemplates[key] !== template.activeText;
+            const isDefaultExpanded = expandedDefaults.has(key);
             const previewText = renderPreviewText(currentText);
 
             return (
               <div
                 key={key}
-                className="bg-bg-surface border border-border-default rounded-xl p-4 sm:p-5 space-y-4 shadow-sm transition-all hover:border-border-subtle"
+                className={`bg-bg-surface border ${
+                  isDirty
+                    ? 'border-brand-primary/50 shadow-md ring-1 ring-brand-primary/20'
+                    : 'border-border-default shadow-sm'
+                } rounded-xl p-4 sm:p-5 space-y-4 transition-all hover:shadow-md`}
               >
-                {/* Header */}
+                {/* Card Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-default/60 pb-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -380,51 +560,165 @@ export const TemplatesManager = () => {
                       <span className="font-mono text-[10px] text-txt-dim px-2 py-0.5 rounded bg-bg-base border border-border-default">
                         {template.key}
                       </span>
-                      {template.isUserCreated ? (
+
+                      {/* State Badges */}
+                      {isUserCreated && (
                         <span className="text-[10px] px-2 py-0.5 rounded font-bold border bg-brand-primary/10 text-brand-primary border-brand-primary/30">
                           قالب مخصص لك
                         </span>
-                      ) : (
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded font-bold border ${template.isCustom
-                              ? 'bg-status-warning/10 text-status-warning border-status-warning/30'
-                              : 'bg-bg-base text-txt-dim border-border-default'
-                            }`}
-                        >
-                          {template.isCustom ? 'معدل' : 'افتراضي'}
+                      )}
+                      {isSystemModified && (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-bold border bg-status-warning/10 text-status-warning border-status-warning/30">
+                          تم تعديل النص الافتراضي
+                        </span>
+                      )}
+                      {isDefault && (
+                        <span className="text-[10px] px-2 py-0.5 rounded font-bold border bg-status-success-bg text-status-success border-status-success/30">
+                          قالب افتراضي للنظام
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-txt-muted">{template.description}</p>
+                    {template.description && (
+                      <p className="text-xs text-txt-muted">{template.description}</p>
+                    )}
                   </div>
 
-                  <span className="text-[11px] text-txt-dim font-medium bg-bg-base px-2.5 py-1 rounded-md border border-border-default self-start sm:self-auto">
-                    {template.categoryLabel || template.category}
-                  </span>
+                  <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    <span className="text-[11px] text-txt-dim font-medium bg-bg-base px-2.5 py-1 rounded-md border border-border-default">
+                      {template.categoryLabel || CATEGORY_META[template.category]?.label || template.category}
+                    </span>
+
+                    {/* View System Default Toggle for System Templates */}
+                    {!isUserCreated && template.defaultText && (
+                      <button
+                        type="button"
+                        onClick={() => toggleDefaultText(key)}
+                        className={`text-[11px] px-2.5 py-1 rounded-md border transition-colors flex items-center gap-1 ${
+                          isDefaultExpanded
+                            ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary font-medium'
+                            : 'bg-bg-base border-border-default text-txt-muted hover:text-txt-primary'
+                        }`}
+                        title="عرض ومقارنة النص الافتراضي الأصلي للنظام"
+                      >
+                        {isDefaultExpanded ? (
+                          <>
+                            <EyeOff className="w-3 h-3" />
+                            <span>إخفاء الافتراضي</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-3 h-3" />
+                            <span>عرض الافتراضي الأصلي</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* Allowed Variables Bar */}
-                {Array.isArray(template.allowedVariables) && template.allowedVariables.length > 0 && (
-                  <div className="bg-bg-base/60 border border-border-default rounded-lg p-2.5 flex items-center gap-2 flex-wrap text-xs">
+                {/* Collapsible System Default Reference Box */}
+                {!isUserCreated && template.defaultText && isDefaultExpanded && (
+                  <div className="p-3.5 rounded-xl bg-bg-base/60 border border-border-default space-y-2 animate-fade-in">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-txt-muted flex items-center gap-1.5">
+                        <Bookmark className="w-3.5 h-3.5 text-brand-primary" />
+                        <span>النص الافتراضي الأصلي للنظام (System Factory Default):</span>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleTextChange(key, template.defaultText);
+                            setSuccessMsg('تم تحميل النص الافتراضي في المحرر للتعديل عليه.');
+                          }}
+                          className="text-[11px] text-brand-primary hover:underline font-medium flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3" />
+                          <span>نسخ للمحرر للبدء منه</span>
+                        </button>
+                        {isSystemModified && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmResetSingle(template)}
+                            className="text-[11px] text-status-warning hover:underline font-medium flex items-center gap-1 mr-2"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            <span>استعادة للافتراضي فوراً</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-bg-surface border border-border-subtle text-xs text-txt-muted leading-relaxed font-sans whitespace-pre-wrap">
+                      {template.defaultText}
+                    </div>
+                  </div>
+                )}
+
+                {/* Formatting Toolbar & Variables Bar */}
+                <div className="bg-bg-base/60 border border-border-default rounded-lg p-2.5 space-y-2">
+                  <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
                     <span className="text-txt-dim text-[11px] font-medium shrink-0 flex items-center gap-1">
                       <Edit3 className="w-3 h-3 text-brand-primary" />
-                      <span>المتغيرات المتاحة (اضغط للإدراج):</span>
+                      <span>المتغيرات المتاحة (اضغط للإدراج عند المؤشر):</span>
                     </span>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {template.allowedVariables.map((varName) => (
+
+                    {/* WhatsApp Formatting Shortcuts */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-txt-dim ml-1">تنسيق واتساب:</span>
+                      <button
+                        type="button"
+                        title="تنسيق عريض *نص*"
+                        onClick={() => wrapSelectionWithFormat(key, currentText, '*')}
+                        className="p-1 rounded bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                      >
+                        <Bold className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        title="تنسيق مائل _نص_"
+                        onClick={() => wrapSelectionWithFormat(key, currentText, '_')}
+                        className="p-1 rounded bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                      >
+                        <Italic className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        title="تنسيق مشطوب ~نص~"
+                        onClick={() => wrapSelectionWithFormat(key, currentText, '~')}
+                        className="p-1 rounded bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                      >
+                        <Strikethrough className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        title="كود أحادي `نص`"
+                        onClick={() => wrapSelectionWithFormat(key, currentText, '`')}
+                        className="p-1 rounded bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                      >
+                        <Code className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Variables pills */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {Array.isArray(template.allowedVariables) && template.allowedVariables.length > 0 ? (
+                      template.allowedVariables.map((varName) => (
                         <button
                           key={varName}
                           type="button"
                           title="اضغط لإدراج هذا المتغير في النص"
-                          onClick={() => insertVariable(key, currentText, varName)}
+                          onClick={() => insertVariableAtCursor(key, currentText, varName)}
                           className="px-2 py-0.5 rounded text-[11px] font-mono bg-bg-surface border border-border-default text-brand-primary hover:border-brand-primary hover:bg-brand-primary/10 transition-colors cursor-pointer"
                         >
                           {`{{${varName}}}`}
                         </button>
-                      ))}
-                    </div>
+                      ))
+                    ) : (
+                      <span className="text-[11px] text-txt-dim">لا توجد متغيرات إلزامية لهذا القالب.</span>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Two-Column Editor & WhatsApp Live Preview */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -433,14 +727,29 @@ export const TemplatesManager = () => {
                     <div className="flex items-center justify-between text-xs text-txt-muted">
                       <span className="font-semibold flex items-center gap-1">
                         <Edit3 className="w-3.5 h-3.5 text-txt-dim" />
-                        <span>نص القالب:</span>
+                        <span>
+                          {isUserCreated
+                            ? 'نص القالب المخصص:'
+                            : isSystemModified
+                            ? 'نص القالب المخصص (المعدل):'
+                            : 'نص القالب (الافتراضي للنظام):'}
+                        </span>
                       </span>
-                      <span className="font-mono text-[11px] text-txt-dim">
+                      <span
+                        className={`font-mono text-[11px] ${
+                          (currentText?.length || 0) > 1900
+                            ? 'text-status-danger font-bold'
+                            : 'text-txt-dim'
+                        }`}
+                      >
                         {currentText?.length || 0} / 2000 حرف
                       </span>
                     </div>
 
                     <textarea
+                      ref={(el) => {
+                        if (el) textareaRefs.current[key] = el;
+                      }}
                       rows={6}
                       value={currentText}
                       onChange={(e) => handleTextChange(key, e.target.value)}
@@ -454,7 +763,7 @@ export const TemplatesManager = () => {
                     <div className="flex items-center justify-between text-xs text-txt-muted">
                       <span className="font-semibold flex items-center gap-1 text-txt-dim">
                         <Eye className="w-3.5 h-3.5 text-brand-primary" />
-                        <span>معاينة حية للمستلم (Live Preview):</span>
+                        <span>معاينة حية للمستلم (Live WhatsApp Preview):</span>
                       </span>
                       <span className="text-[10px] text-txt-dim bg-bg-base px-1.5 py-0.5 rounded">
                         قيم تجريبية
@@ -477,15 +786,17 @@ export const TemplatesManager = () => {
 
                 {/* Card Actions Footer */}
                 <div className="flex items-center justify-between gap-3 pt-2 border-t border-border-default/50 flex-wrap">
-                  <div className="text-[11px] text-txt-dim">
+                  <div className="flex items-center gap-2 text-[11px]">
                     {isDirty && (
-                      <span className="text-brand-primary font-medium">
-                        يوجد تعديلات غير محفوظة لهذا القالب
+                      <span className="text-brand-primary font-medium flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+                        يوجد تعديل غير محفوظ لهذا القالب
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Copy Preview */}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -497,19 +808,54 @@ export const TemplatesManager = () => {
                       {copiedKey === key ? 'تم النسخ' : 'نسخ النص'}
                     </Button>
 
+                    {/* Duplicate as New Custom Template */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={Share2}
+                      onClick={() =>
+                        setModalConfig({
+                          isOpen: true,
+                          initialData: template,
+                          mode: 'duplicate',
+                        })
+                      }
+                      className="text-xs text-txt-muted hover:text-txt-primary"
+                      title="استخدام هذا القالب لإنشاء قالب مخصص جديد"
+                    >
+                      تكرار كقالب جديد
+                    </Button>
+
                     <PermissionGate permission="restaurants.manage">
-                      {template.isUserCreated ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          icon={Trash2}
-                          className="text-status-danger hover:bg-status-danger-bg hover:text-status-danger"
-                          onClick={() => setConfirmDeleteTemplate(template)}
-                        >
-                          حذف القالب
-                        </Button>
+                      {isUserCreated ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={Edit3}
+                            onClick={() =>
+                              setModalConfig({
+                                isOpen: true,
+                                initialData: template,
+                                mode: 'edit',
+                              })
+                            }
+                            className="text-xs text-txt-muted hover:text-txt-primary"
+                          >
+                            تعديل البيانات
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={Trash2}
+                            className="text-status-danger hover:bg-status-danger-bg hover:text-status-danger"
+                            onClick={() => setConfirmDeleteTemplate(template)}
+                          >
+                            حذف القالب
+                          </Button>
+                        </>
                       ) : (
-                        template.isCustom && (
+                        isSystemModified && (
                           <Button
                             size="sm"
                             variant="ghost"
@@ -522,6 +868,19 @@ export const TemplatesManager = () => {
                         )
                       )}
 
+                      {/* Discard Unsaved Changes */}
+                      {isDirty && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          icon={Undo2}
+                          onClick={() => handleDiscardChanges(key)}
+                        >
+                          تراجع
+                        </Button>
+                      )}
+
+                      {/* Save Changes */}
                       <Button
                         size="sm"
                         variant={isDirty ? 'primary' : 'outline'}
@@ -576,16 +935,17 @@ export const TemplatesManager = () => {
         isLoading={isDeleting}
       />
 
-      {/* Create Custom Template Modal */}
+      {/* Create / Edit / Duplicate Custom Template Modal */}
       <CreateTemplateModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateTemplate}
-        isLoading={createMutation.isPending}
+        isOpen={modalConfig.isOpen}
+        initialData={modalConfig.initialData}
+        mode={modalConfig.mode}
+        onClose={() => setModalConfig({ isOpen: false, initialData: null, mode: 'create' })}
+        onSubmit={handleModalSubmit}
+        isLoading={createMutation.isPending || updateMutation.isPending}
       />
     </div>
   );
 };
 
 export default TemplatesManager;
-

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../../shared/components/Button.jsx';
 import {
   X,
@@ -10,6 +10,11 @@ import {
   AlertCircle,
   Hash,
   Tag,
+  Bold,
+  Italic,
+  Strikethrough,
+  Code,
+  Copy,
 } from 'lucide-react';
 
 const COMMON_VARIABLES = [
@@ -51,18 +56,82 @@ function renderPreviewText(text) {
   return rendered;
 }
 
-export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) => {
+export const CreateTemplateModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  isLoading,
+  initialData = null,
+  mode = 'create', // 'create' | 'duplicate' | 'edit'
+}) => {
   const [title, setTitle] = useState('');
   const [key, setKey] = useState('');
   const [category, setCategory] = useState('INBOX_SUPPORT');
   const [description, setDescription] = useState('');
   const [text, setText] = useState('');
   const [error, setError] = useState(null);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      if (initialData) {
+        if (mode === 'duplicate') {
+          setTitle(`${initialData.title || ''} (نسخة جديدة)`);
+          setKey('');
+          setCategory(initialData.category || 'INBOX_SUPPORT');
+          setDescription(initialData.description || '');
+          setText(initialData.activeText || initialData.text || initialData.defaultText || '');
+        } else if (mode === 'edit') {
+          setTitle(initialData.title || '');
+          setKey(initialData.key || '');
+          setCategory(initialData.category || 'INBOX_SUPPORT');
+          setDescription(initialData.description || '');
+          setText(initialData.activeText || initialData.text || initialData.defaultText || '');
+        }
+      } else {
+        setTitle('');
+        setKey('');
+        setCategory('INBOX_SUPPORT');
+        setDescription('');
+        setText('');
+      }
+    }
+  }, [isOpen, initialData, mode]);
 
   if (!isOpen) return null;
 
-  const handleInsertVariable = (varKey) => {
-    setText((prev) => prev + `{{${varKey}}}`);
+  const insertAtCursor = (insertion) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setText((prev) => prev + insertion);
+      return;
+    }
+    const start = el.selectionStart ?? text.length;
+    const end = el.selectionEnd ?? text.length;
+    const newText = text.substring(0, start) + insertion + text.substring(end);
+    setText(newText);
+    setTimeout(() => {
+      el.focus();
+      const pos = start + insertion.length;
+      el.setSelectionRange(pos, pos);
+    }, 0);
+  };
+
+  const wrapSelection = (wrapper) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const selected = text.substring(start, end);
+    const replacement = `${wrapper}${selected || 'نص'}${wrapper}`;
+    const newText = text.substring(0, start) + replacement + text.substring(end);
+    setText(newText);
+    setTimeout(() => {
+      el.focus();
+      const pos = selected ? start + replacement.length : start + wrapper.length + 2;
+      el.setSelectionRange(pos, pos);
+    }, 0);
   };
 
   const handleSubmit = async (e) => {
@@ -86,20 +155,29 @@ export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) =>
         category,
         description: description.trim() || undefined,
         text: text.trim(),
+        targetKey: mode === 'edit' ? initialData?.key : undefined,
       });
-      // Reset form
-      setTitle('');
-      setKey('');
-      setCategory('INBOX_SUPPORT');
-      setDescription('');
-      setText('');
       onClose();
     } catch (err) {
-      setError(err.message || 'فشل في إنشاء القالب');
+      setError(err.message || 'فشل في حفظ القالب');
     }
   };
 
   const preview = renderPreviewText(text);
+
+  const modalTitle =
+    mode === 'edit'
+      ? 'تعديل بيانات القالب'
+      : mode === 'duplicate'
+      ? 'تكرار كقالب رسالة جديد'
+      : 'إضافة قالب رسالة جديد';
+
+  const modalSubtitle =
+    mode === 'edit'
+      ? 'قم بتحديث بيانات ونص القالب المخصص'
+      : mode === 'duplicate'
+      ? 'أنشئ رسالة جديدة مبنية على هذا القالب مع إمكانية تخصيص أي جزء فيها'
+      : 'أنشئ قالباً مخصصاً للردود السريعة أو إشعارات وتحديثات رسائل الواتساب';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto animate-fade-in">
@@ -108,13 +186,11 @@ export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) =>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-default bg-bg-base/70">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-brand-primary/10 border border-brand-primary/30 flex items-center justify-center text-brand-primary">
-              <Plus className="w-4 h-4" />
+              {mode === 'edit' ? <Edit3 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             </div>
             <div>
-              <h3 className="text-sm font-bold text-txt-primary">إضافة قالب رسالة جديد</h3>
-              <p className="text-[11px] text-txt-muted">
-                أنشئ قالباً مخصصاً للردود السريعة أو إشعارات وتحديثات رسائل الواتساب
-              </p>
+              <h3 className="text-sm font-bold text-txt-primary">{modalTitle}</h3>
+              <p className="text-[11px] text-txt-muted">{modalSubtitle}</p>
             </div>
           </div>
           <button
@@ -182,10 +258,11 @@ export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) =>
               </label>
               <input
                 type="text"
+                disabled={mode === 'edit'}
                 placeholder="مثال: ORDER_DELAY_APOLOGY"
                 value={key}
                 onChange={(e) => setKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                className="w-full h-9 px-3 rounded-lg bg-bg-base border border-border-default text-xs font-mono text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors"
+                className="w-full h-9 px-3 rounded-lg bg-bg-base border border-border-default text-xs font-mono text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors disabled:opacity-60"
               />
             </div>
 
@@ -202,19 +279,57 @@ export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) =>
             </div>
           </div>
 
-          {/* Variables inserter */}
-          <div className="bg-bg-base/70 border border-border-default rounded-lg p-2.5 space-y-1.5">
-            <span className="text-[11px] font-semibold text-txt-dim flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
-              <span>إدراج متغيرات ذكية بنقرة واحدة:</span>
-            </span>
+          {/* Formatting Helpers & Variables Bar */}
+          <div className="bg-bg-base/70 border border-border-default rounded-lg p-2.5 space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+              <span className="text-[11px] font-semibold text-txt-dim flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
+                <span>المتغيرات الذكية:</span>
+              </span>
+              {/* Text formatting shortcuts */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  title="عريض *نص*"
+                  onClick={() => wrapSelection('*')}
+                  className="px-2 py-0.5 rounded text-[11px] font-bold bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                >
+                  <Bold className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  title="مائل _نص_"
+                  onClick={() => wrapSelection('_')}
+                  className="px-2 py-0.5 rounded text-[11px] italic bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                >
+                  <Italic className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  title="مشطوب ~نص~"
+                  onClick={() => wrapSelection('~')}
+                  className="px-2 py-0.5 rounded text-[11px] bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                >
+                  <Strikethrough className="w-3 h-3" />
+                </button>
+                <button
+                  type="button"
+                  title="أحادي `نص`"
+                  onClick={() => wrapSelection('`')}
+                  className="px-2 py-0.5 rounded text-[11px] font-mono bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
+                >
+                  <Code className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
             <div className="flex items-center gap-1.5 flex-wrap">
               {COMMON_VARIABLES.map((v) => (
                 <button
                   key={v.key}
                   type="button"
                   title={`إدراج {{${v.key}}}`}
-                  onClick={() => handleInsertVariable(v.key)}
+                  onClick={() => insertAtCursor(`{{${v.key}}}`)}
                   className="px-2 py-0.5 rounded text-[11px] font-mono bg-bg-surface border border-border-default text-brand-primary hover:border-brand-primary hover:bg-brand-primary/10 transition-colors"
                 >
                   {`{{${v.key}}}`}
@@ -233,15 +348,18 @@ export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) =>
                   <span>نص القالب:</span>
                   <span className="text-status-danger">*</span>
                 </span>
-                <span className="font-mono text-[11px] text-txt-dim">{text.length} / 2000</span>
+                <span className={`font-mono text-[11px] ${text.length > 1900 ? 'text-status-danger font-bold' : 'text-txt-dim'}`}>
+                  {text.length} / 2000
+                </span>
               </div>
               <textarea
+                ref={textareaRef}
                 rows={5}
                 required
                 placeholder="اكتب نص الرسالة هنا، يمكنك إدراج المتغيرات مثل {{customerName}}..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-full p-3 text-xs leading-relaxed bg-bg-base border border-border-default rounded-lg text-txt-primary focus:outline-none focus:border-brand-primary transition-colors resize-y"
+                className="w-full p-3 text-xs leading-relaxed bg-bg-base border border-border-default rounded-lg text-txt-primary focus:outline-none focus:border-brand-primary transition-colors resize-y font-sans"
               />
             </div>
 
@@ -273,8 +391,14 @@ export const CreateTemplateModal = ({ isOpen, onClose, onSubmit, isLoading }) =>
             <Button size="sm" variant="outline" type="button" onClick={onClose} disabled={isLoading}>
               إلغاء
             </Button>
-            <Button size="sm" variant="primary" type="submit" isLoading={isLoading} icon={Plus}>
-              إنشاء القالب
+            <Button
+              size="sm"
+              variant="primary"
+              type="submit"
+              isLoading={isLoading}
+              icon={mode === 'edit' ? CheckCircle2 : Plus}
+            >
+              {mode === 'edit' ? 'حفظ التعديلات' : 'إنشاء القالب'}
             </Button>
           </div>
         </form>

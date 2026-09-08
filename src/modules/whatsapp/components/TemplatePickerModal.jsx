@@ -41,8 +41,11 @@ export const TemplatePickerModal = ({ isOpen, onClose, onSelect, ticket }) => {
   });
 
   const templates = useMemo(() => {
-    return Array.isArray(templatesResponse?.data) ? templatesResponse.data : [];
-  }, [templatesResponse?.data]);
+    if (Array.isArray(templatesResponse)) return templatesResponse;
+    if (Array.isArray(templatesResponse?.data)) return templatesResponse.data;
+    if (Array.isArray(templatesResponse?.items)) return templatesResponse.items;
+    return [];
+  }, [templatesResponse]);
 
   // Context variables from ticket
   const ticketVariables = useMemo(() => {
