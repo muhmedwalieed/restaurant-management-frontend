@@ -61,7 +61,7 @@ export const Input = forwardRef(
                 readOnly
                   ? 'bg-bg-base/60 text-txt-muted border-dashed border-border-default cursor-not-allowed'
                   : 'focus-visible:border-brand-primary',
-                Icon ? 'pr-9' : prefix ? 'pr-9' : 'pr-3',
+                Icon ? 'pr-11' : prefix ? 'pr-11' : 'pr-3',
                 suffix ? 'pl-14 font-mono' : 'pl-3',
                 error
                   ? 'border-status-danger focus-visible:border-status-danger'

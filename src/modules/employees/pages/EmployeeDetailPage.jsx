@@ -14,21 +14,13 @@ import { ChangeRoleModal } from '../components/ChangeRoleModal.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
-import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
+import { EmployeeDetailHeader } from '../components/detail/EmployeeDetailHeader.jsx';
+import { EmployeeBasicInfoTab } from '../components/detail/EmployeeBasicInfoTab.jsx';
+import { EmployeeQuickViewCard } from '../components/detail/EmployeeQuickViewCard.jsx';
 import {
-  User,
-  Mail,
-  Phone,
   ShieldCheck,
-  Building2,
-  CalendarDays,
   AlertCircle,
-  Edit3,
-  Key,
-  LogOut,
-  Trash2,
   AlertTriangle,
-  ChevronRight,
   Info,
   Clock,
   Activity,
@@ -47,45 +39,6 @@ const TABS = [
   { key: 'activity', label: 'سجل النشاط', icon: Activity },
 ];
 
-const Card = ({ title, icon: Icon, children }) => (
-  <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
-    <div className="px-4 py-3 border-b border-border-default flex items-center gap-2">
-      <Icon className="w-4 h-4 text-brand-primary" />
-      <h3 className="text-sm font-bold text-txt-primary">{title}</h3>
-    </div>
-    <div className="px-4 py-2 divide-y divide-border-subtle">{children}</div>
-  </div>
-);
-
-const InfoRow = ({ icon: Icon, label, value }) => (
-  <div className="flex items-center gap-3 py-3">
-    <span className="p-1.5 rounded-md bg-bg-base text-brand-primary shrink-0">
-      <Icon className="w-4 h-4" />
-    </span>
-    <div className="min-w-0">
-      <p className="text-xs text-txt-muted">{label}</p>
-      <p className="text-sm font-semibold text-txt-primary truncate">{value || 'غير محدد'}</p>
-    </div>
-  </div>
-);
-
-const QuickViewRow = ({ icon: Icon, label, value }) => (
-  <div className="flex items-center justify-between py-3">
-    <span className="flex items-center gap-2 text-xs text-txt-muted">
-      <Icon className="w-4 h-4 text-brand-primary" />
-      {label}
-    </span>
-    <span className="text-xs font-semibold text-txt-primary">{value || 'غير محدد'}</span>
-  </div>
-);
-
-const formatDate = (date) => {
-  if (!date) return 'غير محدد';
-  const d = new Date(date);
-  if (Number.isNaN(d.getTime())) return 'غير محدد';
-  return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
-};
-
 export const EmployeeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -98,50 +51,35 @@ export const EmployeeDetailPage = () => {
   const forceLogoutMutation = useForceLogoutEmployeeMutation();
 
   const [activeTab, setActiveTab] = useState('basic');
-  const [actionError, setActionError] = useState(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [isRoleOpen, setIsRoleOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isForceLogoutOpen, setIsForceLogoutOpen] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
-  const runAction = async (fn) => {
+  const handleAction = async (actionFn, onSuccess) => {
     setActionError(null);
     try {
-      await fn();
-      return true;
+      await actionFn();
+      if (onSuccess) onSuccess();
     } catch (err) {
-      setActionError(err?.message || 'حدث خطأ أثناء تنفيذ العملية.');
-      return false;
+      setActionError(err?.message || 'حدث خطأ أثناء تنفيذ الإجراء.');
     }
   };
 
-  const handleEdit = async (formData) => {
-    const ok = await runAction(() => updateMutation.mutateAsync({ id, payload: formData }));
-    if (ok) setIsEditOpen(false);
+  const handleDelete = () => {
+    handleAction(
+      () => deleteMutation.mutateAsync(id),
+      () => navigate('/settings/employees')
+    );
   };
 
-  const handlePassword = async (payload) => {
-    const ok = await runAction(() => changePasswordMutation.mutateAsync({ id, payload }));
-    if (ok) setIsPasswordOpen(false);
-  };
-
-  const handleRole = async (payload) => {
-    const ok = await runAction(() => changeRoleMutation.mutateAsync({ id, payload }));
-    if (ok) setIsRoleOpen(false);
-  };
-
-  const handleDelete = async () => {
-    const ok = await runAction(() => deleteMutation.mutateAsync(id));
-    if (ok) {
-      setIsDeleteOpen(false);
-      navigate('/settings/employees');
-    }
-  };
-
-  const handleForceLogout = async () => {
-    const ok = await runAction(() => forceLogoutMutation.mutateAsync(id));
-    if (ok) setIsForceLogoutOpen(false);
+  const handleForceLogout = () => {
+    handleAction(
+      () => forceLogoutMutation.mutateAsync(id),
+      () => setIsForceLogoutOpen(false)
+    );
   };
 
   if (isLoading) {
@@ -173,79 +111,16 @@ export const EmployeeDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="flex items-center gap-3 pb-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => navigate('/settings/employees')}
-          icon={ChevronRight}
-        >
-          العودة للموظفين
-        </Button>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-bold text-txt-primary">{employee?.name || 'ملف الموظف'}</h1>
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-bg-surface-elevated text-brand-primary border border-border-subtle">
-            {employee?.role?.name || 'غير محدد'}
-          </span>
-          <span
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${
-              status.label === 'نشط'
-                ? 'bg-status-success-bg text-status-success border border-status-success/20'
-                : 'bg-status-neutral-bg text-status-neutral border border-status-neutral/20'
-            }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-            {status.label}
-          </span>
-        </div>
-      </div>
-
-      {}
-      <div className="flex flex-wrap items-center gap-2">
-        <PermissionGate permission="employees.manage">
-          <Button
-            variant="primary"
-            size="sm"
-            icon={LogOut}
-            onClick={() => setIsForceLogoutOpen(true)}
-          >
-            إغلاق الجلسات
-          </Button>
-        </PermissionGate>
-
-        <PermissionGate permission="employees.manage">
-          <Button size="sm" variant="outline" icon={Edit3} onClick={() => setIsEditOpen(true)}>
-            تعديل البيانات
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            icon={Key}
-            onClick={() => setIsPasswordOpen(true)}
-          >
-            تغيير كلمة المرور
-          </Button>
-        </PermissionGate>
-
-        <PermissionGate permission="employees.manage_roles">
-          <Button size="sm" variant="outline" icon={ShieldCheck} onClick={() => setIsRoleOpen(true)}>
-            تغيير الدور
-          </Button>
-        </PermissionGate>
-
-        <PermissionGate permission="employees.manage">
-          <Button
-            size="sm"
-            variant="danger"
-            icon={Trash2}
-            onClick={() => setIsDeleteOpen(true)}
-          >
-            تعطيل الحساب
-          </Button>
-        </PermissionGate>
-      </div>
+      {/* Header */}
+      <EmployeeDetailHeader
+        employee={employee}
+        status={status}
+        onOpenForceLogout={() => setIsForceLogoutOpen(true)}
+        onOpenEdit={() => setIsEditOpen(true)}
+        onOpenPassword={() => setIsPasswordOpen(true)}
+        onOpenRole={() => setIsRoleOpen(true)}
+        onOpenDelete={() => setIsDeleteOpen(true)}
+      />
 
       {actionError && (
         <div className="flex items-center gap-2 p-3 rounded-md bg-status-danger-bg text-status-danger border border-status-danger/30 text-xs font-medium">
@@ -254,11 +129,9 @@ export const EmployeeDetailPage = () => {
         </div>
       )}
 
-      {}
+      {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {}
         <div className="lg:col-span-2 space-y-6">
-          {}
           <div className="flex items-center gap-1 border-b border-border-default">
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -268,7 +141,7 @@ export const EmployeeDetailPage = () => {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 focus-visible:outline-none ${
+                  className={`px-4 py-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 focus-visible:outline-none cursor-pointer ${
                     isActive
                       ? 'border-brand-primary text-brand-primary'
                       : 'border-transparent text-txt-muted hover:text-txt-primary'
@@ -282,131 +155,100 @@ export const EmployeeDetailPage = () => {
           </div>
 
           {activeTab === 'basic' ? (
-            <Card title="معلومات الموظف" icon={User}>
-              <InfoRow icon={User} label="الاسم" value={employee?.name} />
-              <InfoRow icon={Phone} label="رقم الهاتف" value={employee?.phone} />
-              <InfoRow icon={Mail} label="البريد الإلكتروني" value={employee?.email} />
-              <InfoRow icon={CalendarDays} label="تاريخ الإنشاء" value={formatDate(employee?.createdAt)} />
-              <InfoRow icon={CalendarDays} label="آخر تحديث" value={formatDate(employee?.updatedAt)} />
-            </Card>
+            <EmployeeBasicInfoTab employee={employee} />
           ) : (
             <div className="bg-bg-surface border border-border-default rounded-lg p-10 text-center">
-              <p className="text-sm text-txt-muted">هذا القسم غير متاح بعد.</p>
+              <p className="text-sm text-txt-muted">هذا القسم قيد التوسعة في الإصدار القادم.</p>
             </div>
           )}
         </div>
 
-        {}
         <div className="space-y-6">
-          {}
-          <div className="bg-bg-surface border border-border-default rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-border-default">
-              <h3 className="text-sm font-bold text-txt-primary">نظرة سريعة</h3>
-            </div>
-            <div className="px-4 py-2 divide-y divide-border-subtle">
-              <QuickViewRow
-                icon={ShieldCheck}
-                label="الدور الوظيفي"
-                value={employee?.role?.name || 'غير محدد'}
-              />
-              <QuickViewRow
-                icon={Building2}
-                label="الفرع"
-                value={employee?.branch?.name || 'غير محدد'}
-              />
-              <QuickViewRow
-                icon={CalendarDays}
-                label="تاريخ الإنشاء"
-                value={formatDate(employee?.createdAt)}
-              />
-              <QuickViewRow
-                icon={CalendarDays}
-                label="آخر تحديث"
-                value={formatDate(employee?.updatedAt)}
-              />
-            </div>
-          </div>
+          <EmployeeQuickViewCard employee={employee} statusLabel={status.label} />
         </div>
       </div>
 
-      {}
+      {/* Modals */}
       <EmployeeFormModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
         initialValues={employee}
-        onSubmit={handleEdit}
+        onSubmit={async (data) => {
+          await updateMutation.mutateAsync({ id, ...data });
+          setIsEditOpen(false);
+        }}
         isLoading={updateMutation.isPending}
       />
 
-      {}
       <ChangePasswordModal
         isOpen={isPasswordOpen}
         onClose={() => setIsPasswordOpen(false)}
-        employee={employee}
-        onSubmit={handlePassword}
+        employeeId={id}
+        onSubmit={async (data) => {
+          await changePasswordMutation.mutateAsync({ id, ...data });
+          setIsPasswordOpen(false);
+        }}
         isLoading={changePasswordMutation.isPending}
       />
 
-      {}
       <ChangeRoleModal
         isOpen={isRoleOpen}
         onClose={() => setIsRoleOpen(false)}
         employee={employee}
-        onSubmit={handleRole}
+        onSubmit={async (roleId) => {
+          await changeRoleMutation.mutateAsync({ id, roleId });
+          setIsRoleOpen(false);
+        }}
         isLoading={changeRoleMutation.isPending}
       />
 
-      {}
       <Modal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        title="تأكيد تعطيل الحساب"
+        title="تعطيل حساب الموظف"
         size="sm"
       >
-        <div className="space-y-4 text-right">
-          <p className="text-xs text-txt-muted">
-            هل أنت متأكد من تعطيل/حذف الحساب الخاص بـ{' '}
-            <span className="font-bold text-txt-primary">{employee?.name}</span>؟
+        <div className="space-y-4">
+          <p className="text-sm text-txt-muted">
+            هل أنت متأكد من رغبتك في تعطيل حساب الموظف <strong className="text-txt-primary">{employee?.name}</strong>؟ لن يتمكن من تسجيل الدخول للنظام مجددًا.
           </p>
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+          <div className="flex items-center justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setIsDeleteOpen(false)}>
               إلغاء
             </Button>
             <Button
               variant="danger"
               size="sm"
-              isLoading={deleteMutation.isPending}
               onClick={handleDelete}
+              isLoading={deleteMutation.isPending}
             >
-              تعطيل الحساب
+              تأكيد التعطيل
             </Button>
           </div>
         </div>
       </Modal>
 
-      {}
       <Modal
         isOpen={isForceLogoutOpen}
         onClose={() => setIsForceLogoutOpen(false)}
-        title="إغلاق جلسات الموظف"
+        title="إنهاء جميع الجلسات النشطة"
         size="sm"
       >
-        <div className="space-y-4 text-right">
-          <p className="text-xs text-txt-muted">
-            سيتم تسجيل خروج فوري من جميع الأجهزة النشطة للحساب{' '}
-            <span className="font-bold text-txt-primary">{employee?.name}</span>. هل أنت متأكد؟
+        <div className="space-y-4">
+          <p className="text-sm text-txt-muted">
+            سيتم تسجيل خروج الموظف <strong className="text-txt-primary">{employee?.name}</strong> من جميع الأجهزة المتصلة فورًا وسيتعين عليه إعادة تسجيل الدخول.
           </p>
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle">
+          <div className="flex items-center justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setIsForceLogoutOpen(false)}>
               إلغاء
             </Button>
             <Button
-              variant="danger"
+              variant="primary"
               size="sm"
-              isLoading={forceLogoutMutation.isPending}
               onClick={handleForceLogout}
+              isLoading={forceLogoutMutation.isPending}
             >
-              إغلاق الجلسات
+              إنهاء الجلسات
             </Button>
           </div>
         </div>

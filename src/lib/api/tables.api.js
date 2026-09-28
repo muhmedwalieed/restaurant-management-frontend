@@ -5,6 +5,7 @@ export const getTablesApi = async (branchId, params = {}) => {
 };
 
 export const getTableByIdApi = async (branchId, id) => {
+  if (!id) throw new Error('Table ID is required');
   return apiClient.get(`/branches/${branchId}/tables/${id}`);
 };
 
@@ -13,14 +14,17 @@ export const createTableApi = async (branchId, payload) => {
 };
 
 export const updateTableApi = async (branchId, id, payload) => {
+  if (!id) throw new Error('Table ID is required');
   return apiClient.patch(`/branches/${branchId}/tables/${id}`, payload);
 };
 
 export const deleteTableApi = async (branchId, id) => {
+  if (!id) throw new Error('Table ID is required');
   return apiClient.delete(`/branches/${branchId}/tables/${id}`);
 };
 
 export const regenerateQrApi = async (branchId, id) => {
+  if (!id) throw new Error('Table ID is required');
   return apiClient.post(`/branches/${branchId}/tables/${id}/regenerate-qr`);
 };
 

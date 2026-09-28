@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Users, X, ShoppingCart, Minus, Plus, Bell, Send, Trash2, Receipt } from 'lucide-react';
-import { Button } from '../../../shared/components/Button.jsx';
+import { X, ShoppingCart, Receipt } from 'lucide-react';
 import { SessionOrdersList } from './SessionOrdersList.jsx';
+import { CartDrawerItemList } from './cart/CartDrawerItemList.jsx';
+import { CartDrawerFooterActions } from './cart/CartDrawerFooterActions.jsx';
 
 export const CartDrawer = ({
   isOpen,
   onClose,
   session,
   restaurant,
+  currentMemberName,
   onUpdateQuantity,
   onRemoveItem,
   onCallWaiter,
@@ -67,55 +69,74 @@ export const CartDrawer = ({
     return o.status !== 'CANCELLED' ? sum + Number(o.total || 0) : sum;
   }, 0);
 
+  const isLocked = session?.status === 'CLOSED';
   const isAwaiting = session?.status === 'AWAITING_CONFIRMATION';
-  const isConfirmed = session?.status === 'CONFIRMED';
-  const isClosed = session?.status === 'CLOSED';
-  const isLocked = isAwaiting || isConfirmed || isClosed;
+
+  const handleItemDecrement = async (item) => {
+    if (item.addedByName && currentMemberName && item.addedByName !== currentMemberName) return;
+    if (item.quantity > 1) {
+      await onUpdateQuantity(item.itemIds?.[0] || item.id, item.quantity - 1);
+    } else {
+      await handleItemRemove(item);
+    }
+  };
+
+  const handleItemIncrement = async (item) => {
+    if (item.addedByName && currentMemberName && item.addedByName !== currentMemberName) return;
+    await onUpdateQuantity(item.itemIds?.[0] || item.id, item.quantity + 1);
+  };
+
+  const handleItemRemove = async (item) => {
+    if (item.addedByName && currentMemberName && item.addedByName !== currentMemberName) return;
+    const ids = item.itemIds || [item.id];
+    for (const id of ids) {
+      await onRemoveItem(id);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end">
-      {}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {}
       <div className="relative z-10 w-full max-w-md mx-auto bg-bg-surface border-t border-border-default rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] max-h-[85dvh]">
-        {}
         <div className="w-full pt-3 pb-1 flex justify-center bg-bg-base/60 shrink-0">
           <div className="w-12 h-1.5 rounded-full bg-border-default/80" />
         </div>
 
-        {}
-        <div className="px-5 pb-3 pt-1 flex items-center justify-between bg-bg-base/60 shrink-0 border-b border-border-subtle">
-          <div className="space-y-0.5 min-w-0 flex-1">
-            <h3 className="text-sm font-bold text-txt-primary truncate">
-              {restaurant?.name || 'تفاصيل الجلسة'}
-            </h3>
-            <p className="text-[11px] text-txt-muted truncate">
-              الأعضاء: {(session?.members || []).map((m) => m.name).join('، ') || '—'}
-            </p>
+        {/* Drawer Header */}
+        <div className="p-4 border-b border-border-default flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-brand-primary">
+              <ShoppingCart className="w-5 h-5" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-txt-primary">سلة طلبات الطاولة</h2>
+              <p className="text-xs text-txt-muted truncate">
+                {restaurant?.name || 'مطعمنا'} · طاولة {session?.tableLabel || session?.tableNumber || '—'}
+              </p>
+            </div>
           </div>
-
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors shrink-0"
-            aria-label="إغلاق السلة"
+            className="p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {}
+        {/* Tab switcher */}
         <div className="px-4 py-2 bg-bg-base/80 border-b border-border-default shrink-0">
           <div className="grid grid-cols-2 gap-1 p-1 bg-bg-surface border border-border-subtle rounded-xl text-xs font-bold">
             <button
               type="button"
               onClick={() => setActiveTab('cart')}
-              className={`py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+              className={`py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'cart'
-                  ? 'bg-brand-primary text-slate-950 shadow-sm font-bold'
+                  ? 'bg-brand-primary text-white shadow-sm font-bold'
                   : 'text-txt-muted hover:text-txt-primary'
               }`}
             >
@@ -126,9 +147,9 @@ export const CartDrawer = ({
             <button
               type="button"
               onClick={() => setActiveTab('session')}
-              className={`py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
+              className={`py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeTab === 'session'
-                  ? 'bg-brand-primary text-slate-950 shadow-sm font-bold'
+                  ? 'bg-brand-primary text-white shadow-sm font-bold'
                   : 'text-txt-muted hover:text-txt-primary'
               }`}
             >
@@ -140,92 +161,19 @@ export const CartDrawer = ({
           </div>
         </div>
 
-        <div className="p-4 space-y-3 overflow-y-auto flex-1 min-h-0 custom-scrollbar">
+        {/* Body content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
           {activeTab === 'cart' ? (
-            consolidatedItems.length === 0 ? (
-              <div className="text-center py-10 space-y-3">
-                <ShoppingCart className="w-10 h-10 text-txt-muted mx-auto opacity-40" />
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-txt-primary">السلة فاضية</p>
-                  <p className="text-xs text-txt-muted max-w-xs mx-auto">
-                    اضغط «أضف» على أي صنف من القائمة لإضافته للسلة الحالية.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onClose}
-                  className="mt-2 text-xs py-2 px-5 rounded-xl border-border-default hover:bg-bg-surface-elevated font-semibold"
-                >
-                  تصفح القائمة
-                </Button>
-              </div>
-            ) : (
-              consolidatedItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-3 bg-bg-base/60 border border-border-subtle rounded-xl p-3"
-                >
-                  <div className="min-w-0 flex-1 space-y-0.5 text-right">
-                    <p className="text-xs font-bold text-txt-primary truncate">{item.productName}</p>
-                    <div className="flex items-center gap-2 text-[11px] text-txt-muted">
-                      <span className="font-mono font-bold text-brand-primary" dir="ltr">
-                        {Number(item.total).toFixed(2)} {currency}
-                      </span>
-                      {item.quantity > 1 && (
-                        <span className="text-[10px] text-txt-muted/70" dir="ltr">
-                          ({item.quantity} × {Number(item.unitPrice).toFixed(2)} / قطعة)
-                        </span>
-                      )}
-                    </div>
-                    {item.addedByName && (
-                      <p className="text-[10px] text-brand-primary/90 flex items-center gap-1 pt-0.5">
-                        <Users className="w-3 h-3 shrink-0" />
-                        <span>أضافها {item.addedByName}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {!isLocked && (
-                    <div className="flex items-center gap-1.5 shrink-0 bg-bg-surface border border-border-default rounded-lg p-1">
-                      <button
-                        onClick={() => {
-                          if (item.quantity > 1) {
-                            onUpdateQuantity(item.itemIds[0], item.quantity - 1);
-                          } else {
-                            (item.itemIds || [item.id]).forEach((id) => onRemoveItem(id));
-                          }
-                        }}
-                        className="w-7 h-7 rounded-md bg-bg-base hover:bg-bg-surface-elevated text-txt-primary flex items-center justify-center transition-colors"
-                        aria-label={item.quantity === 1 ? 'حذف الصنف' : 'إنقاص الكمية'}
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-
-                      <span className="w-6 text-center text-xs font-mono font-bold text-txt-primary">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() => onUpdateQuantity(item.itemIds[0], item.quantity + 1)}
-                        className="w-7 h-7 rounded-md bg-bg-base hover:bg-bg-surface-elevated text-txt-primary flex items-center justify-center transition-colors"
-                        aria-label="زيادة الكمية"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        onClick={() => (item.itemIds || [item.id]).forEach((id) => onRemoveItem(id))}
-                        className="w-7 h-7 rounded-md hover:text-status-danger hover:bg-status-danger/10 text-txt-muted flex items-center justify-center transition-colors"
-                        aria-label="حذف الصنف"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))
-            )
+            <CartDrawerItemList
+              consolidatedItems={consolidatedItems}
+              currency={currency}
+              currentMemberName={currentMemberName}
+              isLocked={isLocked}
+              onClose={onClose}
+              onDecrement={handleItemDecrement}
+              onIncrement={handleItemIncrement}
+              onRemove={handleItemRemove}
+            />
           ) : (
             <div className="space-y-3">
               {sessionOrders.length === 0 ? (
@@ -241,133 +189,24 @@ export const CartDrawer = ({
           )}
         </div>
 
-        <div className="p-4 border-t border-border-default bg-bg-surface/95 backdrop-blur shrink-0 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-3">
-          {activeTab === 'cart' ? (
-            consolidatedItems.length > 0 ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-txt-muted">مجموع الطلب الحالي:</span>
-                  <span className="text-base font-bold text-txt-primary font-mono" dir="ltr">
-                    {cartTotalPrice} {currency}
-                  </span>
-                </div>
-
-                {!isLocked ? (
-                  <div className="flex gap-2.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={Bell}
-                      onClick={onCallWaiter}
-                      disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-                      className="px-4 py-3 text-xs rounded-xl border-border-default hover:bg-bg-surface-elevated shrink-0"
-                    >
-                      {waiterCooldownLeft > 0
-                        ? `الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
-                        : 'الويتر'}
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      icon={Send}
-                      onClick={onSubmitOrder}
-                      disabled={isSubmitPending}
-                      className="flex-1 text-xs py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-slate-950 font-bold"
-                    >
-                      <span>إرسال الطلب للمطبخ ({cartTotalPrice} {currency})</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-xs text-txt-muted text-center py-1">
-                    {isAwaiting ? 'طلبكم قيد المراجعة والتأكيد من قِبل موظف الصالة.' : 'شكراً لزيارتكم، نتمنى لكم وجبة شهية.'}
-                  </p>
-                )}
-              </>
-            ) : (
-              <div className="flex gap-2.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  icon={Bell}
-                  onClick={onCallWaiter}
-                  disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-                  className="flex-1 py-3 text-xs rounded-xl border-border-default hover:bg-bg-surface-elevated font-bold"
-                >
-                  {waiterCooldownLeft > 0
-                    ? `استدعاء الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
-                    : 'استدعاء الويتر'}
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={onClose}
-                  className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-slate-950 font-bold"
-                >
-                  تصفح القائمة
-                </Button>
-              </div>
-            )
-          ) : (
-            <div className="space-y-3">
-              {session?.waiterCall && (
-                <div
-                  className={`rounded-xl p-2.5 text-xs flex items-center gap-2 border ${
-                    session.waiterCall.status === 'ACCEPTED'
-                      ? 'bg-status-success/10 border-status-success/30 text-status-success'
-                      : session.waiterCall.type === 'BILL'
-                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                      : 'bg-status-warning/10 border-status-warning/30 text-status-warning'
-                  }`}
-                >
-                  {session.waiterCall.type === 'BILL' ? (
-                    <Receipt className="w-4 h-4 shrink-0" />
-                  ) : (
-                    <Bell className="w-4 h-4 shrink-0" />
-                  )}
-                  <span className="font-semibold">
-                    {session.waiterCall.status === 'ACCEPTED'
-                      ? (session.waiterCall.type === 'BILL' ? 'الويتر في الطريق لطاولتكم ومعه الفاتورة' : 'الويتر في الطريق لطاولتكم حالياً')
-                      : (session.waiterCall.type === 'BILL' ? 'تم طلب الفاتورة والحساب، بانتظار وصول الويتر' : 'تم استدعاء الويتر، بانتظار وصول الويتر')}
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-txt-muted">إجمالي حساب الجلسة:</span>
-                <span className="text-base font-bold text-brand-primary font-mono text-lg" dir="ltr">
-                  {totalSessionAmount.toFixed(2)} {currency}
-                </span>
-              </div>
-
-              <div className="flex gap-2.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  icon={Bell}
-                  onClick={onCallWaiter}
-                  disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-                  className="flex-1 py-3 text-xs rounded-xl border-border-default hover:bg-bg-surface-elevated font-bold"
-                >
-                  {waiterCooldownLeft > 0
-                    ? `الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
-                    : 'استدعاء الويتر'}
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  icon={Receipt}
-                  onClick={onRequestBill || onCallWaiter}
-                  disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-                  className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-slate-950 font-bold"
-                >
-                  {waiterCooldownLeft > 0 && session?.waiterCall?.type === 'BILL'
-                    ? `تم الطلب (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
-                    : 'طلب الفاتورة والحساب'}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Footer actions */}
+        <CartDrawerFooterActions
+          activeTab={activeTab}
+          consolidatedItems={consolidatedItems}
+          cartTotalPrice={cartTotalPrice}
+          currency={currency}
+          totalSessionAmount={totalSessionAmount}
+          isLocked={isLocked}
+          isAwaiting={isAwaiting}
+          waiterCooldownLeft={waiterCooldownLeft}
+          isCallWaiterPending={isCallWaiterPending}
+          isSubmitPending={isSubmitPending}
+          session={session}
+          onCallWaiter={onCallWaiter}
+          onRequestBill={onRequestBill}
+          onSubmitOrder={onSubmitOrder}
+          onClose={onClose}
+        />
       </div>
     </div>
   );

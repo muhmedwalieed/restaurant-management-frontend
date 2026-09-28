@@ -66,6 +66,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const restoreSession = async () => {
+      // Don't attempt staff refresh on public customer-facing routes (avoids unwanted 401 in console)
+      const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+      const isPublicCustomerRoute = pathname.startsWith('/menu/table') || pathname.startsWith('/order');
+      if (isPublicCustomerRoute) {
+        setIsBootstrapping(false);
+        return;
+      }
+
       try {
         const newToken = await handleRefresh();
         if (newToken) {

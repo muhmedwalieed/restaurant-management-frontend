@@ -26,7 +26,7 @@ export const OrderSourcePicker = ({ value, onChange, sources }) => {
               onClick={() => onChange(opt.value)}
               className={`py-1.5 px-1 rounded-md text-[11px] font-semibold flex items-center justify-center gap-1 transition-all ${
                 isSelected
-                  ? 'bg-brand-primary text-slate-950 shadow-sm'
+                  ? 'bg-brand-primary text-white shadow-sm'
                   : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
               }`}
               title={opt.label}

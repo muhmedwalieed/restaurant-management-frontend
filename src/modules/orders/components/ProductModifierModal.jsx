@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Modal } from '../../../shared/components/Modal.jsx';
-import { Button } from '../../../shared/components/Button.jsx';
-import { Check, Plus, Minus, Info } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
+import { ModifierItemRow } from './modifiers/ModifierItemRow.jsx';
+import { ModifierModalFooter } from './modifiers/ModifierModalFooter.jsx';
 
-export const ProductModifierModal = ({ isOpen, product, onClose, onConfirm }) => {
+export const ProductModifierModal = ({
+  isOpen,
+  product,
+  onClose,
+  onConfirm,
+  currency = 'EGP',
+}) => {
   const [selected, setSelected] = useState(() => new Set());
   const [quantities, setQuantities] = useState({});
 
@@ -26,7 +32,6 @@ export const ProductModifierModal = ({ isOpen, product, onClose, onConfirm }) =>
   if (!isOpen || !product) return null;
 
   const modifiers = product.modifiers || [];
-  const currency = 'EGP';
 
   const isOn = (mod) =>
     mod.quantityMode === 'QUANTITY' ? (quantities[mod.id] || 0) > 0 : selected.has(mod.id);
@@ -34,7 +39,9 @@ export const ProductModifierModal = ({ isOpen, product, onClose, onConfirm }) =>
   const modifierCost = (mod) =>
     Number(mod.priceDelta || 0) * (mod.quantityMode === 'QUANTITY' ? quantities[mod.id] || 0 : 1);
 
-  const unitPrice = Number(product.price || 0) + modifiers.reduce((sum, m) => sum + (isOn(m) ? modifierCost(m) : 0), 0);
+  const unitPrice =
+    Number(product.price || 0) +
+    modifiers.reduce((sum, m) => sum + (isOn(m) ? modifierCost(m) : 0), 0);
 
   const toggleSingle = (mod) => {
     if (mod.isRequired) return;
@@ -59,7 +66,8 @@ export const ProductModifierModal = ({ isOpen, product, onClose, onConfirm }) =>
     const chosen = modifiers.filter((m) => isOn(m)).map((m) => ({
       modifierId: m.id,
       name: m.name,
-      quantity: m.quantityMode === 'QUANTITY' ? quantities[m.id] || 1 : 1,
+      quantity: m.quantityMode === 'QUANTITY' ? quantities[modIdOrId(m)] || 1 : 1,
+      priceDelta: Number(m.priceDelta || 0),
     }));
     onConfirm({
       modifiers: chosen.map((c) => ({ modifierId: c.modifierId, quantity: c.quantity })),
@@ -68,111 +76,104 @@ export const ProductModifierModal = ({ isOpen, product, onClose, onConfirm }) =>
     });
   };
 
+  const modIdOrId = (m) => m.id;
+  const hasRequired = modifiers.some((m) => m.isRequired);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={product.name} size="md">
-      <div className="space-y-4">
-        {modifiers.length === 0 ? (
-          <p className="text-xs text-txt-muted">لا توجد إضافات لهذا الصنف.</p>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-txt-muted flex items-center gap-1">
-              <Info className="w-3.5 h-3.5" />
-              اختر الإضافات
-            </p>
-            {modifiers.map((mod) => {
-              const on = isOn(mod);
-              const isQty = mod.quantityMode === 'QUANTITY';
-              const qty = quantities[mod.id] || 0;
-              return (
-                <div
-                  key={mod.id}
-                  className={`flex items-center justify-between gap-2 rounded-xl border p-3 transition-colors ${
-                    on ? 'border-brand-primary bg-brand-primary/[0.05]' : 'border-border-subtle bg-bg-base/40'
-                  }`}
-                >
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-txt-primary flex items-center gap-1.5">
-                      {mod.name}
-                      {mod.isRequired && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-status-warning/10 text-status-warning border border-status-warning/30">
-                          إجباري
-                        </span>
-                      )}
-                      {isQty}
-                    </p>
-                    <p className="text-[11px] text-txt-muted font-mono" dir="ltr">
-                      {Number(mod.priceDelta || 0).toFixed(2)} {currency}
-                      {isQty && qty > 1 ? ` × ${qty}` : ''}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {isQty ? (
-                      <div className="flex items-center gap-1 bg-bg-surface border border-border-subtle rounded-lg p-0.5">
-                        <button
-                          type="button"
-                          onClick={() => adjustQty(mod, -1)}
-                          disabled={qty <= (mod.isRequired ? 1 : 0)}
-                          aria-label={`إنقاص ${mod.name}`}
-                          className="w-6 h-6 rounded-md hover:bg-white/[0.06] flex items-center justify-center text-txt-muted transition-colors disabled:opacity-30"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-5 text-center text-xs font-mono font-bold">{qty}</span>
-                        <button
-                          type="button"
-                          onClick={() => adjustQty(mod, 1)}
-                          disabled={qty >= (mod.maxQuantity || 99)}
-                          aria-label={`زيادة ${mod.name}`}
-                          className="w-6 h-6 rounded-md hover:bg-white/[0.06] flex items-center justify-center text-txt-muted transition-colors disabled:opacity-30"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => toggleSingle(mod)}
-                        disabled={mod.isRequired}
-                        aria-label={mod.name}
-                        className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          on
-                            ? 'bg-brand-primary border-brand-primary text-slate-950'
-                            : 'bg-slate-800 border-slate-500 text-transparent hover:border-white'
-                        } ${mod.isRequired ? 'opacity-90' : ''}`}
-                        title={mod.isRequired ? 'إضافة إجبارية' : 'اختياري'}
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+    <div
+      className="overlay ai"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="card au flex flex-col overflow-hidden"
+        style={{
+          width: 480,
+          maxWidth: '95vw',
+          maxHeight: '92vh',
+          background: 'var(--s1)',
+          border: '1px solid var(--bd)',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-5 py-4 shrink-0"
+          style={{ borderBottom: '1px solid var(--bd)', background: 'var(--s1)' }}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: 'var(--ac-bg)', color: 'var(--ac)' }}
+            >
+              <Sparkles size={16} />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold truncate" style={{ color: 'var(--t1)' }}>
+                {product.name}
+              </h2>
+              <p className="text-xs" style={{ color: 'var(--t3)' }}>
+                السعر الأساسي:{' '}
+                <span className="mono font-semibold" style={{ color: 'var(--t2)' }}>
+                  {Number(product.price || 0).toFixed(2)} {currency}
+                </span>
+              </p>
+            </div>
           </div>
-        )}
-
-        <div className="flex items-center justify-between gap-3 pt-3 border-t border-border-subtle">
-          <span className="text-xs font-semibold text-txt-muted">
-            سعر الصنف بعد الإضافات:
-            <span dir="ltr" className="font-mono font-bold text-txt-primary mr-1 inline-block">
-              {unitPrice.toFixed(2)} {currency}
-            </span>
-          </span>
-          <div className="flex gap-2 shrink-0">
-            <Button size="sm" variant="outline" onClick={onClose}>
-              إلغاء
-            </Button>
-            <Button size="sm" variant="primary" onClick={handleConfirm} className="gap-1.5">
-              <span>إضافة للسلة</span>
-              <span dir="ltr" className="font-mono">
-                {unitPrice.toFixed(2)} {currency}
-              </span>
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer hover:bg-slate-100"
+            style={{ color: 'var(--t3)' }}
+          >
+            <X size={16} />
+          </button>
         </div>
+
+        {/* Modifiers List */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3 custom-scrollbar">
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="font-semibold" style={{ color: 'var(--t2)' }}>
+              تخصيص الإضافات
+            </span>
+            {hasRequired && (
+              <span className="badge b-warn" style={{ fontSize: 10 }}>
+                توجد إضافات إلزامية
+              </span>
+            )}
+          </div>
+
+          {modifiers.length === 0 ? (
+            <div className="py-8 text-center text-xs" style={{ color: 'var(--t3)' }}>
+              لا توجد إضافات متاحة لهذا الصنف.
+            </div>
+          ) : (
+            modifiers.map((mod) => (
+              <ModifierItemRow
+                key={mod.id}
+                mod={mod}
+                isOn={isOn(mod)}
+                isQty={mod.quantityMode === 'QUANTITY'}
+                qty={quantities[mod.id] || 0}
+                priceDelta={Number(mod.priceDelta || 0)}
+                onToggleSingle={toggleSingle}
+                onAdjustQty={adjustQty}
+                currency={currency}
+              />
+            ))
+          )}
+        </div>
+
+        {/* Footer Summary & Confirm */}
+        <ModifierModalFooter
+          unitPrice={unitPrice}
+          currency={currency}
+          onClose={onClose}
+          onConfirm={handleConfirm}
+        />
       </div>
-    </Modal>
+    </div>
   );
 };
 

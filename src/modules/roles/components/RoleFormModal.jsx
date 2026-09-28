@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +10,7 @@ import {
   getLocalizedModuleTitle,
   getLocalizedPermissionName,
 } from '../schemas/permissions.dict.js';
+import { RolePermissionModuleCard } from './permissions/RolePermissionModuleCard.jsx';
 import { ShieldCheck, Loader2, Search, CheckSquare, Square } from 'lucide-react';
 
 export const roleFormSchema = z.object({
@@ -69,15 +69,13 @@ export const RoleFormModal = ({
     }
   }, [isOpen, initialValues, reset]);
 
+  const allPermissionKeys = permissionGroups.flatMap((g) => (g.permissions || []).map((p) => p.key));
+
   const togglePermission = (key) => {
     setSelectedPermissions((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
-
-  const allPermissionKeys = permissionGroups.flatMap((g) =>
-    (g.permissions || []).map((p) => p.key)
-  );
 
   const isAllGlobalSelected =
     allPermissionKeys.length > 0 &&
@@ -136,7 +134,6 @@ export const RoleFormModal = ({
       size="xl"
     >
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 text-right" noValidate>
-        {}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-bg-base/40 p-3.5 rounded-xl border border-border-subtle">
           <Input
             label="اسم الدور الوظيفي"
@@ -153,7 +150,6 @@ export const RoleFormModal = ({
           />
         </div>
 
-        {}
         <div className="space-y-3 pt-1">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border-default">
             <div className="flex items-center gap-2">
@@ -163,13 +159,12 @@ export const RoleFormModal = ({
               </h4>
             </div>
 
-            {}
             {!isCatalogLoading && allPermissionKeys.length > 0 && (
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleToggleGlobalAll}
-                  className="text-xs text-brand-primary hover:underline font-semibold flex items-center gap-1.5 px-2.5 py-1 rounded bg-brand-primary/10 border border-brand-primary/20 transition-colors"
+                  className="text-xs text-brand-primary hover:underline font-semibold flex items-center gap-1.5 px-2.5 py-1 rounded bg-brand-primary/10 border border-brand-primary/20 transition-colors cursor-pointer"
                 >
                   {isAllGlobalSelected ? (
                     <>
@@ -187,7 +182,6 @@ export const RoleFormModal = ({
             )}
           </div>
 
-          {}
           {!isCatalogLoading && permissionGroups.length > 0 && (
             <div className="relative">
               <Search className="w-4 h-4 text-txt-muted absolute right-3 top-2.5 pointer-events-none" />
@@ -196,12 +190,11 @@ export const RoleFormModal = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ابحث في الصلاحيات (مثال: طاولات، دفع، إلغاء)..."
-                className="w-full bg-bg-base border border-border-default rounded-lg text-xs py-2 pr-9 pl-3 text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-brand-primary"
+                className="w-full bg-bg-base border border-border-default rounded-lg text-xs py-2 pr-10 pl-3 text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-brand-primary"
               />
             </div>
           )}
 
-          {}
           {isCatalogLoading ? (
             <div className="flex items-center justify-center gap-2 text-xs text-txt-muted py-8">
               <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
@@ -213,83 +206,25 @@ export const RoleFormModal = ({
             </div>
           ) : (
             <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
-              {filteredGroups.map((group) => {
-                const groupKeys = group.matchingPermissions.map((p) => p.key);
-                const selectedInGroup = groupKeys.filter((k) => selectedPermissions.includes(k)).length;
-                const isGroupAllSelected = groupKeys.length > 0 && selectedInGroup === groupKeys.length;
-
-                return (
-                  <div
-                    key={group.module}
-                    className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-sm transition-all"
-                  >
-                    {}
-                    <div className="px-4 py-3 bg-bg-base/60 border-b border-border-subtle flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-xs font-bold text-txt-primary truncate">
-                          {group.localizedModule}
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-white/[0.06] text-txt-muted border border-border-subtle">
-                          {selectedInGroup} / {group.matchingPermissions.length} محدد
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleToggleModuleGroup(group.matchingPermissions)}
-                        className="text-[11px] font-semibold text-brand-primary hover:underline flex items-center gap-1.5 shrink-0"
-                      >
-                        {isGroupAllSelected ? 'إلغاء تحديد القسم' : 'تحديد الكل في القسم'}
-                      </button>
-                    </div>
-
-                    {}
-                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      {group.matchingPermissions.map((p) => {
-                        const isChecked = selectedPermissions.includes(p.key);
-                        const localizedName = getLocalizedPermissionName(p.key, p.name);
-
-                        return (
-                          <label
-                            key={p.key}
-                            className={`flex items-start gap-2.5 p-2.5 rounded-lg border transition-all cursor-pointer select-none ${
-                              isChecked
-                                ? 'bg-brand-primary/10 border-brand-primary/30 text-txt-primary'
-                                : 'bg-bg-base/40 border-border-subtle hover:border-white/10 text-txt-muted hover:text-txt-primary'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={() => togglePermission(p.key)}
-                              className="mt-0.5 w-4 h-4 rounded border-border-default bg-bg-surface text-brand-primary focus:ring-0 focus:ring-offset-0 cursor-pointer shrink-0"
-                            />
-                            <div className="flex flex-col gap-0.5 min-w-0">
-                              <span className="font-semibold text-txt-primary leading-tight">
-                                {localizedName}
-                              </span>
-                              <span className="font-mono text-[10px] text-txt-muted/70 tracking-wider truncate" dir="ltr">
-                                {p.key}
-                              </span>
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredGroups.map((group) => (
+                <RolePermissionModuleCard
+                  key={group.module}
+                  group={group}
+                  selectedPermissions={selectedPermissions}
+                  onTogglePermission={togglePermission}
+                  onToggleGroup={handleToggleModuleGroup}
+                />
+              ))}
             </div>
           )}
         </div>
 
-        {}
-        <div className="flex items-center justify-end gap-2 pt-4 border-t border-border-subtle">
-          <Button variant="outline" size="md" onClick={onClose} isDisabled={isLoading}>
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-default">
+          <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isLoading}>
             إلغاء
           </Button>
-          <Button type="submit" variant="primary" size="md" isLoading={isLoading}>
-            {isEdit ? 'حفظ الصلاحيات' : 'إنشاء الدور'}
+          <Button type="submit" variant="primary" size="sm" isLoading={isLoading}>
+            {isEdit ? 'حفظ التعديلات' : 'إنشاء الدور'}
           </Button>
         </div>
       </form>

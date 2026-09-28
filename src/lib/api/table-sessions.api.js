@@ -1,19 +1,39 @@
 import { apiClient } from '../api-client.js';
 
-const authHeaders = (memberToken) => ({
-  headers: memberToken ? { Authorization: `Bearer ${memberToken}` } : {},
-});
+export const resolveMemberToken = (explicitToken) => {
+  if (explicitToken) return explicitToken;
+  if (typeof window !== 'undefined') {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('ts_member_')) {
+          const val = localStorage.getItem(key);
+          if (val) return val;
+        }
+      }
+    } catch (_) { /* localStorage not available (SSR / private mode) */ }
+  }
+  return null;
+};
+
+const authHeaders = (memberToken) => {
+  const token = resolveMemberToken(memberToken);
+  return {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+};
 
 export const startTableSessionApi = async (tableId) => {
-  return apiClient.post('/tables/start', { tableId });
+  const actualId = typeof tableId === 'object' && tableId !== null ? (tableId.tableId || tableId.id) : tableId;
+  return apiClient.post('/tables/start', { tableId: actualId });
 };
 
 export const joinTableSessionApi = async (qrToken, payload) => {
   return apiClient.post(`/sessions/${qrToken}/join`, payload);
 };
 
-export const getTableSessionApi = async (sessionId) => {
-  return apiClient.get(`/sessions/${sessionId}`);
+export const getTableSessionApi = async (sessionId, memberToken) => {
+  return apiClient.get(`/sessions/${sessionId}`, authHeaders(memberToken));
 };
 
 export const addSessionItemApi = async (sessionId, payload, memberToken) => {
@@ -37,41 +57,76 @@ export const submitDraftApi = async (sessionId, memberToken) => {
 };
 
 export const confirmTableSessionApi = async (sessionId) => {
-  return apiClient.post(`/tables/${sessionId}/confirm`);
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.post(`/tables/${sid}/confirm`);
 };
 
-export const closeTableSessionApi = async (sessionId) => {
-  return apiClient.post(`/tables/${sessionId}/close`);
+export const closeTableSessionApi = async (sessionId, payload = {}) => {
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  const actualPayload = typeof sessionId === 'object' && sessionId !== null && sessionId.payload
+    ? sessionId.payload
+    : (typeof payload === 'object' && payload !== null ? payload : {});
+  return apiClient.post(`/tables/${sid}/close`, actualPayload);
 };
 
 export const regeneratePinApi = async (sessionId) => {
-  return apiClient.post(`/tables/${sessionId}/regenerate-pin`);
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.post(`/tables/${sid}/regenerate-pin`);
 };
 
 export const rejectPendingOrderApi = async (sessionId) => {
-  return apiClient.post(`/tables/${sessionId}/reject-order`);
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.post(`/tables/${sid}/reject-order`);
+};
+
+export const addSessionItemStaffApi = async (sessionId, payload) => {
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.post(`/tables/${sid}/items`, payload);
 };
 
 export const updateSessionItemStaffApi = async (sessionId, itemId, quantity) => {
-  return apiClient.patch(`/tables/${sessionId}/items/${itemId}`, { quantity });
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.patch(`/tables/${sid}/items/${itemId}`, { quantity });
 };
 
 export const removeSessionItemStaffApi = async (sessionId, itemId) => {
-  return apiClient.delete(`/tables/${sessionId}/items/${itemId}`);
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.delete(`/tables/${sid}/items/${itemId}`);
 };
 
 export const acceptWaiterCallApi = async (sessionId) => {
-  return apiClient.post(`/tables/${sessionId}/waiter-call/accept`);
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.post(`/tables/${sid}/waiter-call/accept`);
 };
 
 export const dismissWaiterCallApi = async (sessionId) => {
-  return apiClient.post(`/tables/${sessionId}/waiter-call/dismiss`);
+  const sid = typeof sessionId === 'object' && sessionId !== null
+    ? (sessionId.sessionId || sessionId.id)
+    : sessionId;
+  return apiClient.post(`/tables/${sid}/waiter-call/dismiss`);
 };
 
 export const getActiveTableSessionApi = async (tableId) => {
   return apiClient.get(`/tables/table/${tableId}/session`);
 };
 
-export const listBranchSessionsApi = async () => {
-  return apiClient.get('/tables/sessions');
+export const listBranchSessionsApi = async (branchId) => {
+  const params = branchId ? { branchId } : {};
+  return apiClient.get('/tables/sessions', { params });
 };

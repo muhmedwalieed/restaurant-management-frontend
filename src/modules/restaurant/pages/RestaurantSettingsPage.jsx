@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,15 +7,12 @@ import {
   useUpdateRestaurantMutation,
   useUpdateRestaurantStatusMutation,
 } from '../hooks/useRestaurant.js';
-import { Input } from '../../../shared/components/Input.jsx';
-import { Select } from '../../../shared/components/Select.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
-import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
-import { ImageUploadInput } from '../../../shared/components/ImageUploadInput.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
-import { Store, Mail, Phone, Globe, DollarSign, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { RestaurantStatusCard } from '../components/RestaurantStatusCard.jsx';
+import { RestaurantProfileForm } from '../components/RestaurantProfileForm.jsx';
 
 export const restaurantProfileSchema = z.object({
   name: z.string().min(2, 'اسم المطعم يجب أن لا يقل عن حرفين'),
@@ -31,20 +27,6 @@ export const restaurantProfileSchema = z.object({
       message: 'أرفع لوجو من جهازك أو أدخل رابط صحيح',
     }),
 });
-
-const CURRENCY_OPTIONS = [
-  { value: 'EGP', label: 'جنيه مصري (EGP)' },
-  { value: 'SAR', label: 'ريال سعودي (SAR)' },
-  { value: 'AED', label: 'درهم إماراتي (AED)' },
-  { value: 'USD', label: 'دولار أمريكي (USD)' },
-];
-
-const TIMEZONE_OPTIONS = [
-  { value: 'Africa/Cairo', label: 'القاهرة (Africa/Cairo - UTC+2/3)' },
-  { value: 'Asia/Riyadh', label: 'الرياض (Asia/Riyadh - UTC+3)' },
-  { value: 'Asia/Dubai', label: 'دبي (Asia/Dubai - UTC+4)' },
-  { value: 'UTC', label: 'التوقيت العالمي (UTC)' },
-];
 
 export const RestaurantSettingsPage = () => {
   const { data: restaurant, isLoading, isError, error, refetch } = useRestaurantQuery();
@@ -138,34 +120,11 @@ export const RestaurantSettingsPage = () => {
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
-              <Store className="w-5 h-5 text-brand-primary" />
-              <span>إعدادات المطعم الرئيسية</span>
-            </h1>
-            <StatusPill status={isStatusActive ? 'success' : 'neutral'}>
-              {isStatusActive ? 'نشط' : 'معطل'}
-            </StatusPill>
-          </div>
-          <p className="text-xs text-txt-muted mt-1">
-            إدارة بيانات الحساب المؤسسي الرئيسي، التوقيت، والعملة
-          </p>
-        </div>
-
-        <PermissionGate permission="restaurants.manage">
-          <Button
-            variant={isStatusActive ? 'outline' : 'primary'}
-            size="sm"
-            isLoading={updateStatusMutation.isPending}
-            onClick={handleStatusToggle}
-          >
-            {isStatusActive ? 'تعطيل حساب المطعم' : 'تفعيل حساب المطعم'}
-          </Button>
-        </PermissionGate>
-      </div>
+      <RestaurantStatusCard
+        isStatusActive={isStatusActive}
+        isLoading={updateStatusMutation.isPending}
+        onStatusToggle={handleStatusToggle}
+      />
 
       {successMessage && (
         <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
@@ -181,82 +140,18 @@ export const RestaurantSettingsPage = () => {
         </div>
       )}
 
-      {}
-      <div className="bg-bg-surface border border-border-default rounded-lg p-6">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-right" noValidate>
-          <ImageUploadInput
-            label="شعار المطعم"
-            value={watch('logoUrl')}
-            onChange={(url) => setValue('logoUrl', url, { shouldValidate: true })}
-            hint="ارفع لوجو من جهازك (JPG/PNG/WEBP/GIF حتى 2MB)"
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="اسم المطعم"
-              icon={Store}
-              required
-              error={errors.name?.message}
-              {...register('name')}
-            />
-
-            <Input
-              label="معرّف الرابط"
-              value={restaurant?.slug || ''}
-              disabled
-              readOnly
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="البريد الإلكتروني المؤسسي"
-              type="email"
-              icon={Mail}
-              required
-              error={errors.email?.message}
-              {...register('email')}
-            />
-
-            <Input
-              label="رقم الهاتف الرئيسي"
-              type="tel"
-              icon={Phone}
-              required
-              error={errors.phone?.message}
-              {...register('phone')}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Select
-              label="العملة الأساسية"
-              options={CURRENCY_OPTIONS}
-              icon={DollarSign}
-              required
-              error={errors.currency?.message}
-              {...register('currency')}
-            />
-
-            <Select
-              label="التوقيت المحلي"
-              options={TIMEZONE_OPTIONS}
-              icon={Globe}
-              required
-              error={errors.timezone?.message}
-              {...register('timezone')}
-            />
-          </div>
-
-          <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
-            <PermissionGate permission="restaurants.manage">
-              <Button type="submit" variant="primary" isLoading={updateMutation.isPending}>
-                حفظ التغييرات
-              </Button>
-            </PermissionGate>
-          </div>
-        </form>
-      </div>
+      <RestaurantProfileForm
+        restaurant={restaurant}
+        register={register}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        onSubmit={onSubmit}
+        watch={watch}
+        setValue={setValue}
+        isLoading={updateMutation.isPending}
+      />
     </div>
   );
 };
+
+export default RestaurantSettingsPage;

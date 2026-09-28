@@ -37,10 +37,16 @@ export const useCreateTableMutation = () => {
 export const useUpdateTableMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, id, payload }) => updateTableApi(branchId, id, payload),
-    onSuccess: (_, { branchId, id }) => {
+    mutationFn: ({ branchId, id, tableId, payload }) => {
+      const targetId = id || tableId;
+      return updateTableApi(branchId, targetId, payload);
+    },
+    onSuccess: (_, { branchId, id, tableId }) => {
+      const targetId = id || tableId;
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
-      qc.invalidateQueries({ queryKey: ['table', branchId, id] });
+      if (targetId) {
+        qc.invalidateQueries({ queryKey: ['table', branchId, targetId] });
+      }
     },
   });
 };
@@ -48,9 +54,15 @@ export const useUpdateTableMutation = () => {
 export const useRegenerateQrMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, id }) => regenerateQrApi(branchId, id),
-    onSuccess: (_, { branchId, id }) => {
-      qc.invalidateQueries({ queryKey: ['table', branchId, id] });
+    mutationFn: ({ branchId, id, tableId }) => {
+      const targetId = id || tableId;
+      return regenerateQrApi(branchId, targetId);
+    },
+    onSuccess: (_, { branchId, id, tableId }) => {
+      const targetId = id || tableId;
+      if (targetId) {
+        qc.invalidateQueries({ queryKey: ['table', branchId, targetId] });
+      }
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
     },
   });

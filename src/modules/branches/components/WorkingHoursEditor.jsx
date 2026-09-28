@@ -1,13 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { Button } from '../../../shared/components/Button.jsx';
 import { Select } from '../../../shared/components/Select.jsx';
-import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
+import { WorkingHourDayRow } from './WorkingHourDayRow.jsx';
 import {
-  Clock,
   Save,
   CheckCircle2,
   AlertCircle,
@@ -47,9 +45,6 @@ const TIMEZONE_OPTIONS = [
   { value: 'Asia/Dubai', label: 'دبي (Asia/Dubai - UTC+4)' },
   { value: 'UTC', label: 'التوقيت العالمي (UTC)' },
 ];
-
-const timeInputClass =
-  'w-24 bg-bg-base border border-border-default rounded-md py-2 pl-2 pr-8 text-center text-xs text-txt-primary font-mono focus-visible:outline-none focus-visible:border-brand-primary disabled:opacity-40 disabled:cursor-not-allowed';
 
 export const WorkingHoursEditor = ({
   initialData = [],
@@ -144,122 +139,84 @@ export const WorkingHoursEditor = ({
         </div>
       )}
 
-      {}
-          <div className="space-y-4">
-            <div className="max-w-sm">
-              <label className="block text-xs font-medium text-txt-primary mb-1.5">
-                المنطقة الزمنية
-              </label>
-              <PermissionGate permission="branches.manage" disableOnly>
-                <Select
-                  options={timezoneOptions}
-                  value={timezone}
-                  onChange={(e) => onTimezoneChange?.(e.target.value)}
-                />
-              </PermissionGate>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="radio"
-                  name="hours-mode"
-                  checked={is247}
-                  onChange={() => handleModeChange('247')}
-                  className="w-4 h-4 accent-[var(--color-primary)] cursor-pointer"
-                />
-                <span className="text-xs text-txt-primary">Operates 24/7</span>
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="radio"
-                  name="hours-mode"
-                  checked={!is247}
-                  onChange={() => handleModeChange('custom')}
-                  className="w-4 h-4 accent-[var(--color-primary)] cursor-pointer"
-                />
-                <span className="text-xs text-txt-primary">مخصص (Custom)</span>
-              </label>
-            </div>
+      <div className="bg-bg-surface border border-border-default rounded-lg p-4 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="w-full sm:w-72">
+            <label className="block text-xs font-medium text-txt-primary mb-1.5">
+              المنطقة الزمنية
+            </label>
+            <PermissionGate permission="branches.manage" disableOnly>
+              <Select
+                options={timezoneOptions}
+                value={timezone}
+                onChange={(e) => onTimezoneChange?.(e.target.value)}
+              />
+            </PermissionGate>
           </div>
 
-          {}
-          <div
-            className={`overflow-x-auto bg-bg-surface border border-border-default rounded-lg ${
-              is247 ? 'opacity-50 pointer-events-none' : ''
-            }`}
-          >
-            <table className="w-full min-w-[560px] text-right text-xs">
-              <thead>
-                <tr className="bg-bg-base text-txt-muted border-b border-border-default">
-                  <th className="w-14 px-4 py-3 font-semibold text-center">تفعيل</th>
-                  <th className="w-32 px-4 py-3 font-semibold">اليوم</th>
-                  <th className="px-4 py-3 font-semibold text-center">ساعة البداية</th>
-                  <th className="px-4 py-3 font-semibold text-center">ساعة النهاية</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {WEEK_DAYS.map(({ dayKey, labelAr }) => {
-                  const item = schedule.find((s) => s.day === dayKey) || {
-                    day: dayKey,
-                    openTime: '09:00',
-                    closeTime: '23:00',
-                    isOpen: true,
-                  };
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="hours-mode"
+                checked={is247}
+                onChange={() => handleModeChange('247')}
+                className="w-4 h-4 accent-[var(--color-primary)] cursor-pointer"
+              />
+              <span className="text-xs text-txt-primary">Operates 24/7</span>
+            </label>
 
-                  return (
-                    <tr key={dayKey} className="hover:bg-bg-surface-elevated/30 transition-colors">
-                      <td className="px-4 py-3 text-center">
-                        <Toggle
-                          checked={item.isOpen}
-                          onChange={(v) => handleFieldChange(dayKey, 'isOpen', v)}
-                          label={`تفعيل ${labelAr}`}
-                          disabled={is247}
-                        />
-                      </td>
-
-                      <td className="px-4 py-3 font-bold text-txt-primary whitespace-nowrap">
-                        {labelAr}
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <div className="relative mx-auto w-fit">
-                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
-                          <input
-                            type="text"
-                            value={item.openTime}
-                            onChange={(e) => handleFieldChange(dayKey, 'openTime', e.target.value)}
-                            placeholder="09:00"
-                            maxLength={5}
-                            disabled={!item.isOpen || is247}
-                            aria-label={`${labelAr}، ساعة البداية`}
-                            className={timeInputClass}
-                          />
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <div className="relative mx-auto w-fit">
-                          <Clock className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
-                          <input
-                            type="text"
-                            value={item.closeTime}
-                            onChange={(e) => handleFieldChange(dayKey, 'closeTime', e.target.value)}
-                            placeholder="23:00"
-                            maxLength={5}
-                            disabled={!item.isOpen || is247}
-                            aria-label={`${labelAr}، ساعة النهاية`}
-                            className={timeInputClass}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="hours-mode"
+                checked={!is247}
+                onChange={() => handleModeChange('custom')}
+                className="w-4 h-4 accent-[var(--color-primary)] cursor-pointer"
+              />
+              <span className="text-xs text-txt-primary">مخصص (Custom)</span>
+            </label>
           </div>
+        </div>
+
+        <div
+          className={`overflow-x-auto bg-bg-surface border border-border-default rounded-lg ${
+            is247 ? 'opacity-50 pointer-events-none' : ''
+          }`}
+        >
+          <table className="w-full min-w-[560px] text-right text-xs">
+            <thead>
+              <tr className="bg-bg-base text-txt-muted border-b border-border-default">
+                <th className="w-14 px-4 py-3 font-semibold text-center">تفعيل</th>
+                <th className="w-32 px-4 py-3 font-semibold">اليوم</th>
+                <th className="px-4 py-3 font-semibold text-center">ساعة البداية</th>
+                <th className="px-4 py-3 font-semibold text-center">ساعة النهاية</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle">
+              {WEEK_DAYS.map(({ dayKey, labelAr }) => {
+                const item = schedule.find((s) => s.day === dayKey) || {
+                  day: dayKey,
+                  openTime: '09:00',
+                  closeTime: '23:00',
+                  isOpen: true,
+                };
+
+                return (
+                  <WorkingHourDayRow
+                    key={dayKey}
+                    dayKey={dayKey}
+                    labelAr={labelAr}
+                    item={item}
+                    is247={is247}
+                    onFieldChange={handleFieldChange}
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
         <PermissionGate permission="branches.manage">
@@ -271,3 +228,5 @@ export const WorkingHoursEditor = ({
     </form>
   );
 };
+
+export default WorkingHoursEditor;

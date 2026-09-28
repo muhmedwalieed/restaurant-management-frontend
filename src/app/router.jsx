@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '../shared/layout/AppShell.jsx';
@@ -25,62 +24,29 @@ import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPag
 import { WhatsAppPage } from '../modules/whatsapp/pages/WhatsAppPage.jsx';
 import { ConversationsListPage } from '../modules/whatsapp/pages/ConversationsListPage.jsx';
 import { ConversationDetailPage } from '../modules/whatsapp/pages/ConversationDetailPage.jsx';
-import { useAuth } from '../modules/auth/context/AuthContext.jsx';
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage.jsx';
 import { NotificationsPage } from '../modules/notifications/pages/NotificationsPage.jsx';
 import { CouponsListPage } from '../modules/coupons/pages/CouponsListPage.jsx';
 import { AuditLogsPage } from '../modules/audit-logs/pages/AuditLogsPage.jsx';
-import { Button } from '../shared/components/Button.jsx';
-import { SplashState } from '../shared/components/SplashState.jsx';
+import {
+  ProtectedRoute,
+  RequirePermission,
+  HomeRedirect,
+  NotFoundPage,
+  GuestRoute,
+} from './guards/RouteGuards.jsx';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isBootstrapping } = useAuth();
-  if (isBootstrapping) {
-    return <SplashState />;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
+const POS_PERMISSIONS = [
+  'orders.source_cashier',
+  'orders.source_phone',
+  'orders.source_whatsapp',
+  'orders.source_website',
+  'tables.view',
+  'orders.create',
+];
 
-const RequirePermission = ({ permission, children }) => {
-  const { hasPermission } = useAuth();
-  if (!hasPermission(permission)) {
-    return <NotFoundPage />;
-  }
-  return children;
-};
-
-const HomeRedirect = () => {
-  const { hasPermission } = useAuth();
-  if (hasPermission('dashboard.view')) return <DashboardPage />;
-  if (hasPermission(['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website'])) {
-    return <Navigate to="/pos" replace />;
-  }
-  if (hasPermission('orders.view')) return <Navigate to="/orders" replace />;
-  if (hasPermission('customers.view')) return <Navigate to="/customers" replace />;
-  return <DashboardPage />;
-};
-
-const NotFoundPage = () => (
-  <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
-    <h1 className="text-4xl font-bold text-status-danger">404</h1>
-    <p className="text-sm text-txt-muted">الصفحة التي تبحث عنها غير موجودة.</p>
-    <Button onClick={() => (window.location.href = '/')}>العودة للرئيسية</Button>
-  </div>
-);
-
-const GuestRoute = ({ children }) => {
-  const { isAuthenticated, isBootstrapping } = useAuth();
-  if (isBootstrapping) {
-    return <SplashState />;
-  }
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-  return children;
-};
+const WAITER_PERMISSIONS = ['tables.view', 'orders.create'];
+const TABLES_PERMISSIONS = ['tables.view', 'tables.manage'];
 
 export const router = createBrowserRouter(
   [
@@ -100,234 +66,268 @@ export const router = createBrowserRouter(
         </GuestRoute>
       ),
     },
-  {
-    path: '/',
-    element: (
-      <ProtectedRoute>
-        <AppShell />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        index: true,
-        element: <HomeRedirect />,
-      },
-      {
-        path: 'reports',
-        element: (
-          <RequirePermission permission="dashboard.view">
-            <DashboardPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'orders',
-        element: (
-          <RequirePermission permission="orders.view">
-            <OrdersListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'orders/:id',
-        element: (
-          <RequirePermission permission="orders.view">
-            <OrderDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'pos',
-        element: (
-          <RequirePermission
-            permission={['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website']}
-          >
+    {
+      path: '/pos',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={POS_PERMISSIONS}>
             <PosPage />
           </RequirePermission>
-        ),
-      },
-      {
-        path: 'phone-order',
-        element: (
-          <RequirePermission permission="orders.create">
-            <Navigate to="/pos" replace />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/pos/:tab',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={POS_PERMISSIONS}>
+            <PosPage />
           </RequirePermission>
-        ),
-      },
-      {
-        path: 'kds',
-        element: (
-          <RequirePermission permission="kds.view">
-            <KdsPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'tables',
-        element: (
-          <RequirePermission permission={['tables.view', 'tables.manage']}>
-            <TablesListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'tables/:id',
-        element: (
-          <RequirePermission permission={['tables.view', 'tables.manage']}>
-            <TableDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'menu',
-        element: (
-          <RequirePermission permission="menu.manage">
-            <MenuManagementPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'menu/products/:id',
-        element: (
-          <RequirePermission permission="menu.manage">
-            <ProductDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'customers',
-        element: (
-          <RequirePermission permission="customers.view">
-            <CustomersListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'customers/:id',
-        element: (
-          <RequirePermission permission="customers.view">
-            <CustomerDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'coupons',
-        element: (
-          <RequirePermission permission="coupons.manage">
-            <CouponsListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'notifications',
-        element: (
-          <RequirePermission permission="notifications.view">
-            <NotificationsPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'whatsapp',
-        element: (
-          <RequirePermission permission="whatsapp.view">
-            <WhatsAppPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'whatsapp/conversations',
-        element: (
-          <RequirePermission permission="whatsapp.view">
-            <ConversationsListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'whatsapp/conversations/:id',
-        element: (
-          <RequirePermission permission="whatsapp.view">
-            <ConversationDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/restaurant',
-        element: (
-          <RequirePermission permission="restaurants.manage">
-            <RestaurantSettingsPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/branches',
-        element: (
-          <RequirePermission permission="branches.manage">
-            <BranchesListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/branches/:id',
-        element: (
-          <RequirePermission permission="branches.manage">
-            <BranchDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/audit-logs',
-        element: (
-          <RequirePermission permission="audit.view">
-            <AuditLogsPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/employees',
-        element: (
-          <RequirePermission permission="employees.view">
-            <EmployeesListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/employees/:id',
-        element: (
-          <RequirePermission permission="employees.view">
-            <EmployeeDetailPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/roles',
-        element: (
-          <RequirePermission permission="employees.manage_roles">
-            <RolesListPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/roles/new',
-        element: (
-          <RequirePermission permission="employees.manage_roles">
-            <RoleEditPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: 'settings/roles/:id/edit',
-        element: (
-          <RequirePermission permission="employees.manage_roles">
-            <RoleEditPage />
-          </RequirePermission>
-        ),
-      },
-      {
-        path: '*',
-        element: <NotFoundPage />,
-      },
-    ],
-  },
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/waiter',
+      element: <Navigate to="/pos/waiter" replace />,
+    },
+    {
+      path: '/waiter/:tab',
+      element: <Navigate to="/pos/waiter" replace />,
+    },
+    {
+      path: '/',
+      element: (
+        <ProtectedRoute>
+          <AppShell />
+        </ProtectedRoute>
+      ),
+      children: [
+        {
+          index: true,
+          element: <HomeRedirect />,
+        },
+        {
+          path: 'reports',
+          element: (
+            <RequirePermission permission="dashboard.view">
+              <DashboardPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'orders',
+          element: (
+            <RequirePermission permission="orders.view">
+              <OrdersListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'orders/:id',
+          element: (
+            <RequirePermission permission="orders.view">
+              <OrderDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'pos',
+          element: (
+            <RequirePermission permission={POS_PERMISSIONS}>
+              <Navigate to="/pos" replace />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'waiter',
+          element: (
+            <RequirePermission permission={WAITER_PERMISSIONS}>
+              <Navigate to="/waiter" replace />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'phone-order',
+          element: (
+            <RequirePermission permission="orders.create">
+              <Navigate to="/pos" replace />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'kds',
+          element: (
+            <RequirePermission permission={['kds.view', 'orders.view']}>
+              <KdsPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'tables',
+          element: (
+            <RequirePermission permission={TABLES_PERMISSIONS}>
+              <TablesListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'tables/:id',
+          element: (
+            <RequirePermission permission={TABLES_PERMISSIONS}>
+              <TableDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'menu',
+          element: (
+            <RequirePermission permission={['menu.manage', 'menu.view']}>
+              <MenuManagementPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'menu/products/:id',
+          element: (
+            <RequirePermission permission={['menu.manage', 'menu.view']}>
+              <ProductDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'customers',
+          element: (
+            <RequirePermission permission="customers.view">
+              <CustomersListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'customers/:id',
+          element: (
+            <RequirePermission permission="customers.view">
+              <CustomerDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'coupons',
+          element: (
+            <RequirePermission permission={['coupons.manage', 'coupons.view']}>
+              <CouponsListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'notifications',
+          element: (
+            <RequirePermission permission="notifications.view">
+              <NotificationsPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'whatsapp',
+          element: (
+            <RequirePermission permission={['whatsapp.view', 'chats.view']}>
+              <WhatsAppPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'whatsapp/conversations',
+          element: (
+            <RequirePermission permission={['whatsapp.view', 'chats.view']}>
+              <ConversationsListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'whatsapp/conversations/:id',
+          element: (
+            <RequirePermission permission={['whatsapp.view', 'chats.view']}>
+              <ConversationDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/restaurant',
+          element: (
+            <RequirePermission permission={['restaurants.manage', 'restaurants.view']}>
+              <RestaurantSettingsPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/branches',
+          element: (
+            <RequirePermission permission={['branches.manage', 'branches.view']}>
+              <BranchesListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/branches/:id',
+          element: (
+            <RequirePermission permission={['branches.manage', 'branches.view']}>
+              <BranchDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/audit-logs',
+          element: (
+            <RequirePermission permission="audit.view">
+              <AuditLogsPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/employees',
+          element: (
+            <RequirePermission permission="employees.view">
+              <EmployeesListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/employees/:id',
+          element: (
+            <RequirePermission permission="employees.view">
+              <EmployeeDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/roles',
+          element: (
+            <RequirePermission permission="employees.manage_roles">
+              <RolesListPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/roles/new',
+          element: (
+            <RequirePermission permission="employees.manage_roles">
+              <RoleEditPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'settings/roles/:id/edit',
+          element: (
+            <RequirePermission permission="employees.manage_roles">
+              <RoleEditPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: '*',
+          element: <NotFoundPage />,
+        },
+      ],
+    },
   ],
   { future: { v7_startTransition: true } }
 );

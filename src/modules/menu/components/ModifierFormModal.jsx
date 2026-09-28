@@ -8,10 +8,11 @@ import { Toggle } from '../../../shared/components/Toggle.jsx';
 import { modifierFormSchema } from '../schemas/menu.schema.js';
 import { useCreateModifierMutation, useUpdateModifierMutation } from '../hooks/useMenu.js';
 import { PlusCircle } from 'lucide-react';
+import { useCurrency } from '../../../shared/hooks/useCurrency.js';
 
 const QUANTITY_MODE_OPTIONS = [
-  { value: 'SINGLE', label: 'اختيار واحد فقط', hint: 'مثال: جبنة +10 ج.م' },
-  { value: 'QUANTITY', label: 'تحديد الكمية', hint: 'مثال: جبنة إضافية (تحديد العدد)' },
+  { value: 'SINGLE', label: 'اختيار واحد فقط', hint: 'تحديد خيار واحد محدد' },
+  { value: 'QUANTITY', label: 'تحديد الكمية', hint: 'تحديد عدد مرات إضافة هذا الخيار' },
 ];
 
 export const ModifierFormModal = ({
@@ -20,6 +21,7 @@ export const ModifierFormModal = ({
   productId,
   modifierToEdit = null,
 }) => {
+  const { currency } = useCurrency();
   const isEditing = Boolean(modifierToEdit);
   const createMutation = useCreateModifierMutation();
   const updateMutation = useUpdateModifierMutation();
@@ -116,7 +118,7 @@ export const ModifierFormModal = ({
           placeholder="0.00"
           helperText="0 يعني خيار مجاني بدون تكلفة إضافية"
           prefix="+"
-          suffix="ج.م"
+          suffix={currency}
           error={errors.priceDelta?.message}
           {...register('priceDelta')}
         />

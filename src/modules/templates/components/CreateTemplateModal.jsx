@@ -1,43 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '../../../shared/components/Button.jsx';
+import { TemplateVariableToolbar } from './editor/TemplateVariableToolbar.jsx';
+import { TemplateMarkdownToolbar } from './editor/TemplateMarkdownToolbar.jsx';
+import { TemplateLivePreview } from './editor/TemplateLivePreview.jsx';
+import { renderDynamicPreview } from '../utils/templateContextResolver.js';
 import {
   X,
-  Sparkles,
   Plus,
-  Eye,
   Edit3,
-  CheckCircle2,
   AlertCircle,
   Hash,
   Tag,
-  Bold,
-  Italic,
-  Strikethrough,
-  Code,
-  Copy,
 } from 'lucide-react';
-
-const COMMON_VARIABLES = [
-  { key: 'customerName', label: 'اسم العميل' },
-  { key: 'customerSalutation', label: 'اللقب والتحية' },
-  { key: 'orderNumber', label: 'رقم الطلب' },
-  { key: 'restaurantName', label: 'اسم المطعم' },
-  { key: 'agentName', label: 'اسم الموظف' },
-  { key: 'total', label: 'إجمالي الحساب' },
-  { key: 'time', label: 'الوقت' },
-  { key: 'address', label: 'العنوان' },
-];
-
-const MOCK_VALUES = {
-  customerName: 'أحمد محمود',
-  customerSalutation: ' يا أستاذ أحمد',
-  orderNumber: '1042',
-  restaurantName: 'مطعمنا المتميز',
-  agentName: 'سارة حسن',
-  total: '285.00',
-  time: '07:30 م',
-  address: 'شارع النصر، المعادي',
-};
 
 const CATEGORIES = [
   { value: 'INBOX_SUPPORT', label: 'خدمة العملاء والدعم' },
@@ -46,15 +20,6 @@ const CATEGORIES = [
   { value: 'ORDER_STATUS', label: 'إشعارات حالات الطلب' },
   { value: 'GENERAL', label: 'عام / تسويقي' },
 ];
-
-function renderPreviewText(text) {
-  if (!text) return '';
-  let rendered = text;
-  for (const [key, val] of Object.entries(MOCK_VALUES)) {
-    rendered = rendered.split(`{{${key}}}`).join(val);
-  }
-  return rendered;
-}
 
 export const CreateTemplateModal = ({
   isOpen,
@@ -163,7 +128,7 @@ export const CreateTemplateModal = ({
     }
   };
 
-  const preview = renderPreviewText(text);
+  const preview = renderDynamicPreview(text);
 
   const modalTitle =
     mode === 'edit'
@@ -196,7 +161,7 @@ export const CreateTemplateModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-md text-txt-muted hover:text-txt-primary hover:bg-bg-base transition-colors"
+            className="p-1 rounded-md text-txt-muted hover:text-txt-primary hover:bg-bg-base transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -213,7 +178,6 @@ export const CreateTemplateModal = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Title */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-txt-primary flex items-center gap-1">
                 <span>عنوان القالب:</span>
@@ -229,7 +193,6 @@ export const CreateTemplateModal = ({
               />
             </div>
 
-            {/* Category */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-txt-primary flex items-center gap-1">
                 <Tag className="w-3.5 h-3.5 text-txt-dim" />
@@ -238,7 +201,7 @@ export const CreateTemplateModal = ({
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-9 px-3 rounded-lg bg-bg-base border border-border-default text-xs text-txt-primary focus:outline-none focus:border-brand-primary transition-colors"
+                className="w-full h-9 px-3 rounded-lg bg-bg-base border border-border-default text-xs text-txt-primary focus:outline-none focus:border-brand-primary transition-colors cursor-pointer"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
@@ -250,7 +213,6 @@ export const CreateTemplateModal = ({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Custom Key (Optional) */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-txt-primary flex items-center gap-1">
                 <Hash className="w-3.5 h-3.5 text-txt-dim" />
@@ -266,12 +228,11 @@ export const CreateTemplateModal = ({
               />
             </div>
 
-            {/* Description (Optional) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-txt-primary">الوصف (اختياري):</label>
+              <label className="text-xs font-semibold text-txt-primary">وصف الاستخدام (اختياري):</label>
               <input
                 type="text"
-                placeholder="وصف مختصر للغرض من هذا القالب"
+                placeholder="متى يتم إرسال هذا القالب..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full h-9 px-3 rounded-lg bg-bg-base border border-border-default text-xs text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors"
@@ -279,125 +240,28 @@ export const CreateTemplateModal = ({
             </div>
           </div>
 
-          {/* Formatting Helpers & Variables Bar */}
-          <div className="bg-bg-base/70 border border-border-default rounded-lg p-2.5 space-y-2">
-            <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
-              <span className="text-[11px] font-semibold text-txt-dim flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-brand-primary" />
-                <span>المتغيرات الذكية:</span>
-              </span>
-              {/* Text formatting shortcuts */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  title="عريض *نص*"
-                  onClick={() => wrapSelection('*')}
-                  className="px-2 py-0.5 rounded text-[11px] font-bold bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
-                >
-                  <Bold className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  title="مائل _نص_"
-                  onClick={() => wrapSelection('_')}
-                  className="px-2 py-0.5 rounded text-[11px] italic bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
-                >
-                  <Italic className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  title="مشطوب ~نص~"
-                  onClick={() => wrapSelection('~')}
-                  className="px-2 py-0.5 rounded text-[11px] bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
-                >
-                  <Strikethrough className="w-3 h-3" />
-                </button>
-                <button
-                  type="button"
-                  title="أحادي `نص`"
-                  onClick={() => wrapSelection('`')}
-                  className="px-2 py-0.5 rounded text-[11px] font-mono bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary hover:border-border-subtle"
-                >
-                  <Code className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
+          <TemplateVariableToolbar onInsertVariable={insertAtCursor} />
 
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {COMMON_VARIABLES.map((v) => (
-                <button
-                  key={v.key}
-                  type="button"
-                  title={`إدراج {{${v.key}}}`}
-                  onClick={() => insertAtCursor(`{{${v.key}}}`)}
-                  className="px-2 py-0.5 rounded text-[11px] font-mono bg-bg-surface border border-border-default text-brand-primary hover:border-brand-primary hover:bg-brand-primary/10 transition-colors"
-                >
-                  {`{{${v.key}}}`}
-                  <span className="text-[10px] text-txt-dim mr-1">({v.label})</span>
-                </button>
-              ))}
-            </div>
+          <div className="space-y-0">
+            <TemplateMarkdownToolbar onWrapSelection={wrapSelection} />
+            <textarea
+              ref={textareaRef}
+              required
+              rows={5}
+              placeholder="اكتب نص الرسالة هنا... يمكنك استخدام المتغيرات مثل {{customerName}} أو {{orderNumber}}"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              className="w-full p-3 bg-bg-base border border-border-default rounded-b-lg text-xs font-sans text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors resize-y leading-relaxed"
+            />
           </div>
 
-          {/* Text Editor & Live Preview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-txt-muted">
-                <span className="font-semibold flex items-center gap-1">
-                  <Edit3 className="w-3.5 h-3.5 text-txt-dim" />
-                  <span>نص القالب:</span>
-                  <span className="text-status-danger">*</span>
-                </span>
-                <span className={`font-mono text-[11px] ${text.length > 1900 ? 'text-status-danger font-bold' : 'text-txt-dim'}`}>
-                  {text.length} / 2000
-                </span>
-              </div>
-              <textarea
-                ref={textareaRef}
-                rows={5}
-                required
-                placeholder="اكتب نص الرسالة هنا، يمكنك إدراج المتغيرات مثل {{customerName}}..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                className="w-full p-3 text-xs leading-relaxed bg-bg-base border border-border-default rounded-lg text-txt-primary focus:outline-none focus:border-brand-primary transition-colors resize-y font-sans"
-              />
-            </div>
+          <TemplateLivePreview previewText={preview} />
 
-            {/* Live WhatsApp Preview */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-txt-muted">
-                <span className="font-semibold flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5 text-brand-primary" />
-                  <span>معاينة حية للمستلم:</span>
-                </span>
-                <span className="text-[10px] text-txt-dim bg-bg-base px-1.5 py-0.5 rounded">
-                  قيم تجريبية
-                </span>
-              </div>
-              <div className="p-3.5 rounded-xl bg-bg-base/80 border border-border-default flex flex-col justify-between min-h-[120px]">
-                <div className="whitespace-pre-wrap text-xs text-txt-primary leading-relaxed font-sans">
-                  {preview || <span className="text-txt-dim italic">نص الرسالة فارغ</span>}
-                </div>
-                <div className="flex items-center justify-end gap-1 mt-3 pt-2 border-t border-border-subtle text-[10px] text-txt-dim">
-                  <span>12:00 م</span>
-                  <CheckCircle2 className="w-3 h-3 text-brand-primary" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Actions */}
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-border-default">
-            <Button size="sm" variant="outline" type="button" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isLoading}>
               إلغاء
             </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              type="submit"
-              isLoading={isLoading}
-              icon={mode === 'edit' ? CheckCircle2 : Plus}
-            >
+            <Button type="submit" variant="primary" size="sm" isLoading={isLoading}>
               {mode === 'edit' ? 'حفظ التعديلات' : 'إنشاء القالب'}
             </Button>
           </div>
@@ -406,5 +270,3 @@ export const CreateTemplateModal = ({
     </div>
   );
 };
-
-export default CreateTemplateModal;

@@ -11,34 +11,21 @@ import {
 import { WorkingHoursEditor } from '../components/WorkingHoursEditor.jsx';
 import { BranchSettingsForm } from '../components/BranchSettingsForm.jsx';
 import { BranchUsersPanel } from '../../multi-branch/components/BranchUsersPanel.jsx';
+import { BranchDetailHeader } from '../components/detail/BranchDetailHeader.jsx';
+import { BranchGeneralInfoTab } from '../components/detail/BranchGeneralInfoTab.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
-import { Input } from '../../../shared/components/Input.jsx';
-import { Select } from '../../../shared/components/Select.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
-import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   Building2,
   Clock,
   Sliders,
-  ChevronRight,
-  ShieldCheck,
-  BadgeCheck,
-  Hash,
-  MapPin,
-  Phone,
-  CheckCircle2,
   AlertCircle,
   Users,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { branchFormSchema } from '../components/BranchFormModal.jsx';
-
-const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'نشط' },
-  { value: 'INACTIVE', label: 'معطل' }
-];
 
 export const BranchDetailPage = () => {
   const { id: branchId } = useParams();
@@ -123,27 +110,12 @@ export const BranchDetailPage = () => {
 
   return (
     <div className="space-y-6">
-      {}
-      <div className="flex items-center gap-3 pb-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => navigate('/settings/branches')}
-          icon={ChevronRight}
-        >
-          العودة للفروع
-        </Button>
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-txt-primary">{branch?.name || 'تفاصيل الفرع'}</h1>
-          {branch?.isMain && branch?.status === 'ACTIVE' && (
-            <span title="الفرع الرئيسي، نشط" aria-label="الفرع الرئيسي، نشط">
-              <BadgeCheck className="w-5 h-5 text-status-success" />
-            </span>
-          )}
-        </div>
-      </div>
+      <BranchDetailHeader
+        branch={branch}
+        onBack={() => navigate('/settings/branches')}
+      />
 
-      {}
+      {/* Tabs Nav */}
       <div className="flex items-center gap-2 border-b border-border-default bg-bg-surface px-4 pt-2 rounded-t-lg">
         <button
           onClick={() => setActiveTab('general')}
@@ -194,95 +166,21 @@ export const BranchDetailPage = () => {
         </button>
       </div>
 
-      {}
+      {/* Tab Panels */}
       <div className="bg-bg-surface border border-border-default border-t-0 rounded-b-lg p-6">
-        {}
         {activeTab === 'general' && (
-          <form onSubmit={handleSubmit(handleGeneralSubmit)} className="space-y-6 text-right" noValidate>
-            <input type="hidden" {...register('code')} value={branch?.code || ''} />
-            {generalSuccess && (
-              <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>{generalSuccess}</span>
-              </div>
-            )}
-
-            {generalError && (
-              <div className="p-3 rounded-md text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{generalError}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="اسم الفرع"
-                icon={Building2}
-                required
-                error={errors.name?.message}
-                {...register('name')}
-              />
-
-              <Input
-                label="كود الفرع"
-                icon={Hash}
-                value={branch?.code || ''}
-                disabled
-                readOnly
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="رقم الهاتف"
-                icon={Phone}
-                error={errors.phone?.message}
-                {...register('phone')}
-              />
-
-              <Select
-                label="حالة التشغيل"
-                options={STATUS_OPTIONS}
-                required
-                error={errors.status?.message}
-                {...register('status')}
-              />
-            </div>
-
-            <Input
-              label="العنوان بالتفصيل"
-              icon={MapPin}
-              error={errors.address?.message}
-              {...register('address')}
-            />
-
-            <div className="flex items-center gap-2 p-3 bg-bg-surface-elevated rounded-md border border-border-subtle w-fit">
-              <input
-                type="checkbox"
-                id="isMainDetail"
-                className="w-4 h-4 rounded border-border-default text-brand-primary focus:ring-brand-primary cursor-pointer"
-                {...register('isMain')}
-              />
-              <label
-                htmlFor="isMainDetail"
-                className="text-xs font-semibold text-txt-primary cursor-pointer flex items-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4 text-brand-primary" />
-                <span>الفرع الرئيسي</span>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-end pt-4 border-t border-border-subtle">
-              <PermissionGate permission="branches.manage">
-                <Button type="submit" variant="primary" size="sm" isLoading={updateBranchMutation.isPending}>
-                  حفظ البيانات العامة
-                </Button>
-              </PermissionGate>
-            </div>
-          </form>
+          <BranchGeneralInfoTab
+            branch={branch}
+            register={register}
+            handleSubmit={handleSubmit}
+            errors={errors}
+            onSubmit={handleGeneralSubmit}
+            isLoading={updateBranchMutation.isPending}
+            generalSuccess={generalSuccess}
+            generalError={generalError}
+          />
         )}
 
-        {}
         {activeTab === 'working-hours' && (
           <div>
             {isHoursLoading ? (
@@ -299,7 +197,6 @@ export const BranchDetailPage = () => {
           </div>
         )}
 
-        {}
         {activeTab === 'settings' && (
           <div>
             {isSettingsLoading ? (
@@ -314,7 +211,6 @@ export const BranchDetailPage = () => {
           </div>
         )}
 
-        {}
         {activeTab === 'users' && (
           <div>
             <BranchUsersPanel branchId={branchId} />
@@ -324,3 +220,5 @@ export const BranchDetailPage = () => {
     </div>
   );
 };
+
+export default BranchDetailPage;

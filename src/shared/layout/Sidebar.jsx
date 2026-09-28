@@ -1,50 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  ShoppingBag,
-  ChefHat,
-  Grid,
-  UtensilsCrossed,
-  Users,
-  MessageSquare,
-  BarChart3,
-  Calculator,
-  Store,
-  TicketPercent,
-  ChevronDown,
-  UserCheck,
-} from 'lucide-react';
+import { Store, ChevronDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
-
-const NAV_SECTIONS = [
-  {
-    key: 'ops',
-    title: 'العمليات التشغيلية',
-    items: [
-      { label: 'نقطة البيع', path: '/pos', icon: Calculator, permission: ['orders.source_cashier', 'orders.source_phone', 'orders.source_whatsapp', 'orders.source_website'] },
-      { label: 'لوحة التحكم', path: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
-      { label: 'الطلبات', path: '/orders', icon: ShoppingBag },
-      { label: 'شاشة المطبخ (KDS)', path: '/kds', icon: ChefHat, permission: 'kds.view' },
-      { label: 'الطاولات', path: '/tables', icon: Grid, permission: ['tables.view', 'tables.manage'] },
-    ],
-  },
-  {
-    key: 'manage',
-    title: 'إدارة المطعم',
-    items: [
-      { label: 'قائمة الطعام', path: '/menu', icon: UtensilsCrossed, permission: 'menu.manage' },
-      { label: 'العملاء', path: '/customers', icon: Users, permission: 'customers.view' },
-      { label: 'الموظفون', path: '/settings/employees', icon: UserCheck, permission: 'employees.view' },
-      { label: 'الرسائل', path: '/whatsapp', icon: MessageSquare, permission: 'whatsapp.view' },
-      { label: 'الكوبونات', path: '/coupons', icon: TicketPercent, permission: 'coupons.manage' },
-      { label: 'التقارير والتحليلات', path: '/reports', icon: BarChart3, permission: 'dashboard.view' },
-    ],
-  },
-];
-
-const DEFAULT_PERMISSION = 'orders.view';
+import { NAV_SECTIONS, DEFAULT_PERMISSION } from './navigationConfig.js';
 
 export const Sidebar = ({ isCollapsed = false }) => {
   const { hasPermission } = useAuth();
@@ -85,14 +44,16 @@ export const Sidebar = ({ isCollapsed = false }) => {
   return (
     <aside
       className={clsx(
-        'hidden md:flex flex-col h-[100dvh] max-h-[100dvh] bg-bg-surface border-l border-white/[0.07] transition-all duration-200 shrink-0 select-none shadow-none z-20 overflow-hidden',
+        'hidden md:flex flex-col h-[100dvh] max-h-[100dvh] bg-bg-surface border-l border-border-default transition-all duration-200 shrink-0 select-none shadow-none z-20 overflow-hidden',
         isCollapsed ? 'w-16' : 'w-64'
       )}
     >
-      {}
-      <div className={clsx('shrink-0 h-14 border-b border-white/[0.07] flex items-center', isCollapsed ? 'justify-center px-2' : 'px-4')}>
+      {/* Header / Brand */}
+      <div className={clsx('shrink-0 h-14 border-b border-border-default flex items-center', isCollapsed ? 'justify-center px-2' : 'px-4')}>
         <div className="flex items-center gap-2.5 min-w-0">
-          <Store className="w-5 h-5 text-brand-primary shrink-0" />
+          <div className="w-8 h-8 rounded-lg bg-ac text-white flex items-center justify-center shrink-0">
+            <Store className="w-4 h-4" />
+          </div>
           {!isCollapsed && (
             <span className="text-sm font-bold text-txt-primary truncate">
               نظام إدارة المطاعم
@@ -101,37 +62,37 @@ export const Sidebar = ({ isCollapsed = false }) => {
         </div>
       </div>
 
-      {}
+      {/* Navigation */}
       <nav className={clsx('flex-1 min-h-0 overflow-y-auto pb-16 custom-scrollbar', isCollapsed ? 'py-3 px-2 space-y-1' : 'py-3 px-3 space-y-1')}>
         {visibleSections.map((section, index) => {
           const isOpen = !!openSections[section.key];
 
           return (
             <div key={section.key}>
-              {}
+              {/* Section divider in collapsed mode */}
               {isCollapsed && index > 0 && (
-                <div className="w-6 h-px bg-white/[0.07] mx-auto my-2.5" aria-hidden="true" />
+                <div className="w-6 h-px bg-border-default mx-auto my-2.5" aria-hidden="true" />
               )}
 
-              {}
+              {/* Section Header Button */}
               {!isCollapsed && (
                 <button
                   type="button"
                   onClick={() => toggleSection(section.key)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 mt-3 first:mt-0 mb-1 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors focus-visible:outline-none select-none text-right rounded-md group"
+                  className="w-full flex items-center justify-between px-3 py-1.5 mt-3 first:mt-0 mb-1 text-xs font-semibold text-txt-muted hover:text-txt-primary transition-colors focus-visible:outline-none select-none text-right rounded-md group"
                   aria-expanded={isOpen}
                 >
                   <span className="truncate">{section.title}</span>
                   <ChevronDown
                     className={clsx(
-                      'w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-transform duration-200 shrink-0',
+                      'w-3.5 h-3.5 text-txt-muted group-hover:text-txt-primary transition-transform duration-200 shrink-0',
                       isOpen ? 'rotate-0' : '-rotate-90'
                     )}
                   />
                 </button>
               )}
 
-              {}
+              {/* Section Items */}
               {(isCollapsed || isOpen) && (
                 <div className="space-y-1">
                   {section.items.map((item) => {
@@ -142,13 +103,13 @@ export const Sidebar = ({ isCollapsed = false }) => {
                         to={item.path}
                         className={({ isActive }) =>
                           clsx(
-                            'group flex items-center rounded-md text-xs transition-colors duration-150',
+                            'group flex items-center rounded-lg text-xs transition-colors duration-150',
                             isCollapsed
                               ? 'w-9 h-9 mx-auto justify-center'
                               : 'w-full gap-3 px-3 h-9',
                             isActive
-                              ? 'bg-white/[0.08] text-white font-medium'
-                              : 'text-slate-400 font-normal hover:text-slate-100 hover:bg-white/[0.03]'
+                              ? 'bg-ac text-white font-medium shadow-xs'
+                              : 'text-txt-muted font-normal hover:text-txt-primary hover:bg-slate-100/70'
                           )
                         }
                         title={isCollapsed ? item.label : undefined}
@@ -158,7 +119,7 @@ export const Sidebar = ({ isCollapsed = false }) => {
                             <Icon
                               className={clsx(
                                 'w-4 h-4 shrink-0 transition-colors',
-                                isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
+                                isActive ? 'text-white' : 'text-txt-muted group-hover:text-txt-primary'
                               )}
                             />
                             {!isCollapsed && <span className="truncate min-w-0 leading-none">{item.label}</span>}

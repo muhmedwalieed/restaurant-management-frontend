@@ -11,21 +11,18 @@ import {
   getLocalizedPermissionName,
 } from '../schemas/permissions.dict.js';
 import { Button } from '../../../shared/components/Button.jsx';
-import { Input } from '../../../shared/components/Input.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
+import { RoleBasicInfoCard } from '../components/permissions/RoleBasicInfoCard.jsx';
+import { RolePermissionsFilterBar } from '../components/permissions/RolePermissionsFilterBar.jsx';
+import { RolePermissionModuleCard } from '../components/permissions/RolePermissionModuleCard.jsx';
 import {
   ShieldCheck,
   ChevronRight,
-  Search,
-  CheckSquare,
-  Square,
   AlertCircle,
   CheckCircle2,
   Save,
   RotateCcw,
-  SlidersHorizontal,
 } from 'lucide-react';
 
 export const RoleEditPage = () => {
@@ -202,10 +199,9 @@ export const RoleEditPage = () => {
 
   return (
     <form onSubmit={handleSave} className="space-y-6" noValidate>
-      {}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-default">
         <div className="space-y-1">
-          {}
           <div className="flex items-center gap-1.5 text-xs text-txt-muted">
             <Link to="/settings/roles" className="hover:text-txt-primary transition-colors">
               الأدوار والصلاحيات
@@ -222,7 +218,6 @@ export const RoleEditPage = () => {
           </h1>
         </div>
 
-        {}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             type="button"
@@ -242,7 +237,7 @@ export const RoleEditPage = () => {
             onClick={() => navigate('/settings/roles')}
             icon={RotateCcw}
             className="text-xs border-white/10"
-            isDisabled={isSavePending}
+            disabled={isSavePending}
           >
             إلغاء
           </Button>
@@ -260,7 +255,7 @@ export const RoleEditPage = () => {
         </div>
       </div>
 
-      {}
+      {/* Notifications */}
       {actionSuccess && (
         <div className="p-3 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -274,207 +269,47 @@ export const RoleEditPage = () => {
         </div>
       )}
 
-      {}
+      {/* Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {}
-        <div className="lg:col-span-1 space-y-5 lg:sticky lg:top-4 self-start">
-          {}
-          <div className="bg-bg-surface border border-border-default rounded-xl p-5 space-y-4 shadow-sm">
-            <div className="flex items-center gap-2 border-b border-border-subtle pb-2.5">
-              <SlidersHorizontal className="w-4 h-4 text-brand-primary shrink-0" />
-              <h3 className="text-xs font-bold text-txt-primary">بيانات الدور الأساسية</h3>
-            </div>
+        <RoleBasicInfoCard
+          name={name}
+          setName={setName}
+          description={description}
+          setDescription={setDescription}
+          nameError={nameError}
+          setNameError={setNameError}
+          isSystem={currentRole?.isSystem}
+          selectedCount={selectedPermissions.length}
+          totalCount={allPermissionKeys.length}
+          isAllSelected={isAllGlobalSelected}
+          onToggleAll={handleToggleGlobalAll}
+        />
 
-            <div className="space-y-3.5">
-              <Input
-                label="اسم الدور الوظيفي"
-                placeholder="مثال: كاشير، مشرف صالة..."
-                required
-                disabled={currentRole?.isSystem}
-                error={nameError}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (nameError) setNameError(null);
-                }}
-              />
-
-              <Input
-                label="الوصف المختصر"
-                placeholder="وصف مسؤوليات ونطاق هذا الدور..."
-                disabled={currentRole?.isSystem}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {}
-          <div className="bg-bg-surface border border-border-default rounded-xl p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-2.5">
-              <h3 className="text-xs font-bold text-txt-primary">ملخص الصلاحيات الممنوحة</h3>
-              {currentRole?.isSystem ? (
-                <StatusPill status="info" className="text-xs py-0.5 px-2">
-                  دور نظام
-                </StatusPill>
-              ) : (
-                <StatusPill status="success" className="text-xs py-0.5 px-2">
-                  دور مخصص
-                </StatusPill>
-              )}
-            </div>
-
-            {}
-            <div className="bg-bg-base/60 border border-border-subtle rounded-xl p-4 text-center space-y-1">
-              <div className="text-2xl font-bold font-mono text-brand-primary tabular-nums">
-                {selectedPermissions.length} <span className="text-sm text-txt-muted font-sans font-normal">/ {allPermissionKeys.length}</span>
-              </div>
-              <p className="text-xs text-txt-muted">صلاحية مفعّلة لهذا المسمى الوظيفي</p>
-            </div>
-
-            {}
-            {!currentRole?.isSystem && (
-              <div className="space-y-2 pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleToggleGlobalAll}
-                  className="w-full text-xs font-medium justify-center border-white/10 hover:bg-white/[0.05]"
-                >
-                  {isAllGlobalSelected ? (
-                    <>
-                      <Square className="w-3.5 h-3.5 shrink-0" />
-                      <span>إلغاء تحديد كل الصلاحيات</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckSquare className="w-3.5 h-3.5 shrink-0" />
-                      <span>منح كافة الصلاحيات ({allPermissionKeys.length})</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {}
         <div className="lg:col-span-2 space-y-5">
-          {}
-          <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3.5 shadow-sm">
-            {}
-            <div className="relative">
-              <Search className="w-4 h-4 text-txt-muted absolute right-3 top-2.5 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ابحث في الصلاحيات (مثال: طاولات، دفع، إلغاء)..."
-                className="w-full bg-bg-base border border-border-default rounded-lg text-xs py-2 pr-9 pl-3 text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-brand-primary"
-              />
-            </div>
+          <RolePermissionsFilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            categoryTabs={categoryTabs}
+            activeCategoryTab={activeCategoryTab}
+            onCategoryTabChange={setActiveCategoryTab}
+          />
 
-            {}
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {categoryTabs.map((tab) => {
-                const isSelected = activeCategoryTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveCategoryTab(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                      isSelected
-                        ? 'bg-brand-primary text-slate-950 shadow-sm'
-                        : 'bg-bg-base text-txt-muted border border-border-subtle hover:text-txt-primary hover:border-white/10'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {}
           {filteredGroups.length === 0 ? (
             <div className="bg-bg-surface border border-border-default rounded-xl p-8 text-center space-y-2">
               <p className="text-xs text-txt-muted">لم يتم العثور على صلاحيات تطابق خيارات البحث.</p>
             </div>
           ) : (
             <div className="space-y-5">
-              {filteredGroups.map((group) => {
-                const groupKeys = group.matchingPermissions.map((p) => p.key);
-                const selectedInGroup = groupKeys.filter((k) => selectedPermissions.includes(k)).length;
-                const isGroupAllSelected = groupKeys.length > 0 && selectedInGroup === groupKeys.length;
-
-                return (
-                  <div
-                    key={group.module}
-                    className="bg-bg-surface border border-border-default rounded-xl overflow-hidden shadow-sm"
-                  >
-                    {}
-                    <div className="px-4 py-3 bg-bg-base/60 border-b border-border-subtle flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <h3 className="text-xs font-bold text-txt-primary truncate">
-                          {group.localizedModule}
-                        </h3>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-white/[0.06] text-txt-muted border border-border-subtle">
-                          {selectedInGroup} / {group.matchingPermissions.length} محدد
-                        </span>
-                      </div>
-
-                      {!currentRole?.isSystem && (
-                        <button
-                          type="button"
-                          onClick={() => handleToggleModuleGroup(group.matchingPermissions)}
-                          className="text-[11px] font-semibold text-brand-primary hover:underline shrink-0"
-                        >
-                          {isGroupAllSelected ? 'إلغاء تحديد القسم' : 'تحديد الكل في القسم'}
-                        </button>
-                      )}
-                    </div>
-
-                    {}
-                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      {group.matchingPermissions.map((p) => {
-                        const isChecked = selectedPermissions.includes(p.key);
-                        const localizedName = getLocalizedPermissionName(p.key, p.name);
-
-                        return (
-                          <label
-                            key={p.key}
-                            className={`flex items-start gap-2.5 p-3 rounded-lg border transition-all select-none ${
-                              currentRole?.isSystem ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'
-                            } ${
-                              isChecked
-                                ? 'bg-brand-primary/10 border-brand-primary/30 text-txt-primary'
-                                : 'bg-bg-base/40 border-border-subtle hover:border-white/10 text-txt-muted hover:text-txt-primary'
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              disabled={currentRole?.isSystem}
-                              onChange={() => togglePermission(p.key)}
-                              className="mt-0.5 w-4 h-4 rounded border-border-default bg-bg-surface text-brand-primary focus:ring-0 focus:ring-offset-0 cursor-pointer shrink-0"
-                            />
-                            <div className="flex flex-col gap-0.5 min-w-0">
-                              <span className="font-semibold text-txt-primary leading-tight">
-                                {localizedName}
-                              </span>
-                              <span className="font-mono text-[10px] text-txt-muted/70 tracking-wider truncate" dir="ltr">
-                                {p.key}
-                              </span>
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredGroups.map((group) => (
+                <RolePermissionModuleCard
+                  key={group.module}
+                  group={group}
+                  selectedPermissions={selectedPermissions}
+                  isDisabled={currentRole?.isSystem}
+                  onTogglePermission={togglePermission}
+                  onToggleGroup={handleToggleModuleGroup}
+                />
+              ))}
             </div>
           )}
         </div>

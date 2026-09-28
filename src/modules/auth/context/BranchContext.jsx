@@ -4,7 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { getMyBranchesApi } from '../../../lib/api/multi-branch.api.js';
 import { useAuth } from './AuthContext.jsx';
 
-const BranchContext = createContext(null);
+export const BranchContext = createContext(null);
+
+export const useOptionalBranch = () => {
+  return useContext(BranchContext);
+};
 
 export const BranchProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();

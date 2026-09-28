@@ -15,7 +15,7 @@ export const FloatingCartBar = ({
         <button
           type="button"
           onClick={onToggleCart}
-          className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-slate-950 font-bold rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs transition-all shadow-md active:scale-[0.99]"
+          className="flex-1 bg-brand-primary hover:bg-brand-primary-hover text-white font-bold rounded-xl px-4 py-3 flex items-center justify-between text-xs transition-all shadow-lg active:scale-[0.99]"
         >
           <div className="flex items-center gap-2 min-w-0">
             <ShoppingCart className="w-4 h-4 shrink-0" />

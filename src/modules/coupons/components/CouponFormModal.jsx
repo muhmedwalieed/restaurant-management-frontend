@@ -9,8 +9,10 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { couponFormSchema } from '../schemas/coupon.schema.js';
 import { useCreateCouponMutation, useUpdateCouponMutation } from '../hooks/useCoupons.js';
 import { TicketPercent } from 'lucide-react';
+import { useCurrency } from '../../../shared/hooks/useCurrency.js';
 
 export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
+  const { currency } = useCurrency();
   const isEditing = Boolean(couponToEdit);
   const createMutation = useCreateCouponMutation();
   const updateMutation = useUpdateCouponMutation();
@@ -126,7 +128,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
             {...register('type')}
           />
           <Input
-            label={couponType === 'PERCENTAGE' ? 'نسبة الخصم (%)' : 'قيمة الخصم (ج.م)'}
+            label={couponType === 'PERCENTAGE' ? 'نسبة الخصم (%)' : `قيمة الخصم (${currency})`}
             required
             type="number"
             min="0"
@@ -138,7 +140,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="الحد الأدنى للطلب (ج.م)"
+            label={`الحد الأدنى للطلب (${currency})`}
             type="number"
             min="0"
             helperText="الخصم يشتغل لو الطلب أكبر من أو يساوي الرقم ده"
@@ -147,7 +149,7 @@ export const CouponFormModal = ({ isOpen, onClose, couponToEdit = null }) => {
           />
           {couponType === 'PERCENTAGE' && (
             <Input
-              label="أقصى خصم (ج.م)، اختياري"
+              label={`أقصى خصم (${currency})، اختياري`}
               type="number"
               min="0"
               step="0.01"

@@ -86,7 +86,7 @@ export const PosOrderTicket = ({
               onClick={() => setOrderType('DINE_IN')}
               className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
                 orderType === 'DINE_IN'
-                  ? 'bg-brand-primary text-slate-950 shadow-sm'
+                  ? 'bg-brand-primary text-white shadow-sm'
                   : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
               }`}
             >
@@ -98,7 +98,7 @@ export const PosOrderTicket = ({
               onClick={() => setOrderType('PICKUP')}
               className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
                 orderType === 'PICKUP'
-                  ? 'bg-brand-primary text-slate-950 shadow-sm'
+                  ? 'bg-brand-primary text-white shadow-sm'
                   : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
               }`}
             >
@@ -110,7 +110,7 @@ export const PosOrderTicket = ({
               onClick={() => setOrderType('DELIVERY')}
               className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
                 orderType === 'DELIVERY'
-                  ? 'bg-brand-primary text-slate-950 shadow-sm'
+                  ? 'bg-brand-primary text-white shadow-sm'
                   : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
               }`}
             >
@@ -264,7 +264,7 @@ export const PosOrderTicket = ({
         <PermissionGate permission="orders.create">
           <Button
             size="md"
-            className="w-full bg-brand-primary text-slate-950 font-bold hover:bg-amber-400 disabled:bg-white/10 disabled:text-txt-muted disabled:cursor-not-allowed border-none shadow-md transition-all h-9 text-xs"
+            className="w-full bg-brand-primary text-white font-bold hover:bg-brand-primary-hover disabled:bg-white/10 disabled:text-txt-muted disabled:cursor-not-allowed border-none shadow-md transition-all h-9 text-xs"
             disabled={cart.length === 0 || isPending}
             isLoading={isPending}
             onClick={handleSubmit}

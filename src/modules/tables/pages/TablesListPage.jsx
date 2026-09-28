@@ -1,37 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useTablesQuery } from '../hooks/useTables.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
-import { useBranchSessionsQuery } from '../hooks/useTableSessions.js';
-import { useStartTableSession } from '../hooks/useTableSessions.js';
+import { useBranchSessionsQuery, useStartTableSession } from '../hooks/useTableSessions.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../shared/components/Button.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { TableFormModal } from '../components/TableFormModal.jsx';
 import { TableDetailDrawer } from '../components/TableDetailDrawer.jsx';
-import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
-import { Grid3x3, Plus, Users, QrCode, KeyRound, Search, Copy, Check, Bell, Receipt, Store } from 'lucide-react';
-
-const statusPill = (status) => {
-  const map = {
-    AVAILABLE: 'success',
-    OCCUPIED: 'danger',
-    RESERVED: 'warning',
-    MAINTENANCE: 'neutral',
-  };
-  return map[status] || 'neutral';
-};
-
-const STATUS_TABS = [
-  { value: 'ALL', label: 'الكل' },
-  { value: 'AVAILABLE', label: 'متاحة' },
-  { value: 'OCCUPIED', label: 'مشغولة' },
-  { value: 'RESERVED', label: 'محجوزة' },
-  { value: 'MAINTENANCE', label: 'صيانة' },
-];
+import { TableGridCard } from '../components/list/TableGridCard.jsx';
+import { TablesFilterToolbar } from '../components/list/TablesFilterToolbar.jsx';
+import { Grid3x3, Plus, Copy, Store } from 'lucide-react';
 
 export const TablesListPage = () => {
   const { activeBranchId, activeBranch } = useBranch();
@@ -42,7 +23,7 @@ export const TablesListPage = () => {
   const [selectedTable, setSelectedTable] = useState(null);
   const [newPin, setNewPin] = useState(null);
   const [pinTable, setPinTable] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedTableId, setCopiedTableId] = useState(null);
 
   const { data: tablesResponse, isLoading, isError, error, refetch } = useTablesQuery(activeBranchId, {
     page: 1,
@@ -95,7 +76,6 @@ export const TablesListPage = () => {
   const handleStartSession = async (e, table) => {
     e.stopPropagation();
     if (table.session) {
-      // Session already active — just open the drawer (PIN is visible inline there).
       setSelectedTable(table);
       return;
     }
@@ -103,20 +83,20 @@ export const TablesListPage = () => {
       const res = await startMutation.mutateAsync(table.id);
       setPinTable(table);
       setNewPin(res.pin);
-      setCopied(false);
-      queryClient.invalidateQueries({ queryKey: ['table-sessions-branch'] });
-    } catch (err) {
-      // Session already active — open the drawer so the PIN is visible there.
-      if (err?.code === 'BUSINESS_RULE_ERROR') setSelectedTable(table);
+      queryClient.invalidateQueries({ queryKey: ['branch-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['tables', activeBranchId] });
+    } catch {
+      /* ignore */
     }
   };
 
-  const handleCopyPin = async () => {
-    if (!newPin) return;
+  const handleCopyQr = async (e, table) => {
+    e.stopPropagation();
+    if (!table.qrUrl) return;
     try {
-      await navigator.clipboard.writeText(newPin);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      await navigator.clipboard.writeText(table.qrUrl);
+      setCopiedTableId(table.id);
+      setTimeout(() => setCopiedTableId(null), 1500);
     } catch {
       /* ignore */
     }
@@ -158,41 +138,13 @@ export const TablesListPage = () => {
       </div>
 
       {/* Controls + filter tabs */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 custom-scrollbar">
-          {STATUS_TABS.map((tab) => {
-            const isActive = statusFilter === tab.value;
-            return (
-              <button
-                key={tab.value}
-                type="button"
-                onClick={() => setStatusFilter(tab.value)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${
-                  isActive
-                    ? 'bg-brand-primary text-slate-950 shadow-sm'
-                    : 'bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary'
-                }`}
-              >
-                {tab.label}
-                {tab.value !== 'ALL' && (
-                  <span className="opacity-70 mr-1 font-mono text-[10px]">({statusCounts[tab.value] || 0})</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="relative w-full sm:w-56 shrink-0">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
-          <input
-            type="text"
-            placeholder="ابحث برقم الطاولة..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-bg-surface border border-border-default rounded-lg text-xs py-2 pr-9 pl-3 text-txt-primary placeholder:text-txt-muted focus-visible:outline-none focus-visible:border-brand-primary"
-          />
-        </div>
-      </div>
+      <TablesFilterToolbar
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusCounts={statusCounts}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
       {/* Table grid */}
       {!activeBranchId ? (
@@ -214,94 +166,54 @@ export const TablesListPage = () => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
           {filteredTables.map((table) => (
-            <div
+            <TableGridCard
               key={table.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => setSelectedTable(table)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') setSelectedTable(table);
-              }}
-              className={`cursor-pointer text-right bg-bg-surface rounded-xl p-3.5 border flex flex-col gap-2.5 transition-all hover:shadow-md active:scale-[0.99] ${table.occupied ? 'border-red-500/30 hover:border-red-500/50' : 'border-border-default hover:border-brand-primary/40'
-                }`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-mono font-bold text-txt-primary text-lg leading-none">#{table.label}</span>
-                <StatusPill status={statusPill(table.status)}>{TABLE_STATUS_LABELS[table.status] || table.status}</StatusPill>
-              </div>
-
-              <div className="flex items-center gap-1.5 text-xs text-txt-muted">
-                <Users className="w-3.5 h-3.5" />
-                <span>{table.capacity} أفراد</span>
-                {table.session && (
-                  <span className="mr-auto inline-flex items-center gap-1 text-[10px] font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
-                    {table.session.status === 'AWAITING_CONFIRMATION' ? 'بانتظار التأكيد' : `جلسة نشطة (${table.session.members?.length || 0})`}
-                  </span>
-                )}
-                {table.session?.waiterCall?.status === 'PENDING' && (
-                  <span
-                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${table.session?.waiterCall?.type === 'BILL'
-                      ? 'text-amber-300 bg-amber-500/20 border border-amber-500/30'
-                      : 'text-status-warning bg-status-warning/10'
-                      }`}
-                  >
-                    {table.session?.waiterCall?.type === 'BILL' ? (
-                      <Receipt className="w-3 h-3 animate-pulse text-amber-400" />
-                    ) : (
-                      <Bell className="w-3 h-3 animate-pulse" />
-                    )}
-                    {table.session?.waiterCall?.type === 'BILL' ? 'طلب حساب' : 'استدعاء ويتر'}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1.5 pt-1 border-t border-white/[0.06]">
-                <button
-                  type="button"
-                  onClick={(e) => handleStartSession(e, table)}
-                  disabled={startMutation.isPending}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-bold bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  {startMutation.isPending ? 'جارٍ الإنشاء…' : table.session ? 'عرض الـ PIN' : 'بدء جلسة'}
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedTable(table);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] font-bold bg-bg-base text-txt-muted hover:text-txt-primary border border-border-subtle transition-colors"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  رمز QR
-                </button>
-              </div>
-            </div>
+              table={table}
+              onSelect={setSelectedTable}
+              onStartSession={handleStartSession}
+              onCopyQr={handleCopyQr}
+              copiedTableId={copiedTableId}
+            />
           ))}
         </div>
       )}
 
-      <TableFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} branchId={activeBranchId} />
-
-      <TableDetailDrawer
-        isOpen={Boolean(selectedTable)}
-        onClose={() => setSelectedTable(null)}
-        table={selectedTable}
-        branchName={activeBranch?.name}
+      {/* Modals & Drawers */}
+      <TableFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        branchId={activeBranchId}
       />
 
-      {/* PIN modal */}
-      <Modal isOpen={Boolean(newPin)} onClose={() => setNewPin(null)} title={`PIN جلسة الطاولة ${pinTable?.label || ''}`} size="sm">
+      <TableDetailDrawer
+        table={selectedTable}
+        isOpen={Boolean(selectedTable)}
+        onClose={() => setSelectedTable(null)}
+      />
+
+      <Modal
+        isOpen={Boolean(newPin)}
+        onClose={() => setNewPin(null)}
+        title={`بدء جلسة - طاولة ${pinTable?.label || ''}`}
+        size="sm"
+      >
         <div className="text-center space-y-4 py-2">
-          <p className="text-xs text-txt-muted">أعطِ هذا الرمز للعميل عشان يدخل الجلسة من الـ QR:</p>
-          <div className="text-4xl font-bold tracking-[0.4em] text-brand-primary font-mono" dir="ltr">{newPin}</div>
-          <div className="flex items-center justify-center gap-2">
-            <Button size="sm" variant="outline" icon={copied ? Check : Copy} onClick={handleCopyPin}>
-              {copied ? 'تم النسخ' : 'نسخ الرمز'}
+          <p className="text-xs text-txt-muted">أعطِ هذا الرمز للعميل للطلب من هاتفه عبر QR:</p>
+          <div className="text-4xl font-bold tracking-widest text-brand-primary font-mono py-2 bg-bg-base/60 rounded-xl border border-brand-primary/20">
+            {newPin}
+          </div>
+          <div className="flex gap-2 justify-center">
+            <Button
+              size="sm"
+              variant="outline"
+              icon={Copy}
+              onClick={() => navigator.clipboard.writeText(newPin || '')}
+            >
+              نسخ الـ PIN
             </Button>
-            <Button size="sm" variant="primary" onClick={() => setNewPin(null)}>تمام</Button>
+            <Button size="sm" variant="primary" onClick={() => setNewPin(null)}>
+              حسناً
+            </Button>
           </div>
         </div>
       </Modal>

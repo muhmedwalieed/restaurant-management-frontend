@@ -62,7 +62,7 @@ export const TableDetailDrawer = ({ isOpen, onClose, table, branchName }) => {
   };
 
   const tabBtn = (active) =>
-    `py-2 rounded-md text-xs font-bold transition-all ${active ? 'bg-brand-primary text-slate-950 shadow-sm' : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+    `py-2 rounded-md text-xs font-bold transition-all ${active ? 'bg-brand-primary text-white shadow-sm' : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
     }`;
 
   return (

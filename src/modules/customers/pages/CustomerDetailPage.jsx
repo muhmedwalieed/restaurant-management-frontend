@@ -9,10 +9,10 @@ import {
 } from '../hooks/useCustomers.js';
 import { CustomerFormModal } from '../components/CustomerFormModal.jsx';
 import { AddressFormModal } from '../components/AddressFormModal.jsx';
-import { ADDRESS_LABELS } from '../schemas/customer.schema.js';
-import { ORDER_STATUS_LABELS, orderStatusPill } from '../../orders/schemas/order.schema.js';
+import { CustomerInfoCard } from '../components/detail/CustomerInfoCard.jsx';
+import { CustomerAddressesCard } from '../components/detail/CustomerAddressesCard.jsx';
+import { CustomerOrdersHistoryTable } from '../components/detail/CustomerOrdersHistoryTable.jsx';
 import { Button } from '../../../shared/components/Button.jsx';
-import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
@@ -20,45 +20,11 @@ import { useAutoDismiss } from '../../../shared/hooks/useAutoDismiss.js';
 import {
   User,
   ChevronRight,
-  Phone,
-  MapPin,
-  StickyNote,
   AlertCircle,
   CheckCircle2,
   Edit3,
   Trash2,
-  Plus,
-  ReceiptText,
 } from 'lucide-react';
-
-const formatArabicOrderDate = (dateString) => {
-  if (!dateString) return 'غير محدد';
-  const date = new Date(dateString);
-  const now = new Date();
-
-  const isToday = date.toDateString() === now.toDateString();
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = date.toDateString() === yesterday.toDateString();
-
-  const timeStr = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-
-  if (isToday) return `اليوم، ${timeStr}`;
-  if (isYesterday) return `أمس، ${timeStr}`;
-  return `${date.toLocaleDateString('ar-EG', { day: 'numeric', month: 'numeric', year: 'numeric' })}، ${timeStr}`;
-};
-
-const InfoRow = ({ icon: Icon, label, value, isPhone }) => (
-  <div className="flex items-center justify-between py-2.5 border-b border-border-subtle/40 last:border-b-0 text-xs">
-    <div className="flex items-center gap-2">
-      <Icon className="w-4 h-4 text-brand-primary shrink-0" />
-      <span className="font-medium text-txt-muted">{label}:</span>
-    </div>
-    <span className={`font-semibold text-txt-primary text-left ${isPhone ? 'font-mono dir-ltr' : ''}`}>
-      {value || 'غير محدد'}
-    </span>
-  </div>
-);
 
 export const CustomerDetailPage = () => {
   const { id } = useParams();
@@ -100,14 +66,12 @@ export const CustomerDetailPage = () => {
 
   const handleDeleteAddress = async () => {
     if (!addressToDelete) return;
-    await runAction(() => deleteAddressMutation.mutateAsync({ customerId: id, addressId: addressToDelete.id }));
-    setAddressToDelete(null);
+    const ok = await runAction(() =>
+      deleteAddressMutation.mutateAsync({ customerId: id, addressId: addressToDelete.id })
+    );
+    if (ok) setAddressToDelete(null);
   };
 
-  const openAddAddress = () => {
-    setAddressToEdit(null);
-    setIsAddressOpen(true);
-  };
   const openEditAddress = (addr) => {
     setAddressToEdit(addr);
     setIsAddressOpen(true);
@@ -135,11 +99,9 @@ export const CustomerDetailPage = () => {
     );
   }
 
-  const addressList = addresses || [];
-
   return (
     <div className="space-y-6">
-      {}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border-default">
         <div className="flex items-center gap-3">
           <Button size="sm" variant="outline" onClick={() => navigate('/customers')} icon={ChevronRight}>
@@ -165,7 +127,7 @@ export const CustomerDetailPage = () => {
           <PermissionGate permission="customers.delete">
             <button
               onClick={() => setIsDeleteOpen(true)}
-              className="px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10 transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>حذف العميل</span>
@@ -174,6 +136,7 @@ export const CustomerDetailPage = () => {
         </div>
       </div>
 
+      {/* Notifications */}
       {actionSuccess && (
         <div className="p-3 rounded-md text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -187,209 +150,53 @@ export const CustomerDetailPage = () => {
         </div>
       )}
 
-      {}
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {}
         <div className="lg:col-span-8 space-y-4">
-          <div className="bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border-default pb-3">
-              <div className="flex items-center gap-2">
-                <ReceiptText className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-sm font-bold text-txt-primary">سجل الطلبات</h3>
-                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-bg-surface-elevated text-txt-muted border border-border-subtle">
-                  {ordersResponse?.pagination?.total || ordersResponse?.items?.length || 0}
-                </span>
-              </div>
-            </div>
-
-            {isOrdersLoading ? (
-              <LoadingSkeleton height={180} className="w-full" />
-            ) : !ordersResponse?.items || ordersResponse.items.length === 0 ? (
-              <div className="py-12 text-center space-y-2">
-                <ReceiptText className="w-8 h-8 text-txt-muted mx-auto opacity-50" />
-                <p className="text-sm font-bold text-txt-primary">لا توجد طلبات سابقة لهذا العميل</p>
-                <p className="text-xs text-txt-muted">عند إنشاء طلب جديد للكاشير أو الواتساب سيظهر هنا فوراً.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-right text-xs">
-                  <thead className="bg-bg-base border-b border-border-default text-txt-muted font-bold">
-                    <tr>
-                      <th className="p-3">رقم الطلب</th>
-                      <th className="p-3">التاريخ والوقت</th>
-                      <th className="p-3">الحالة</th>
-                      <th className="p-3">الفرع</th>
-                      <th className="p-3">الإجمالي</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-subtle">
-                    {ordersResponse.items.map((order) => (
-                      <tr
-                        key={order.id}
-                        onClick={() => navigate(`/orders/${order.id}`)}
-                        className="hover:bg-white/[0.02] cursor-pointer transition-colors group"
-                      >
-                        <td className="p-3 font-mono font-bold text-brand-primary group-hover:underline">
-                          #{order.orderNumber}
-                        </td>
-                        <td className="p-3 text-txt-muted">
-                          {formatArabicOrderDate(order.createdAt)}
-                        </td>
-                        <td className="p-3">
-                          <StatusPill status={orderStatusPill(order.status)}>
-                            {ORDER_STATUS_LABELS[order.status] || order.status}
-                          </StatusPill>
-                        </td>
-                        <td className="p-3 text-xs text-slate-400 truncate max-w-[140px]">
-                          {order.branch?.name || 'غير محدد'}
-                        </td>
-                        <td className="p-3 font-mono font-bold tabular-nums text-txt-primary">
-                          {Number(order.total || 0).toFixed(2)} EGP
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <CustomerOrdersHistoryTable
+            ordersResponse={ordersResponse}
+            isLoading={isOrdersLoading}
+          />
         </div>
 
-        {}
-        <div className="lg:col-span-4 space-y-6">
-          {}
-          <div className="bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border-default pb-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-sm font-bold text-txt-primary">معلومات الحساب</h3>
-              </div>
-            </div>
-
-            <div className="space-y-1 text-xs">
-              <InfoRow icon={Phone} label="رقم الهاتف" value={customer?.phone} isPhone />
-              {(customer?.phones?.length || 0) > 1 && (
-                <div className="py-2.5 border-b border-border-subtle/40 last:border-b-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Phone className="w-4 h-4 text-brand-primary shrink-0" />
-                    <span className="font-medium text-txt-muted">أرقام إضافية:</span>
-                  </div>
-                  <div className="space-y-1">
-                    {customer.phones
-                      .filter((p) => p.phone !== customer.phone)
-                      .map((p) => (
-                        <span key={p.id} className="block font-mono dir-ltr text-right text-txt-primary text-xs">
-                          {p.phone}
-                        </span>
-                      ))}
-                  </div>
-                </div>
-              )}
-              {customer?.notes && <InfoRow icon={StickyNote} label="ملاحظات الحساب" value={customer?.notes} />}
-              <InfoRow icon={ReceiptText} label="إجمالي الطلبات" value={`${customer?._count?.orders ?? 0} طلبات`} />
-            </div>
-          </div>
-
-          {}
-          <div className="bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border-default pb-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-brand-primary" />
-                <h3 className="text-sm font-bold text-txt-primary">العناوين المسجلة</h3>
-                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-bg-surface-elevated text-txt-muted border border-border-subtle">
-                  {addressList.length}
-                </span>
-              </div>
-              <PermissionGate permission="customers.update">
-                <button
-                  onClick={openAddAddress}
-                  className="text-xs text-brand-primary hover:underline font-bold flex items-center gap-1 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>إضافة عنوان</span>
-                </button>
-              </PermissionGate>
-            </div>
-
-            {isAddrLoading ? (
-              <LoadingSkeleton height={100} className="w-full" />
-            ) : addressList.length === 0 ? (
-              <div className="py-6 text-center space-y-1 border border-dashed border-border-default rounded-lg bg-bg-base">
-                <MapPin className="w-5 h-5 text-txt-muted mx-auto" />
-                <p className="text-xs font-bold text-txt-primary">لا توجد عناوين مسجلة</p>
-                <p className="text-[11px] text-txt-muted">أضف عنوان توصيل لهذا العميل لتسهيل الطلبات.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {addressList.map((addr) => (
-                  <div
-                    key={addr.id}
-                    className="bg-bg-base border border-border-default rounded-lg p-3.5 space-y-2 transition-colors hover:border-border-subtle"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white text-xs">
-                          {ADDRESS_LABELS[addr.label] || addr.label}
-                        </span>
-                        {addr.isDefault && (
-                          <span className="text-[11px] text-slate-400 bg-white/[0.04] border border-white/10 px-1.5 py-0.5 rounded font-normal">
-                            العنوان الرئيسي
-                          </span>
-                        )}
-                      </div>
-
-                      {}
-                      <div className="flex items-center gap-1">
-                        <PermissionGate permission="customers.update">
-                          <button
-                            onClick={() => openEditAddress(addr)}
-                            className="p-1 text-txt-muted hover:text-white transition-colors rounded"
-                            title="تعديل العنوان"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                        </PermissionGate>
-                        <PermissionGate permission="customers.delete">
-                          <button
-                            onClick={() => setAddressToDelete(addr)}
-                            className="p-1 text-txt-muted hover:text-red-400 transition-colors rounded"
-                            title="حذف العنوان"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </PermissionGate>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-txt-muted leading-relaxed">{addr.street || 'عنوان التوصيل'}</p>
-                    {(addr.city || addr.state || addr.postalCode) && (
-                      <p className="text-[11px] text-txt-muted">
-                        {[addr.city, addr.state, addr.postalCode].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="lg:col-span-4 space-y-5">
+          <CustomerInfoCard customer={customer} />
+          <CustomerAddressesCard
+            addresses={addresses || []}
+            isLoading={isAddrLoading}
+            onAddAddress={() => {
+              setAddressToEdit(null);
+              setIsAddressOpen(true);
+            }}
+            onEditAddress={openEditAddress}
+            onDeleteAddress={(addr) => setAddressToDelete(addr)}
+          />
         </div>
       </div>
 
-      <CustomerFormModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} customerToEdit={customer} />
-      <AddressFormModal isOpen={isAddressOpen} onClose={() => setIsAddressOpen(false)} customerId={id} addressToEdit={addressToEdit} />
+      {/* Modals */}
+      <CustomerFormModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        customer={customer}
+      />
+
+      <AddressFormModal
+        isOpen={isAddressOpen}
+        onClose={() => {
+          setIsAddressOpen(false);
+          setAddressToEdit(null);
+        }}
+        customerId={id}
+        address={addressToEdit}
+      />
 
       <ConfirmDialog
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        title="حذف العميل"
-        message={
-          <>
-            هل أنت متأكد من حذف العميل{' '}
-            <span className="font-bold text-txt-primary">{customer?.name}</span>؟ سيتم إخفاؤه من القائمة مع الحفاظ على
-            طلباته السابقة.
-          </>
-        }
-        confirmLabel="حذف العميل"
+        title="حذف العميل نهائيًا"
+        message={`هل أنت متأكد من حذف العميل "${customer?.name}"؟ سيتم حذف جميع بياناته وعناوينه المسجلة.`}
+        confirmLabel="نعم، حذف العميل"
         variant="danger"
         isLoading={deleteMutation.isPending}
         onConfirm={handleDeleteCustomer}
@@ -399,7 +206,7 @@ export const CustomerDetailPage = () => {
         isOpen={Boolean(addressToDelete)}
         onClose={() => setAddressToDelete(null)}
         title="حذف العنوان"
-        message={`هل أنت متأكد من حذف العنوان (${ADDRESS_LABELS[addressToDelete?.label] || addressToDelete?.label})؟`}
+        message="هل أنت متأكد من رغبتك في حذف هذا العنوان من سجل العميل؟"
         confirmLabel="حذف"
         variant="danger"
         isLoading={deleteAddressMutation.isPending}

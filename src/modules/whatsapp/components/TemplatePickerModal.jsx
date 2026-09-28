@@ -117,7 +117,7 @@ export const TemplatePickerModal = ({ isOpen, onClose, onSelect, ticket }) => {
               placeholder="ابحث في القوالب بالاسم أو النص..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-3 pr-9 py-2 text-xs bg-bg-surface border border-border-default rounded-lg text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors"
+              className="w-full pl-3 pr-10 py-2 text-xs bg-bg-surface border border-border-default rounded-lg text-txt-primary placeholder:text-txt-dim focus:outline-none focus:border-brand-primary transition-colors"
             />
           </div>
 

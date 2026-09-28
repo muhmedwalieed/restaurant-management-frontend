@@ -194,7 +194,7 @@ export const PhysicalTableCard = ({
           disabled={isStarting}
           className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-all disabled:opacity-50 ${hasSession
               ? 'bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 border border-brand-primary/20'
-              : 'bg-bg-surface-elevated text-txt-primary hover:bg-brand-primary hover:text-slate-950 border border-border-subtle'
+              : 'bg-bg-surface-elevated text-txt-primary hover:bg-brand-primary hover:text-white border border-border-subtle'
             }`}
         >
           <KeyRound className="w-3.5 h-3.5 shrink-0" />

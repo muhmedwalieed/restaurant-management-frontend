@@ -6,10 +6,11 @@ import { Button } from '../../../shared/components/Button.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
 import { CouponFormModal } from '../components/CouponFormModal.jsx';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog.jsx';
-
-const formatMoney = (v) => `${Number(v || 0).toLocaleString('ar-EG')} ج.م`;
+import { useCurrency } from '../../../shared/hooks/useCurrency.js';
 
 export const CouponsListPage = () => {
+  const { currency } = useCurrency();
+  const formatMoney = (v) => `${Number(v || 0).toLocaleString('ar-EG')} ${currency}`;
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);

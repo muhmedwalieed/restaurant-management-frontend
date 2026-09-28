@@ -85,8 +85,16 @@ export const useCancelOrderMutation = () => {
 export const useCreatePosOrderMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, payload, idempotencyKey }) => createPosOrderApi(branchId, payload, idempotencyKey),
-    onSuccess: (_, { branchId }) => {
+    mutationFn: (args) => {
+      const branchId = args?.branchId;
+      const idempotencyKey = args?.idempotencyKey || `pos-${Date.now()}`;
+      const payload = args?.payload ? { ...args.payload } : { ...args };
+      delete payload.branchId;
+      delete payload.idempotencyKey;
+      return createPosOrderApi(branchId, payload, idempotencyKey);
+    },
+    onSuccess: (_, args) => {
+      const branchId = args?.branchId;
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
     },
@@ -96,10 +104,11 @@ export const useCreatePosOrderMutation = () => {
 export const usePaymentMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, orderId, payload }) => processPaymentApi(branchId, orderId, payload),
-    onSuccess: (_, { branchId, orderId }) => {
-      qc.invalidateQueries({ queryKey: ['orders', branchId] });
-      qc.invalidateQueries({ queryKey: ['order', branchId, orderId] });
+    mutationFn: ({ branchId, orderId, id, payload }) => processPaymentApi(branchId, orderId || id, payload),
+    onSuccess: (_, vars) => {
+      const oId = vars?.orderId || vars?.id;
+      qc.invalidateQueries({ queryKey: ['orders', vars?.branchId] });
+      if (oId) qc.invalidateQueries({ queryKey: ['order', vars?.branchId, oId] });
     },
   });
 };

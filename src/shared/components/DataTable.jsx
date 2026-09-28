@@ -35,7 +35,7 @@ export const DataTable = ({
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="w-full bg-bg-base border border-border-default rounded-md text-xs px-3 py-2 pr-9 text-txt-primary placeholder:text-txt-muted focus-visible:outline-none focus-visible:border-brand-primary"
+                  className="w-full bg-bg-base border border-border-default rounded-md text-xs px-3 py-2 pr-10 text-txt-primary placeholder:text-txt-muted focus-visible:outline-none focus-visible:border-brand-primary"
                 />
                 <Search className="w-4 h-4 text-txt-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>

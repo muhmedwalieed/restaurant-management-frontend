@@ -67,6 +67,14 @@ apiClient.interceptors.request.use(
     if (authToken && !config.skipAuth && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${authToken}`;
     }
+    try {
+      const activeBranchId = localStorage.getItem('saas_active_branch_id');
+      if (activeBranchId && !config.headers['X-Branch-Id']) {
+        config.headers['X-Branch-Id'] = activeBranchId;
+      }
+    } catch (_) {
+      // Ignore if localStorage unavailable
+    }
     delete config.skipAuth;
     return config;
   },
@@ -141,7 +149,7 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
 
       // Table self-ordering member routes use their own JWT — never retry them
       // with the staff access token (a staff refresh must not log the user out).
-      if (originalRequest.url && /^\/sessions\//.test(originalRequest.url)) {
+      if (originalRequest.url && (originalRequest.url.includes('/sessions') || originalRequest.url.includes('/menu/table'))) {
         return Promise.reject(normalizedError);
       }
 
