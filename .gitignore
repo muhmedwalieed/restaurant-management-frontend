@@ -11,10 +11,6 @@ coverage/
 # Vite config temp files created during builds
 vite.config.js.timestamp-*
 
-# Personal working documentation (not part of the repo)
-Frontend_Project_Guide.md
-FRONTEND_ARCHITECTURE.md
-
 # Environment variables (never commit secrets)
 .env
 .env.*
@@ -34,3 +30,7 @@ pnpm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Agent skills
+.agent/skills/impeccable/
+.agent/
