@@ -8,18 +8,22 @@ import {
 } from '../../src/modules/orders/schemas/order.schema.js';
 
 describe('Module 8 POS & Payment Schema', () => {
-  it('should accept a valid POS order', () => {
-    expect(posOrderSchema.safeParse({ type: 'DINE_IN', items: [{ productId: 'p1', quantity: 1 }] }).success).toBe(true);
+  it('should accept a valid POS order with tableId for DINE_IN', () => {
+    expect(posOrderSchema.safeParse({ type: 'DINE_IN', tableId: 't1', items: [{ productId: 'p1', quantity: 1 }] }).success).toBe(true);
+    expect(posOrderSchema.safeParse({ type: 'DINE_IN', items: [{ productId: 'p1', quantity: 1 }] }).success).toBe(false);
   });
 
   it('should reject a POS order with no items', () => {
     expect(posOrderSchema.safeParse({ type: 'DELIVERY', items: [] }).success).toBe(false);
   });
 
-  it('should require customer name and phone for DELIVERY POS orders', () => {
+  it('should require customer name, phone, and address only for DELIVERY POS orders, not for PICKUP', () => {
     expect(
       posOrderSchema.safeParse({ type: 'DELIVERY', items: [{ productId: 'p1', quantity: 1 }] }).success
     ).toBe(false);
+    expect(
+      posOrderSchema.safeParse({ type: 'PICKUP', items: [{ productId: 'p1', quantity: 1 }] }).success
+    ).toBe(true);
     expect(
       posOrderSchema.safeParse({
         type: 'DELIVERY',
@@ -43,7 +47,7 @@ describe('Module 8 POS & Payment Schema', () => {
   });
 
   it('should map payment methods and statuses to Arabic', () => {
-    expect(PAYMENT_METHOD_LABELS.CASH).toBe('كاش');
+    expect(PAYMENT_METHOD_LABELS.CASH).toBe('نقدي');
     expect(PAYMENT_METHOD_LABELS.CARD).toBe('بطاقة');
     expect(PAYMENT_STATUS_LABELS.PAID).toBe('مدفوع');
     expect(PAYMENT_STATUS_LABELS.REFUNDED).toBe('مسترجع');

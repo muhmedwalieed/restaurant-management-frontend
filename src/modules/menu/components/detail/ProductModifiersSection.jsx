@@ -69,11 +69,11 @@ export const ProductModifiersSection = ({
                     <div className="space-y-0.5">
                       <span className="font-semibold text-txt-primary block">{mod.name}</span>
                       {mod.isRequired && (
-                        <span className="text-[10px] text-amber-400 font-medium">إجباري</span>
+                        <span className="text-[10px] text-txt-muted font-bold">إجباري</span>
                       )}
                     </div>
                   </td>
-                  <td className="p-2.5 font-mono font-bold text-white whitespace-nowrap">
+                  <td className="p-2.5 font-mono font-bold text-txt-primary whitespace-nowrap">
                     {Number(mod.priceDelta) > 0 ? `+${mod.priceDelta} ${currency}` : 'مجاني'}
                   </td>
                   <td className="p-2.5 text-center">
@@ -82,7 +82,7 @@ export const ProductModifiersSection = ({
                         <button
                           type="button"
                           onClick={() => onEditModifier(mod)}
-                          className="p-1 rounded-md text-txt-muted hover:text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+                          className="p-1 rounded-md text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors cursor-pointer"
                           title="تعديل الإضافة"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
@@ -90,7 +90,7 @@ export const ProductModifiersSection = ({
                         <button
                           type="button"
                           onClick={() => onDeleteModifier(mod)}
-                          className="p-1 rounded-md text-txt-muted hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                          className="p-1 rounded-md text-txt-muted hover:text-status-danger hover:bg-status-danger-bg transition-colors cursor-pointer"
                           title="حذف الإضافة"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

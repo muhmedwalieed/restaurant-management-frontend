@@ -18,18 +18,22 @@ export const OrderCustomerCard = ({ order }) => {
       </h3>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-txt-muted">اسم العميل:</span>
-          <span className="font-bold text-txt-primary">{customerName}</span>
-        </div>
+        {order.type !== 'DINE_IN' && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-txt-muted">اسم العميل:</span>
+              <span className="font-bold text-txt-primary">{customerName}</span>
+            </div>
 
-        {phone && (
-          <div className="flex items-center justify-between">
-            <span className="text-txt-muted">رقم الهاتف:</span>
-            <span className="font-mono font-semibold text-txt-primary" dir="ltr">
-              {phone}
-            </span>
-          </div>
+            {phone && (
+              <div className="flex items-center justify-between">
+                <span className="text-txt-muted">رقم الهاتف:</span>
+                <span className="font-mono font-semibold text-txt-primary" dir="ltr">
+                  {phone}
+                </span>
+              </div>
+            )}
+          </>
         )}
 
         <div className="flex items-center justify-between">

@@ -34,7 +34,13 @@ export const createPosOrderApi = async (branchId, payload, idempotencyKey) => {
   return apiClient.post(`/branches/${branchId}/pos/orders`, payload, { headers });
 };
 
-export const processPaymentApi = async (branchId, orderId, payload) => {
+export const processPaymentApi = async (branchId, orderId, payload, idempotencyKey) => {
+  const key = idempotencyKey || payload?.idempotencyKey;
+  if (key) {
+    return apiClient.post(`/branches/${branchId}/orders/${orderId}/payment`, payload, {
+      headers: { 'Idempotency-Key': key },
+    });
+  }
   return apiClient.post(`/branches/${branchId}/orders/${orderId}/payment`, payload);
 };
 

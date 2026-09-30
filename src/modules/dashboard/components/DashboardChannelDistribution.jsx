@@ -4,12 +4,12 @@ import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx'
 import { EmptyState } from '../../../shared/components/EmptyState.jsx';
 import { formatMoney } from './DashboardStatsCards.jsx';
 
-const CHANNEL_LABELS = {
-  CASHIER: 'الكاشير',
-  WEBSITE: 'الموقع الإلكتروني',
-  WHATSAPP: 'الواتساب',
-  PHONE: 'طلب هاتف',
-  QR_TABLE: 'الترابيزات (QR)',
+const CHANNEL_CONFIG = {
+  CASHIER: { label: 'الكاشير', color: 'bg-txt-primary/75', dot: 'bg-txt-primary/75' },
+  WEBSITE: { label: 'الموقع الإلكتروني', color: 'bg-txt-primary/60', dot: 'bg-txt-primary/60' },
+  WHATSAPP: { label: 'الواتساب', color: 'bg-txt-primary/45', dot: 'bg-txt-primary/45' },
+  PHONE: { label: 'طلب هاتف', color: 'bg-txt-primary/35', dot: 'bg-txt-primary/35' },
+  QR_TABLE: { label: 'الترابيزات (QR)', color: 'bg-txt-primary/25', dot: 'bg-txt-primary/25' },
 };
 
 export const DashboardChannelDistribution = ({
@@ -20,11 +20,11 @@ export const DashboardChannelDistribution = ({
   return (
     <div className="lg:col-span-5 bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
       <div className="flex items-center justify-between border-b border-border-default pb-3">
-        <h2 className="text-sm font-bold text-txt-primary flex items-center gap-2.5">
-          <ShoppingBag className="w-4 h-4 text-slate-400" />
-          <span>القنوات والمصادر</span>
+        <h2 className="text-sm font-bold text-txt-primary flex items-center gap-2">
+          <ShoppingBag className="w-4 h-4 text-txt-muted" />
+          <span>القنوات ومصادر المبيعات</span>
         </h2>
-        <span className="text-xs text-txt-muted">{totalChannelsOrders} طلب كلي</span>
+        <span className="text-xs text-txt-muted font-medium">{totalChannelsOrders} طلب كلي</span>
       </div>
 
       {isLoading ? (
@@ -36,12 +36,18 @@ export const DashboardChannelDistribution = ({
           {channels.map((c) => {
             const count = Number(c.orders || 0);
             const percent = Math.round((count / Math.max(totalChannelsOrders, 1)) * 100);
-            const label = CHANNEL_LABELS[c.source] || c.source;
+            const config = CHANNEL_CONFIG[c.source] || {
+              label: c.source,
+              color: 'bg-txt-primary/40',
+              dot: 'bg-txt-primary/40',
+            };
+
             return (
-              <div key={c.source} className="space-y-2">
+              <div key={c.source} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-txt-primary">
-                    <span>{label}</span>
+                  <div className="flex items-center gap-2 font-bold text-txt-primary">
+                    <span className={`w-2 h-2 rounded-full ${config.dot}`} />
+                    <span>{config.label}</span>
                     <span className="text-txt-muted font-mono font-normal">({percent}%)</span>
                   </div>
                   <div className="flex items-center gap-2 font-mono text-xs text-left">
@@ -50,10 +56,10 @@ export const DashboardChannelDistribution = ({
                     <span className="text-txt-muted font-medium">{count} طلب</span>
                   </div>
                 </div>
-                <div className="w-full bg-bg-base rounded-full h-1.5 overflow-hidden border border-border-default/40 mt-2">
+                <div className="w-full bg-bg-surface-elevated rounded-full h-2 overflow-hidden border border-border-default/40">
                   <div
-                    className="bg-brand-primary h-full rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(percent, 3)}%` }}
+                    className={`${config.color} h-full rounded-full transition-all duration-500`}
+                    style={{ width: `${Math.max(percent, 2)}%` }}
                   />
                 </div>
               </div>

@@ -8,15 +8,37 @@ export const NetworkStatusBanner = () => {
   const [isRetrying, setIsRetrying] = useState(false);
   const queryClient = useQueryClient();
 
+  const checkRealConnection = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch('/api/v1/health', {
+        method: 'GET',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return res.ok || res.status < 500;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      setShowRestored(true);
-      queryClient.invalidateQueries();
-      const timer = setTimeout(() => {
+    const handleOnline = async () => {
+      const isActuallyOnline = await checkRealConnection();
+      if (isActuallyOnline) {
+        setIsOnline(true);
+        setShowRestored(true);
+        queryClient.invalidateQueries();
+        const timer = setTimeout(() => {
+          setShowRestored(false);
+        }, 2500);
+        return () => clearTimeout(timer);
+      } else {
+        setIsOnline(false);
         setShowRestored(false);
-      }, 3500);
-      return () => clearTimeout(timer);
+      }
     };
 
     const handleOffline = () => {
@@ -36,14 +58,19 @@ export const NetworkStatusBanner = () => {
   const handleManualRetry = async () => {
     setIsRetrying(true);
     try {
-      await queryClient.refetchQueries({ type: 'active' });
-      if (typeof navigator !== 'undefined' && navigator.onLine) {
+      const isReachable = await checkRealConnection();
+      if (isReachable) {
         setIsOnline(true);
         setShowRestored(true);
-        setTimeout(() => setShowRestored(false), 3000);
+        queryClient.invalidateQueries();
+        setTimeout(() => setShowRestored(false), 2500);
+      } else {
+        setIsOnline(false);
+        setShowRestored(false);
       }
     } catch {
-      // ignore
+      setIsOnline(false);
+      setShowRestored(false);
     } finally {
       setIsRetrying(false);
     }
@@ -52,27 +79,52 @@ export const NetworkStatusBanner = () => {
   if (isOnline && !showRestored) return null;
 
   return (
-    <div className="fixed top-0 inset-x-0 z-[9999] pointer-events-none flex justify-center p-2.5 transition-all duration-300">
+    <div className="fixed top-2 inset-x-0 z-[9999] pointer-events-none flex justify-center px-4 transition-all duration-300">
       {!isOnline ? (
-        <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 bg-status-danger/95 backdrop-blur-md text-white text-xs font-semibold rounded-xl shadow-xl border border-red-400/30 animate-in slide-in-from-top duration-300 max-w-md w-full">
-          <div className="flex items-center gap-2 min-w-0">
-            <WifiOff className="w-4 h-4 shrink-0 animate-pulse text-red-200" />
-            <span className="truncate">تعذر الاتصال بالشبكة، جاري إعادة الاتصال تلقائياً...</span>
+        <div
+          className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 text-xs font-bold rounded-2xl shadow-2xl border animate-in slide-in-from-top duration-200 max-w-md w-full"
+          style={{
+            background: '#141418',
+            borderColor: 'rgba(239, 68, 68, 0.35)',
+            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(239, 68, 68, 0.2)',
+          }}
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+              <WifiOff size={13} className="animate-pulse" />
+            </span>
+            <span className="truncate text-[12px] text-zinc-200">
+              تعذر الاتصال بالشبكة، جاري إعادة المحاولة...
+            </span>
           </div>
           <button
             type="button"
             onClick={handleManualRetry}
             disabled={isRetrying}
-            className="flex items-center gap-1 shrink-0 px-2.5 py-1 bg-white/20 hover:bg-white/30 active:scale-95 transition-all rounded-lg font-bold text-[11px]"
+            className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 active:scale-95 transition-all rounded-xl font-black text-[11px] cursor-pointer"
+            style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#fca5a5',
+            }}
           >
-            <RefreshCw className={`w-3 h-3 ${isRetrying ? 'animate-spin' : ''}`} />
-            <span>{isRetrying ? 'جاري التحقق...' : 'إعادة المحاولة'}</span>
+            <RefreshCw size={11} className={isRetrying ? 'animate-spin' : ''} />
+            <span>{isRetrying ? 'جاري الفحص...' : 'إعادة المحاولة'}</span>
           </button>
         </div>
       ) : showRestored ? (
-        <div className="pointer-events-auto flex items-center gap-2 px-4 py-2 bg-status-success/95 backdrop-blur-md text-slate-950 text-xs font-bold rounded-xl shadow-xl border border-emerald-400/30 animate-in slide-in-from-top fade-in duration-300">
-          <Wifi className="w-4 h-4 text-emerald-950" />
-          <span>تم استعادة الاتصال بالإنترنت بنجاح.</span>
+        <div
+          className="pointer-events-auto flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-2xl shadow-2xl border animate-in slide-in-from-top fade-in duration-200"
+          style={{
+            background: '#141418',
+            borderColor: 'rgba(16, 185, 129, 0.35)',
+            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(16, 185, 129, 0.2)',
+          }}
+        >
+          <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+            <Wifi size={13} />
+          </span>
+          <span className="text-emerald-300 text-[12px]">تم استعادة الاتصال بالإنترنت بنجاح.</span>
         </div>
       ) : null}
     </div>

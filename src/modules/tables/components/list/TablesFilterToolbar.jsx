@@ -28,7 +28,7 @@ export const TablesFilterToolbar = ({
               onClick={() => onStatusChange(tab.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-brand-primary text-white shadow-sm'
+                  ? 'bg-brand-primary text-txt-inverted shadow-sm'
                   : 'bg-bg-surface border border-border-default text-txt-muted hover:text-txt-primary'
               }`}
             >

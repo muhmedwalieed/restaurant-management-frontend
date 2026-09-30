@@ -66,7 +66,7 @@ export const WaiterBillModal = ({
           </label>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { id: 'CASH', label: 'نقداً (كاش)' },
+              { id: 'CASH', label: 'نقدي' },
               { id: 'CARD', label: 'بطاقة بنكية / فيزا' },
             ].map((m) => (
               <button

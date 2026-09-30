@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../../auth/context/AuthContext.jsx';
 import {
   X,
   CheckCircle2,
   XCircle,
   Banknote,
+  Printer,
+  Clock,
 } from 'lucide-react';
+import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
 import { ReceiptPrintTemplate } from '../ReceiptPrintTemplate.jsx';
 import { PosOrderCustomerDetails } from './PosOrderCustomerDetails.jsx';
 import { PosOrderCancelModal } from './PosOrderCancelModal.jsx';
 import { PosOrderPaymentModal } from './PosOrderPaymentModal.jsx';
 
 const NEXT_STATUS_TRANSITIONS = {
-  PENDING: [{ id: 'CONFIRMED', label: 'تأكيد الطلب', color: 'var(--ac)' }],
-  CONFIRMED: [{ id: 'PREPARING', label: 'بدء التجهيز في المطبخ', color: 'var(--ac)' }],
-  PREPARING: [{ id: 'READY', label: 'جاهز للاستلام / التوصيل', color: 'var(--ok)' }],
-  READY: [
-    { id: 'OUT_FOR_DELIVERY', label: 'خروج مع الدليفري', color: 'var(--ac)' },
-    { id: 'DELIVERED', label: 'تسليم للعميل', color: 'var(--ok)' },
-  ],
-  OUT_FOR_DELIVERY: [{ id: 'DELIVERED', label: 'تم التوصيل بنجاح', color: 'var(--ok)' }],
+  PENDING: [{ id: 'CONFIRMED', label: 'تأكيد الطلب' }],
+  CONFIRMED: [{ id: 'PREPARING', label: 'بدء التجهيز في المطبخ' }],
+  PREPARING: [{ id: 'READY', label: 'جاهز للاستلام / التوصيل' }],
+  OUT_FOR_DELIVERY: [{ id: 'DELIVERED', label: 'تم التوصيل بنجاح' }],
 };
 
 export const PosOrderDetailDrawer = ({
@@ -31,6 +31,11 @@ export const PosOrderDetailDrawer = ({
   isCancelling,
   isSettlingPayment,
 }) => {
+  const { currency } = useCurrency();
+  const { hasPermission } = useAuth();
+  const canUpdateStatus = hasPermission('orders.update');
+  const canPay = hasPermission('orders.payment');
+  const canCancel = hasPermission('orders.cancel');
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('إلغاء بناءً على طلب الكاشير');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -43,7 +48,21 @@ export const PosOrderDetailDrawer = ({
   const paid = order.paymentStatus === 'PAID' ? total : Number(order.amountPaid || 0);
   const remaining = Math.max(0, total - paid);
   const items = order.items || [];
-  const nextActions = NEXT_STATUS_TRANSITIONS[order.status] || [];
+
+  const nextActions = React.useMemo(() => {
+    if (!order?.status) return [];
+    if (order.status === 'READY') {
+      if (order.type === 'DELIVERY') {
+        return [{ id: 'OUT_FOR_DELIVERY', label: 'خروج مع الدليفري', perm: 'orders.update' }];
+      }
+      return [{ id: 'DELIVERED', label: 'تسليم للعميل', perm: 'orders.update' }];
+    }
+    return (NEXT_STATUS_TRANSITIONS[order.status] || []).map((a) => ({ ...a, perm: 'orders.update' }));
+  }, [order?.status, order?.type]);
+
+  const handleActionClick = (actionId) => {
+    onStatusChange(actionId);
+  };
 
   const handleConfirmCancel = () => {
     onCancelOrder(order.id, cancelReason);
@@ -57,29 +76,43 @@ export const PosOrderDetailDrawer = ({
     setShowPaymentModal(false);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <aside
-      className="w-full sm:w-96 shrink-0 flex flex-col border-r overflow-hidden select-none h-full"
+      className="w-full sm:w-96 shrink-0 flex flex-col border-r overflow-hidden h-full shadow-lg"
       style={{ background: 'var(--s1)', borderColor: 'var(--bd)' }}
     >
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between shrink-0" style={{ borderColor: 'var(--bd)' }}>
         <div>
-          <h3 className="text-sm font-bold" style={{ color: 'var(--t1)' }}>
+          <h3 className="text-sm font-black" style={{ color: 'var(--t1)' }}>
             طلب #{order.orderNumber || order.id?.slice(0, 6)}
           </h3>
-          <span className="text-[11px]" style={{ color: 'var(--t3)' }}>
+          <span className="text-xs text-zinc-400 font-normal mt-1 flex items-center gap-1">
+            <Clock size={12} />
             {new Date(order.createdAt).toLocaleString('ar-EG')}
           </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handlePrint}
+            title="طباعة الإيصال"
+            className="w-9 h-9 rounded-lg bg-zinc-800/80 border border-zinc-700/80 text-zinc-300 hover:text-white hover:bg-zinc-700 flex items-center justify-center transition-colors cursor-pointer"
+          >
+            <Printer size={15} />
+          </button>
           <ReceiptPrintTemplate order={order} />
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-white/10 text-slate-400"
+            title="إغلاق"
+            className="w-9 h-9 rounded-lg bg-zinc-800/80 border border-zinc-700/80 text-zinc-300 hover:text-white hover:bg-zinc-700 flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
       </div>
@@ -89,52 +122,34 @@ export const PosOrderDetailDrawer = ({
         {/* Customer & Location */}
         <PosOrderCustomerDetails order={order} />
 
-        {/* Status Actions */}
-        {nextActions.length > 0 && order.status !== 'CANCELLED' && (
-          <div className="space-y-1.5">
-            <span className="text-xs font-semibold" style={{ color: 'var(--t2)' }}>
-              ترقية حالة الطلب:
-            </span>
-            <div className="space-y-1.5">
-              {nextActions.map((action) => (
-                <button
-                  key={action.id}
-                  type="button"
-                  disabled={isUpdatingStatus}
-                  onClick={() => onStatusChange(action.id)}
-                  className="w-full py-2 px-3 rounded-xl font-bold text-xs text-white shadow-sm transition-all active:scale-98 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                  style={{ background: action.color }}
-                >
-                  <CheckCircle2 size={14} />
-                  <span>{action.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Items List */}
         <div className="space-y-2">
-          <span className="text-xs font-bold" style={{ color: 'var(--t2)' }}>الأصناف المطلوبة</span>
+          <span className="text-xs font-semibold" style={{ color: 'var(--t2)' }}>الأصناف المطلوبة</span>
           <div className="space-y-1.5">
             {items.map((it, idx) => (
               <div
                 key={idx}
-                className="p-2.5 rounded-lg border text-xs flex items-center justify-between"
+                className="p-3 rounded-xl border text-xs flex items-center justify-between gap-3"
                 style={{ background: 'var(--s2)', borderColor: 'var(--bd)' }}
               >
-                <div>
-                  <span className="font-semibold" style={{ color: 'var(--t1)' }}>
+                <div className="min-w-0 flex-1">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
                     {it.quantity}× {it.productName || it.name}
                   </span>
-                  {it.modifiers && it.modifiers.length > 0 && (
-                    <div className="text-[10px]" style={{ color: 'var(--t3)' }}>
-                      {it.modifiers.map((m) => m.optionName || m.name).join('، ')}
+                  {(() => { const mods = it.selectedModifiers || it.modifiers || []; return mods.length > 0 ? (
+                    <div className="text-[10px] mt-0.5" style={{ color: 'var(--t3)' }}>
+                      {mods.map((m) => `${m.name}${m.quantity > 1 ? ` ×${m.quantity}` : ''}${m.priceDelta ? ` (+${Number(m.priceDelta).toFixed(0)})` : ''}`).join('، ')}
                     </div>
-                  )}
+                  ) : null; })()}
                 </div>
-                <span className="mono font-bold" style={{ color: 'var(--t1)' }}>
-                  {(Number(it.unitPrice || it.price) * (it.quantity || 1)).toFixed(2)} ج
+                <span className="inline-flex items-baseline gap-1 shrink-0" dir="ltr">
+                  <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100 text-xs">
+                    {(() => {
+                      const p = Number(it.unitPrice || it.price) * (it.quantity || 1);
+                      return p % 1 === 0 ? p.toFixed(0) : p.toFixed(2);
+                    })()}
+                  </span>
+                  <span className="text-xs text-zinc-400">{currency || 'ج.م'}</span>
                 </span>
               </div>
             ))}
@@ -142,48 +157,85 @@ export const PosOrderDetailDrawer = ({
         </div>
 
         {/* Payment Summary */}
-        <div className="p-3 rounded-xl border space-y-2 text-xs" style={{ background: 'var(--s2)', borderColor: 'var(--bd)' }}>
+        <div className="p-3.5 rounded-2xl border space-y-3 text-xs" style={{ background: 'var(--s2)', borderColor: 'var(--bd)' }}>
           <div className="flex items-center justify-between" style={{ color: 'var(--t2)' }}>
-            <span>الإجمالي الكلي:</span>
-            <span className="mono font-bold" style={{ color: 'var(--t1)' }}>{total.toFixed(2)} ج</span>
+            <span className="font-medium">الإجمالي الكلي:</span>
+            <span className="whitespace-nowrap font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1 shrink-0">
+              <span className="font-mono">
+                {total % 1 === 0 ? total.toFixed(0) : total.toFixed(2)}
+              </span>
+              <span className="text-xs font-normal text-zinc-400">{currency || 'ج.م'}</span>
+            </span>
           </div>
           <div className="flex items-center justify-between" style={{ color: 'var(--t2)' }}>
-            <span>المبلغ المدفوع:</span>
-            <span className="mono font-bold text-emerald-400">{paid.toFixed(2)} ج</span>
+            <span className="font-medium">المبلغ المدفوع:</span>
+            <span className="whitespace-nowrap font-bold text-emerald-400 flex items-center gap-1 shrink-0">
+              <span className="font-mono">
+                {paid % 1 === 0 ? paid.toFixed(0) : paid.toFixed(2)}
+              </span>
+              <span className="text-xs font-normal text-emerald-400/80">{currency || 'ج.م'}</span>
+            </span>
           </div>
           {remaining > 0 && (
-            <div className="flex items-center justify-between font-bold text-red-400 pt-1 border-t border-white/5">
+            <div className="flex items-center justify-between font-bold text-red-500 pt-2 border-t" style={{ borderColor: 'var(--bd)' }}>
               <span>المتبقي للتحصيل:</span>
-              <span className="mono">{remaining.toFixed(2)} ج</span>
+              <span className="whitespace-nowrap font-bold flex items-center gap-1 shrink-0">
+                <span className="font-mono">
+                  {remaining % 1 === 0 ? remaining.toFixed(0) : remaining.toFixed(2)}
+                </span>
+                <span className="text-xs font-normal text-red-500/80">{currency || 'ج.م'}</span>
+              </span>
             </div>
+          )}
+
+          {/* Settle Payment Action */}
+          {canPay && remaining > 0 && order.status !== 'CANCELLED' && (
+            <button
+              type="button"
+              onClick={() => {
+                setPayAmount(remaining % 1 === 0 ? remaining.toFixed(0) : remaining.toFixed(2));
+                setShowPaymentModal(true);
+              }}
+              className="w-full h-11 bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-zinc-100 font-semibold text-sm rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Banknote size={15} />
+              <span>تسجيل دفعة ({remaining % 1 === 0 ? remaining.toFixed(0) : remaining.toFixed(2)} {currency || 'ج.م'})</span>
+            </button>
           )}
         </div>
       </div>
 
-      {/* Footer: Settle & Cancel */}
+      {/* Footer: Order Status Advancement & Cancel */}
       <div className="p-4 border-t space-y-2 shrink-0" style={{ background: 'var(--s1)', borderColor: 'var(--bd)' }}>
-        {remaining > 0 && order.status !== 'CANCELLED' && (
-          <button
-            type="button"
-            onClick={() => {
-              setPayAmount(String(remaining));
-              setShowPaymentModal(true);
-            }}
-            className="w-full py-2 rounded-xl font-bold text-xs text-white shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-            style={{ background: 'var(--ok)' }}
-          >
-            <Banknote size={14} />
-            <span>تسجيل دفعة ({remaining.toFixed(2)} ج)</span>
-          </button>
-        )}
+        {canUpdateStatus && nextActions.length > 0 && order.status !== 'CANCELLED' ? (
+          <div className="space-y-1.5">
+            {nextActions.map((action) => (
+              <button
+                key={action.id}
+                type="button"
+                disabled={isUpdatingStatus}
+                onClick={() => handleActionClick(action.id)}
+                className="w-full h-11 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-750 text-zinc-100 border border-zinc-700 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <CheckCircle2 size={16} />
+                <span>{action.label}</span>
+              </button>
+            ))}
+          </div>
+        ) : (order.status === 'DELIVERED' || order.status === 'COMPLETED') ? (
+          <div className="p-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 flex items-center justify-center gap-2 text-xs font-bold">
+            <CheckCircle2 size={16} />
+            <span>الطلب مكتمل وتم التسليم</span>
+          </div>
+        ) : null}
 
-        {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
+        {canCancel && order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && order.status !== 'COMPLETED' && (
           <button
             type="button"
             onClick={() => setShowCancelModal(true)}
-            className="w-full py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-500/10 border border-red-500/20 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <XCircle size={14} />
+            <XCircle size={15} />
             <span>إلغاء الطلب</span>
           </button>
         )}
@@ -203,6 +255,10 @@ export const PosOrderDetailDrawer = ({
       <PosOrderPaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
+        order={order}
+        totalAmount={total}
+        remainingAmount={remaining}
+        currency={currency}
         payAmount={payAmount}
         onChangePayAmount={setPayAmount}
         payMethod={payMethod}

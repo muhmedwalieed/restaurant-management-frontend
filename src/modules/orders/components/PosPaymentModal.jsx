@@ -227,7 +227,7 @@ export const PosPaymentModal = ({
               className="btn btn-primary flex-[2] text-xs py-2.5 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <Check size={16} />
-              <span>{isSubmitting ? 'جاري التأكيد...' : 'تأكيد وحفظ الطلب'}</span>
+              <span>{isSubmitting ? 'جاري التأكيد...' : 'تأكيد الطلب'}</span>
             </button>
           </div>
         </div>

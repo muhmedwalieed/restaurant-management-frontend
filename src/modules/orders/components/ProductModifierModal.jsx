@@ -124,7 +124,7 @@ export const ProductModifierModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer hover:bg-slate-100"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer hover:bg-white/10"
             style={{ color: 'var(--t3)' }}
           >
             <X size={16} />

@@ -7,7 +7,7 @@ export const DashboardTopProducts = ({ topProducts = [], maxSold = 1 }) => {
     <div className="lg:col-span-5 bg-bg-surface border border-border-default rounded-lg p-5 space-y-4 shadow-sm">
       <div className="flex items-center justify-between border-b border-border-default pb-3">
         <h2 className="text-sm font-bold text-txt-primary flex items-center gap-2.5">
-          <Award className="w-4 h-4 text-slate-400" />
+          <Award className="w-4 h-4 text-txt-muted" />
           <span>أعلى الأصناف مبيعًا</span>
         </h2>
       </div>
@@ -27,14 +27,12 @@ export const DashboardTopProducts = ({ topProducts = [], maxSold = 1 }) => {
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span
-                      className={`w-6 h-6 rounded-full text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
+                      className={`w-6 h-6 rounded-full text-xs font-mono flex items-center justify-center shrink-0 ${
                         i === 0
-                          ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold'
+                          ? 'bg-brand-primary text-txt-inverted font-bold'
                           : i === 1
-                          ? 'bg-slate-400/20 border border-slate-400/40 text-slate-300 font-bold'
-                          : i === 2
-                          ? 'bg-amber-700/20 border border-amber-700/40 text-amber-500 font-bold'
-                          : 'bg-bg-surface text-txt-muted border border-border-default'
+                          ? 'bg-bg-surface-elevated border border-border-default text-txt-primary font-bold'
+                          : 'bg-bg-surface text-txt-muted border border-border-default font-medium'
                       }`}
                     >
                       #{i + 1}
@@ -47,7 +45,7 @@ export const DashboardTopProducts = ({ topProducts = [], maxSold = 1 }) => {
                       <span>مبيعات</span>
                     </span>
                     {p.revenue && (
-                      <span className="font-mono font-bold text-emerald-400 text-[11px]">
+                      <span className="font-mono font-semibold text-txt-muted text-[11px]">
                         ({formatMoney(p.revenue)})
                       </span>
                     )}

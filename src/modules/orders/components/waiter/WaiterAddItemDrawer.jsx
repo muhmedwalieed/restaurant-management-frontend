@@ -205,8 +205,8 @@ export const WaiterAddItemDrawer = ({
               type="button"
               disabled={selectedCount === 0 || isLoading}
               onClick={handleSubmit}
-              className="px-4 py-1.5 rounded-lg text-xs font-bold text-white shadow-sm transition-all active:scale-98 cursor-pointer disabled:opacity-50"
-              style={{ background: 'var(--ac)' }}
+              className="px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all active:scale-98 cursor-pointer disabled:opacity-50"
+              style={{ background: 'var(--ac)', color: 'var(--ti, #ffffff)' }}
             >
               {isLoading ? 'جاري الإضافة...' : `إضافة للطلب (${selectedTotal.toFixed(2)} ج)`}
             </button>

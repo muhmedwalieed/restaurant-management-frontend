@@ -29,7 +29,7 @@ export const TicketMessageInput = ({
             type="button"
             onClick={() => onChangeMode('REPLY')}
             className={`px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer ${
-              isReply ? 'bg-brand-primary text-white shadow-sm' : 'text-txt-muted hover:text-txt-primary'
+              isReply ? 'bg-brand-primary text-txt-inverted shadow-sm' : 'text-txt-muted hover:text-txt-primary'
             }`}
           >
             <MessageSquare size={12} />
@@ -40,7 +40,7 @@ export const TicketMessageInput = ({
             type="button"
             onClick={() => onChangeMode('NOTE')}
             className={`px-2.5 py-1 rounded-md text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer ${
-              !isReply ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-txt-muted hover:text-txt-primary'
+              !isReply ? 'bg-brand-primary text-txt-inverted shadow-sm' : 'text-txt-muted hover:text-txt-primary'
             }`}
           >
             <Lock size={12} />
@@ -51,7 +51,7 @@ export const TicketMessageInput = ({
         <button
           type="button"
           onClick={onOpenTemplatePicker}
-          className="text-[11px] font-semibold text-brand-primary hover:underline flex items-center gap-1 px-2 py-1 rounded hover:bg-brand-primary/10 transition-colors"
+          className="text-[11px] font-semibold text-txt-muted hover:text-txt-primary flex items-center gap-1 px-2 py-1 rounded hover:bg-bg-surface-elevated transition-colors"
         >
           <BookOpen size={12} />
           <span>إدراج قالب جاهز</span>
@@ -78,7 +78,7 @@ export const TicketMessageInput = ({
           type="button"
           disabled={!messageText.trim() || isLoading || disabled}
           onClick={onSendMessage}
-          className="h-9 px-4 rounded-lg font-bold text-xs text-white bg-brand-primary hover:bg-brand-primary-hover active:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+          className="h-9 px-4 rounded-lg font-bold text-xs text-txt-inverted bg-brand-primary hover:bg-brand-primary-hover active:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
         >
           <Send size={13} />
           <span>إرسال</span>

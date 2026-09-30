@@ -87,7 +87,9 @@ export const useCreatePosOrderMutation = () => {
   return useMutation({
     mutationFn: (args) => {
       const branchId = args?.branchId;
-      const idempotencyKey = args?.idempotencyKey || `pos-${Date.now()}`;
+      const idempotencyKey =
+        args?.idempotencyKey ||
+        (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pos-${Date.now()}-${Math.random()}`);
       const payload = args?.payload ? { ...args.payload } : { ...args };
       delete payload.branchId;
       delete payload.idempotencyKey;
@@ -104,11 +106,20 @@ export const useCreatePosOrderMutation = () => {
 export const usePaymentMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, orderId, id, payload }) => processPaymentApi(branchId, orderId || id, payload),
+    mutationFn: ({ branchId, orderId, id, payload, idempotencyKey }) => {
+      const key =
+        idempotencyKey ||
+        payload?.idempotencyKey ||
+        (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pay-${Date.now()}-${Math.random()}`);
+      return processPaymentApi(branchId, orderId || id, payload, key);
+    },
     onSuccess: (_, vars) => {
       const oId = vars?.orderId || vars?.id;
-      qc.invalidateQueries({ queryKey: ['orders', vars?.branchId] });
-      if (oId) qc.invalidateQueries({ queryKey: ['order', vars?.branchId, oId] });
+      const bId = vars?.branchId;
+      qc.invalidateQueries({ queryKey: ['orders', bId] });
+      qc.invalidateQueries({ queryKey: ['tables', bId] });
+      qc.invalidateQueries({ queryKey: ['branch-sessions', bId] });
+      if (oId) qc.invalidateQueries({ queryKey: ['order', bId, oId] });
     },
   });
 };

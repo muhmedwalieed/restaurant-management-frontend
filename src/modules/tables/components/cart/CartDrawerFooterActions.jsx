@@ -80,7 +80,7 @@ export const CartDrawerFooterActions = ({
               variant="primary"
               size="sm"
               onClick={onClose}
-              className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-white font-bold"
+              className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-txt-inverted font-bold"
             >
               تصفح القائمة
             </Button>
@@ -92,10 +92,10 @@ export const CartDrawerFooterActions = ({
             <div
               className={`rounded-xl p-2.5 text-xs flex items-center gap-2 border ${
                 session.waiterCall.status === 'ACCEPTED'
-                  ? 'bg-status-success/10 border-status-success/30 text-status-success'
+                  ? 'bg-status-success-bg border-status-success/30 text-status-success'
                   : session.waiterCall.type === 'BILL'
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                  : 'bg-status-warning/10 border-status-warning/30 text-status-warning'
+                  ? 'bg-status-warning-bg border-status-warning/30 text-status-warning'
+                  : 'bg-status-warning-bg border-status-warning/30 text-status-warning'
               }`}
             >
               {session.waiterCall.type === 'BILL' ? (
@@ -121,7 +121,7 @@ export const CartDrawerFooterActions = ({
 
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-txt-muted">إجمالي حساب الجلسة:</span>
-            <span className="text-base font-bold text-brand-primary font-mono text-lg" dir="ltr">
+            <span className="text-base font-bold text-txt-primary font-mono text-lg" dir="ltr">
               {totalSessionAmount.toFixed(2)} {currency}
             </span>
           </div>
@@ -145,7 +145,7 @@ export const CartDrawerFooterActions = ({
               icon={Receipt}
               onClick={onRequestBill || onCallWaiter}
               disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-              className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-white font-bold"
+              className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-txt-inverted font-bold"
             >
               {waiterCooldownLeft > 0 && session?.waiterCall?.type === 'BILL'
                 ? `تم الطلب (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`

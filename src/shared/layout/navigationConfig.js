@@ -44,7 +44,7 @@ export const NAV_SECTIONS = [
       },
       {
         label: 'شاشة الويتر',
-        path: '/pos/waiter',
+        path: '/waiter',
         icon: UtensilsCrossed,
         permission: ['tables.view', 'orders.create'],
       },

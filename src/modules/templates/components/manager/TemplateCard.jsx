@@ -42,24 +42,24 @@ export const TemplateCard = ({
   return (
     <div className="bg-bg-surface border border-border-default/80 rounded-xl overflow-hidden shadow-sm hover:border-border-default transition-colors">
       {/* Card Header */}
-      <div className="p-4 sm:p-5 border-b border-border-default/60 flex flex-col sm:flex-row sm:items-start justify-between gap-3 bg-gradient-to-r from-bg-surface to-bg-base/30">
+      <div className="p-4 sm:p-5 border-b border-border-default flex flex-col sm:flex-row sm:items-start justify-between gap-3 bg-bg-surface">
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="p-1 rounded-md bg-brand-primary/10 text-brand-primary">
+            <span className="p-1 rounded-md bg-bg-surface-elevated text-txt-primary border border-border-default">
               <CategoryIcon className="w-3.5 h-3.5" />
             </span>
             <h2 className="text-sm font-bold text-txt-primary">{item.title}</h2>
 
             {item.isUserCreated ? (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-bg-surface-elevated text-txt-primary border border-border-default">
                 قالب مخصص لك
               </span>
             ) : item.isCustom ? (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-bg-surface text-txt-primary border border-border-default">
                 معدّل عن الافتراضي
               </span>
             ) : (
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/20">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-bg-surface text-txt-muted border border-border-default">
                 افتراضي النظام
               </span>
             )}
@@ -81,7 +81,7 @@ export const TemplateCard = ({
             onClick={() => onCopyText(currentText)}
             title="نسخ النص الحقيقي للقالب"
           >
-            {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {isCopied ? <Check className="w-3.5 h-3.5 text-txt-primary" /> : <Copy className="w-3.5 h-3.5" />}
           </Button>
 
           {item.isUserCreated && (
@@ -93,17 +93,17 @@ export const TemplateCard = ({
                 onClick={() => onOpenEditModal(item)}
                 title="تعديل تفاصيل القالب"
               >
-                <Edit3 className="w-3.5 h-3.5 text-brand-primary" />
+                <Edit3 className="w-3.5 h-3.5 text-txt-muted hover:text-txt-primary" />
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 px-2 text-xs text-txt-muted hover:text-red-400"
+                className="h-7 px-2 text-xs text-txt-muted hover:text-status-danger"
                 onClick={() => onConfirmDelete(item)}
                 aria-label="حذف القالب"
                 title="حذف القالب نهائياً"
               >
-                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <Trash2 className="w-3.5 h-3.5 text-status-danger" />
                 <span className="text-[11px] mr-1">حذف القالب</span>
               </Button>
             </>
@@ -116,7 +116,7 @@ export const TemplateCard = ({
             onClick={() => onOpenDuplicateModal(item)}
             title="إنشاء نسخة من هذا القالب"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <Sparkles className="w-3.5 h-3.5 text-txt-muted" />
             <span className="text-[11px] mr-1">تكرار</span>
           </Button>
 
@@ -124,7 +124,7 @@ export const TemplateCard = ({
             <Button
               size="sm"
               variant="outline"
-              className="h-7 px-2 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+              className="h-7 px-2 text-xs border-border-default text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated"
               disabled={isResetting}
               onClick={() => onResetSingle(item)}
               title="استعادة النص الافتراضي لهذا القالب"

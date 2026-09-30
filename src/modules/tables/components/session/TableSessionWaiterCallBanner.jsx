@@ -18,8 +18,8 @@ export const TableSessionWaiterCallBanner = ({
         isAccepted
           ? 'border-status-success/30 bg-status-success/5'
           : isBill
-            ? 'border-amber-500/40 bg-amber-500/10'
-            : 'border-status-warning/30 bg-status-warning/5'
+            ? 'border-status-warning/40 bg-status-warning-bg'
+            : 'border-status-warning/30 bg-status-warning-bg'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -28,11 +28,11 @@ export const TableSessionWaiterCallBanner = ({
             isAccepted
               ? 'text-status-success'
               : isBill
-                ? 'text-amber-300'
+                ? 'text-status-warning'
                 : 'text-status-warning'
           }`}
         >
-          {isBill ? <Receipt className="w-4 h-4 text-amber-400" /> : <Bell className="w-3.5 h-3.5" />}
+          {isBill ? <Receipt className="w-4 h-4 text-status-warning" /> : <Bell className="w-3.5 h-3.5" />}
           {isAccepted
             ? isBill
               ? 'الويتر في الطريق للعميل بالحساب'
@@ -42,7 +42,7 @@ export const TableSessionWaiterCallBanner = ({
               : `استدعاء ويتر من ${waiterCall.requesterName}`}
         </p>
         {isBill && (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-status-warning-bg text-status-warning border border-status-warning/30">
             طلب حساب
           </span>
         )}

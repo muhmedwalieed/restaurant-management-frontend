@@ -58,7 +58,7 @@ export const PosTableQrModal = ({
           <button
             type="button"
             onClick={handlePrint}
-            className="flex-1 py-2 px-4 rounded-xl text-xs font-bold text-white bg-brand-primary shadow-sm hover:bg-brand-primary-hover flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 py-2 px-4 rounded-xl text-xs font-bold text-txt-inverted bg-brand-primary shadow-sm hover:bg-brand-primary-hover flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Printer size={15} />
             <span>طباعة لاصق QR للطاولة</span>

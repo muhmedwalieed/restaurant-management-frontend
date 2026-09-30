@@ -11,7 +11,24 @@ describe('Module 6 Orders Schema', () => {
   it('should accept a valid order payload with items', () => {
     const result = orderFormSchema.safeParse({
       type: 'DINE_IN',
+      tableId: 't1',
       items: [{ productId: 'p1', quantity: 2 }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject a DINE_IN order without tableId', () => {
+    const result = orderFormSchema.safeParse({
+      type: 'DINE_IN',
+      items: [{ productId: 'p1', quantity: 2 }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should accept a PICKUP order without customer information or table', () => {
+    const result = orderFormSchema.safeParse({
+      type: 'PICKUP',
+      items: [{ productId: 'p1', quantity: 1 }],
     });
     expect(result.success).toBe(true);
   });
@@ -40,8 +57,8 @@ describe('Module 6 Orders Schema', () => {
     expect(valid.success).toBe(true);
   });
 
-  it('should coerce quantity and default type to DINE_IN', () => {
-    const result = orderFormSchema.safeParse({ items: [{ productId: 'p1', quantity: '3' }] });
+  it('should coerce quantity and default type to DINE_IN with tableId', () => {
+    const result = orderFormSchema.safeParse({ tableId: 't1', items: [{ productId: 'p1', quantity: '3' }] });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.type).toBe('DINE_IN');

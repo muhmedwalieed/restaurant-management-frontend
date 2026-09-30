@@ -70,10 +70,12 @@ export const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 sm:p-8 space-y-6">
-        {}
-        <div className="text-center space-y-2">
-          <Store className="w-6 h-6 text-brand-primary mx-auto" />
+      <div className="w-full max-w-md bg-bg-surface border border-border-default rounded-lg p-6 sm:p-8 space-y-6 shadow-lift">
+        {/* Header */}
+        <div className="text-center space-y-2.5">
+          <div className="w-10 h-10 rounded-md bg-brand-primary text-txt-inverted flex items-center justify-center mx-auto shadow-xs">
+            <Store className="w-5 h-5" />
+          </div>
           <h1 className="text-xl font-bold text-txt-primary">تسجيل الدخول للنظام</h1>
           <p className="text-xs text-txt-muted">
             ادخل بيانات الحساب للوصول إلى لوحة إدارة المطعم

@@ -21,8 +21,8 @@ export const WaiterAvailableTableState = ({ table, onOpenSession, isStartingSess
         type="button"
         disabled={isStartingSession}
         onClick={() => onOpenSession(table.id)}
-        className="w-full py-2.5 rounded-xl font-bold text-xs text-white transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
-        style={{ background: 'var(--ac)' }}
+        className="w-full py-2.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+        style={{ background: 'var(--ac)', color: 'var(--ti, #ffffff)' }}
       >
         {isStartingSession ? 'جاري فتح الجلسة...' : 'فتح جلسة الآن'}
       </button>

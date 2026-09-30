@@ -35,7 +35,7 @@ export const PosTableCard = ({
           </span>
 
           {hasAlert && (
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-status-warning animate-pulse" />
           )}
         </div>
 
@@ -47,38 +47,38 @@ export const PosTableCard = ({
                 e.stopPropagation();
                 onShowQr(table);
               }}
-              className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-1 rounded text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors"
               title="عرض كود QR للطاولة"
             >
               <QrCode size={14} />
             </button>
           )}
 
-          <span className="mono font-bold text-xl" style={{ color: isSelected ? 'var(--ac)' : 'var(--t1)' }}>
+          <span className="mono font-bold text-xl" style={{ color: 'var(--t1)' }}>
             {table.displayNum}
           </span>
         </div>
       </div>
 
       {/* Middle row: Capacity */}
-      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+      <div className="flex items-center gap-1.5 text-xs text-txt-muted">
         <Users size={12} />
         <span>{table.capacity} كراسي {table.section ? `— ${table.section}` : ''}</span>
       </div>
 
       {/* Bottom row: Session total or opened time */}
-      <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
+      <div className="pt-2 border-t border-border-default flex items-center justify-between text-xs">
         {occ && table.session ? (
           <>
-            <span className="mono font-bold" style={{ color: 'var(--ac)' }}>
+            <span className="mono font-bold" style={{ color: 'var(--t1)' }}>
               {total.toFixed(2)} ج
             </span>
-            <span className="text-[10px] text-slate-400 mono">
+            <span className="text-[10px] text-txt-muted mono">
               {table.session.openedAt}
             </span>
           </>
         ) : (
-          <span className="text-[11px] text-slate-500">جاهزة للاستقبال</span>
+          <span className="text-[11px] text-txt-dim">جاهزة للاستقبال</span>
         )}
       </div>
     </div>

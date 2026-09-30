@@ -77,9 +77,9 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
       const payload = {
         type: data.type,
         tableId: data.type === 'DINE_IN' && data.tableId ? data.tableId : undefined,
-        customerName: data.customerName || undefined,
-        customerPhone: data.customerPhone || undefined,
-        address: data.address || undefined,
+        customerName: data.type === 'DINE_IN' ? undefined : (data.customerName || undefined),
+        customerPhone: data.type === 'DINE_IN' ? undefined : (data.customerPhone || undefined),
+        address: data.type === 'DELIVERY' ? (data.address || undefined) : undefined,
         notes: data.notes || undefined,
         items: data.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       };
@@ -120,34 +120,36 @@ export const OrderFormModal = ({ isOpen, onClose, branchId }) => {
           />
         )}
 
-        <Input
-          label="اسم العميل"
-          placeholder="اسم العميل"
-          icon={Users}
-          required={orderType === 'DELIVERY'}
-          error={errors.customerName?.message}
-          {...register('customerName')}
-        />
-
-        <Input
-          label="رقم هاتف العميل"
-          placeholder="+2010..."
-          icon={Phone}
-          dir="ltr"
-          required={orderType === 'DELIVERY'}
-          error={errors.customerPhone?.message}
-          {...register('customerPhone')}
-        />
-
         {orderType === 'DELIVERY' && (
-          <Input
-            label="عنوان التوصيل"
-            placeholder="الشارع، المنطقة، رقم العقار..."
-            icon={MapPin}
-            required
-            error={errors.address?.message}
-            {...register('address')}
-          />
+          <>
+            <Input
+              label="اسم العميل"
+              placeholder="اسم العميل"
+              icon={Users}
+              required
+              error={errors.customerName?.message}
+              {...register('customerName')}
+            />
+
+            <Input
+              label="رقم هاتف العميل"
+              placeholder="+2010..."
+              icon={Phone}
+              dir="ltr"
+              required
+              error={errors.customerPhone?.message}
+              {...register('customerPhone')}
+            />
+
+            <Input
+              label="عنوان التوصيل"
+              placeholder="الشارع، المنطقة، رقم العقار..."
+              icon={MapPin}
+              required
+              error={errors.address?.message}
+              {...register('address')}
+            />
+          </>
         )}
 
         <div className="flex flex-col gap-2">

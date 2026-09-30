@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProductsQuery, useCategoriesQuery } from '../../menu/hooks/useMenu.js';
 import { useTablesQuery } from '../../tables/hooks/useTables.js';
@@ -9,41 +9,32 @@ import { PosNavHeader } from '../components/pos/PosNavHeader.jsx';
 import { PosSalesView } from '../components/pos/PosSalesView.jsx';
 import { PosOrdersView } from '../components/PosOrdersView.jsx';
 import { PosTablesView } from '../components/PosTablesView.jsx';
-import { WaiterPage } from './WaiterPage.jsx';
 
 export const PosPage = () => {
   const navigate = useNavigate();
   const { tab } = useParams();
   const { activeBranchId, activeBranch } = useBranch();
   const { user, logout } = useAuth();
-
-  const roleName = (user?.role?.name || user?.role || '').toLowerCase();
-  const isWaiter = roleName === 'ويتر' || roleName === 'waiter';
-
-  useEffect(() => {
-    if (isWaiter && tab !== 'waiter') {
-      navigate('/pos/waiter', { replace: true });
-    }
-  }, [isWaiter, tab, navigate]);
+  const [pendingTable, setPendingTable] = useState(null);
 
   const currentTab = useMemo(() => {
-    if (isWaiter) return 'waiter';
     if (tab === 'orders') return 'orders';
     if (tab === 'tables') return 'tables';
-    if (tab === 'waiter') return 'waiter';
     return 'sales';
-  }, [tab, isWaiter]);
+  }, [tab]);
 
   const handleSelectTab = (nextTab) => {
-    if (isWaiter) {
-      navigate('/pos/waiter');
-      return;
-    }
     if (nextTab === 'sales') {
       navigate('/pos');
     } else {
       navigate(`/pos/${nextTab}`);
     }
+  };
+
+  const handleSelectTableForOrder = (tbl) => {
+    const tableVal = tbl?.label || tbl?.number || tbl?.name || tbl?.displayNum || tbl?.id || tbl;
+    setPendingTable(tbl);
+    navigate(tableVal ? `/pos?type=DINE_IN&table=${encodeURIComponent(tableVal)}` : '/pos?type=DINE_IN');
   };
 
   // Queries for sales and tables
@@ -55,13 +46,8 @@ export const PosPage = () => {
   const categories = useMemo(() => categoriesResponse?.items || [], [categoriesResponse]);
   const tables = useMemo(() => tablesResponse?.items || [], [tablesResponse]);
 
-  // If on waiter tab, render WaiterPage directly
-  if (currentTab === 'waiter') {
-    return <WaiterPage />;
-  }
-
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden select-none" dir="rtl" style={{ background: 'var(--bg)' }}>
+    <div className="h-screen w-screen min-h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-black text-zinc-900 dark:text-zinc-100" dir="rtl">
       {/* Top Header */}
       <PosNavHeader
         activeTab={currentTab}
@@ -69,22 +55,29 @@ export const PosPage = () => {
         activeBranch={activeBranch}
         user={user}
         onLogout={logout}
-        onNavigateDashboard={() => navigate('/dashboard')}
       />
 
       {/* Main Tab Views */}
-      {currentTab === 'sales' && (
+      <div className={`flex-1 flex overflow-hidden ${currentTab === 'sales' ? '' : 'hidden'}`}>
         <PosSalesView
           products={products}
           categories={categories}
           tables={tables}
+          pendingTable={pendingTable}
+          onClearPendingTable={() => setPendingTable(null)}
         />
+      </div>
+
+      {currentTab === 'orders' && (
+        <div className="flex-1 flex overflow-hidden">
+          <PosOrdersView />
+        </div>
       )}
 
-      {currentTab === 'orders' && <PosOrdersView />}
-
       {currentTab === 'tables' && (
-        <PosTablesView onSelectTableForOrder={() => handleSelectTab('sales')} />
+        <div className="flex-1 flex overflow-hidden">
+          <PosTablesView onSelectTableForOrder={handleSelectTableForOrder} />
+        </div>
       )}
     </div>
   );

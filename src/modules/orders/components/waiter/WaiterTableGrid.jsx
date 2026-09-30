@@ -58,7 +58,7 @@ export const WaiterTableGrid = ({
             type="button"
             onClick={() => onChangeFilter('OCCUPIED')}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-              filter === 'OCCUPIED' ? 'text-white' : 'text-slate-400 hover:text-white'
+              filter === 'OCCUPIED' ? 'text-txt-inverted' : 'text-txt-muted hover:text-txt-primary'
             }`}
             style={{ background: filter === 'OCCUPIED' ? 'var(--ac)' : 'transparent' }}
           >
@@ -68,7 +68,7 @@ export const WaiterTableGrid = ({
             type="button"
             onClick={() => onChangeFilter('AVAILABLE')}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-              filter === 'AVAILABLE' ? 'text-white' : 'text-slate-400 hover:text-white'
+              filter === 'AVAILABLE' ? 'text-txt-inverted' : 'text-txt-muted hover:text-txt-primary'
             }`}
             style={{ background: filter === 'AVAILABLE' ? 'var(--ac)' : 'transparent' }}
           >
@@ -78,7 +78,7 @@ export const WaiterTableGrid = ({
             type="button"
             onClick={() => onChangeFilter('ALERTS')}
             className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-              filter === 'ALERTS' ? 'text-amber-400 font-bold' : 'text-slate-400 hover:text-amber-300'
+              filter === 'ALERTS' ? 'text-status-warning font-bold' : 'text-txt-muted hover:text-status-warning'
             }`}
             style={{ background: filter === 'ALERTS' ? 'var(--warn-bg)' : 'transparent' }}
           >

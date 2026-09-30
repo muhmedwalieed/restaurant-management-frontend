@@ -4,6 +4,9 @@ import { BranchProvider } from '../modules/auth/context/BranchContext.jsx';
 import { ErrorBoundary } from '../shared/components/ErrorBoundary.jsx';
 import { SocketProvider } from '../shared/realtime/SocketProvider.jsx';
 
+import { ThemeProvider } from '../shared/context/ThemeContext.jsx';
+import { ToastProvider } from '../shared/context/ToastContext.jsx';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -32,13 +35,17 @@ const queryClient = new QueryClient({
 export const AppProviders = ({ children }) => {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <BranchProvider>
-            <SocketProvider>{children}</SocketProvider>
-          </BranchProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <BranchProvider>
+                <SocketProvider>{children}</SocketProvider>
+              </BranchProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

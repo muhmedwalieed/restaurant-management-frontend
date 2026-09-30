@@ -65,24 +65,28 @@ export const ReceiptHeader = ({
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-gray-600 font-semibold" dir="rtl">
-            العميل:
-          </span>
-          <span className="text-gray-800 truncate max-w-[180px] inline-block" dir="auto">
-            <bdi>{customerName}</bdi>
-          </span>
-        </div>
+        {(order.type !== 'DINE_IN' || order.customer?.name) && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600 font-semibold" dir="rtl">
+                العميل:
+              </span>
+              <span className="text-gray-800 truncate max-w-[180px] inline-block" dir="auto">
+                <bdi>{customerName}</bdi>
+              </span>
+            </div>
 
-        {order.customer?.phone && (
-          <div className="flex items-center justify-between">
-            <span className="text-gray-600 font-semibold" dir="rtl">
-              الهاتف:
-            </span>
-            <span className="font-mono text-gray-800 inline-block" dir="ltr">
-              {order.customer.phone}
-            </span>
-          </div>
+            {order.customer?.phone && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-semibold" dir="rtl">
+                  الهاتف:
+                </span>
+                <span className="font-mono text-gray-800 inline-block" dir="ltr">
+                  {order.customer.phone}
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

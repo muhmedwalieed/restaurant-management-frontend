@@ -1,19 +1,26 @@
-﻿import { Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 const variants = {
-  primary: 'bg-brand-primary text-txt-inverted hover:bg-brand-primary-hover active:opacity-90',
-  secondary: 'bg-bg-surface-elevated text-txt-primary hover:bg-border-default active:bg-border-subtle',
-  outline: 'border border-border-default bg-transparent text-txt-primary hover:bg-bg-surface active:bg-bg-surface-elevated',
-  danger: 'bg-status-danger text-white hover:opacity-90 active:opacity-80',
-  ghost: 'bg-transparent text-txt-primary hover:bg-bg-surface active:bg-bg-surface-elevated',
+  primary:
+    'bg-brand-primary text-txt-inverted hover:bg-brand-primary-hover active:scale-[0.98] border border-transparent shadow-xs',
+  secondary:
+    'bg-bg-surface-elevated text-txt-primary hover:bg-border-default active:scale-[0.98] border border-border-default',
+  outline:
+    'border border-border-default bg-bg-surface text-txt-primary hover:bg-bg-surface-elevated active:scale-[0.98]',
+  danger:
+    'bg-status-danger text-white hover:bg-status-danger/90 active:scale-[0.98] border border-transparent shadow-xs',
+  success:
+    'bg-status-success text-white hover:bg-status-success/90 active:scale-[0.98] border border-transparent shadow-xs',
+  ghost:
+    'bg-transparent text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated active:scale-[0.98] border border-transparent',
 };
 
 const sizes = {
-  sm: 'text-xs px-3 py-1 min-h-[32px]',
-  md: 'text-sm px-4 py-2 min-h-[40px]',
-  lg: 'text-base px-5 py-2 min-h-[44px]',
+  sm: 'text-xs px-2.5 py-1 min-h-[32px]',
+  md: 'text-xs sm:text-sm px-3.5 py-1.5 min-h-[38px]',
+  lg: 'text-sm sm:text-base px-4 py-2 min-h-[44px]',
 };
 
 const radiuses = {
@@ -41,7 +48,7 @@ export const Button = ({
       disabled={isDisabled || isLoading}
       className={twMerge(
         clsx(
-          'inline-flex items-center justify-center gap-2 font-medium transition-colors cursor-pointer select-none focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+          'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none disabled:active:scale-100',
           variants[variant],
           sizes[size],
           radiuses[radius],
@@ -55,7 +62,7 @@ export const Button = ({
       ) : Icon ? (
         <Icon className="w-4 h-4 shrink-0" />
       ) : null}
-      <span>{children}</span>
+      {children ? <span>{children}</span> : null}
     </button>
   );
 };

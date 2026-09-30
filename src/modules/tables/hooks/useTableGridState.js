@@ -14,21 +14,21 @@ export const ALERT_PRIORITIES = ['check', 'order', 'help'];
 export const ALERT_CONFIG = {
   help: {
     label: 'يطلب مساعدة',
-    color: 'var(--warn)',
-    bg: 'var(--warn-bg)',
-    border: 'rgba(183,134,60,.2)',
+    color: 'var(--err)',
+    bg: 'var(--err-bg)',
+    border: 'rgba(239,68,68,.25)',
   },
   order: {
     label: 'طلب ينتظر التأكيد',
     color: 'var(--ac)',
     bg: 'var(--ac-bg)',
-    border: 'rgba(15,23,42,.12)',
+    border: 'rgba(59,130,246,.25)',
   },
   check: {
     label: 'يطلب الحساب',
-    color: 'var(--ok)',
-    bg: 'var(--ok-bg)',
-    border: 'rgba(22,163,74,.2)',
+    color: 'var(--warn)',
+    bg: 'var(--warn-bg)',
+    border: 'rgba(245,158,11,.25)',
   },
 };
 
@@ -93,8 +93,8 @@ export const useTableGridState = (activeBranchId) => {
         tid &&
         o.type === 'DINE_IN' &&
         o.status !== 'DELIVERED' &&
-        o.status !== 'CANCELLED' &&
-        o.paymentStatus !== 'PAID'
+        o.status !== 'COMPLETED' &&
+        o.status !== 'CANCELLED'
       ) {
         if (!map.has(tid)) map.set(tid, o);
       }
@@ -102,12 +102,31 @@ export const useTableGridState = (activeBranchId) => {
     return map;
   }, [rawOrders]);
 
-  // Format tables
+  // Format tables sorted naturally
   const tables = useMemo(() => {
-    return rawTables.map((t, idx) => {
+    const sorted = [...rawTables].sort((a, b) => {
+      const getNum = (item) => {
+        const val = String(item.label || item.name || item.tableNumber || item.number || item.id || '');
+        const match = val.match(/\d+/);
+        return match ? parseInt(match[0], 10) : NaN;
+      };
+      const numA = getNum(a);
+      const numB = getNum(b);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        if (numA !== numB) return numA - numB;
+      }
+      const strA = String(a.label || a.name || a.tableNumber || a.id || '');
+      const strB = String(b.label || b.name || b.tableNumber || b.id || '');
+      return strA.localeCompare(strB, 'ar-EG', { numeric: true });
+    });
+
+    return sorted.map((t, idx) => {
       const session = tableSessionMap.get(t.id);
       const activeOrder = tableOrderMap.get(t.id);
-      const isOccupied = Boolean(session) || (Boolean(activeOrder) && activeOrder.paymentStatus !== 'PAID');
+      const isOccupied =
+        String(t.status || '').toUpperCase() === 'OCCUPIED' ||
+        Boolean(session) ||
+        Boolean(activeOrder);
 
       const hasBillCall = session?.waiterCalls?.some(
         (c) => (c.status === 'PENDING' || c.status === 'ACCEPTED') && c.type === 'BILL'
@@ -116,7 +135,7 @@ export const useTableGridState = (activeBranchId) => {
         (c) => (c.status === 'PENDING' || c.status === 'ACCEPTED') && c.type === 'CONFIRM_ORDER'
       );
       const isSessionAwaiting = session?.status === 'AWAITING_CONFIRMATION';
-      const isOrderPending = activeOrder?.status === 'PENDING';
+      const isOrderPending = activeOrder?.status === 'PENDING' || activeOrder?.status === 'AWAITING_CONFIRMATION';
       const hasHelpCall = session?.waiterCalls?.some(
         (c) => (c.status === 'PENDING' || c.status === 'ACCEPTED') && c.type === 'HELP'
       );
@@ -217,8 +236,10 @@ export const useTableGridState = (activeBranchId) => {
 
       return {
         id: t.id,
+        label: t.label,
+        name: t.name,
         number: t.number,
-        displayNum: t.number != null ? t.number : idx + 1,
+        displayNum: t.label || t.name || (t.number != null ? t.number : idx + 1),
         capacity: t.capacity || 4,
         section: t.section || null,
         status: isOccupied ? 'occupied' : 'available',

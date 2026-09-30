@@ -2,11 +2,20 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 const statusVariants = {
-  success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  danger: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  info: 'bg-sky-500/10 text-sky-300 border-sky-500/20',
-  neutral: 'bg-white/[0.05] text-slate-300 border-white/10',
+  success: 'bg-status-success-bg text-status-success border-status-success/30',
+  warning: 'bg-status-warning-bg text-status-warning border-status-warning/30',
+  danger: 'bg-status-danger-bg text-status-danger border-status-danger/30',
+  info: 'bg-status-info-bg text-status-info border-status-info/30',
+  neutral: 'bg-bg-surface-elevated text-txt-muted border-border-default',
+  brand: 'bg-bg-surface-elevated text-txt-primary border-border-default',
+
+  // Channel & Source specific pills (Clean, calm, monochrome)
+  whatsapp: 'bg-bg-surface-elevated text-txt-primary border-border-default',
+  qr: 'bg-bg-surface-elevated text-txt-primary border-border-default',
+  tables: 'bg-bg-surface-elevated text-txt-primary border-border-default',
+  website: 'bg-bg-surface-elevated text-txt-primary border-border-default',
+  phone: 'bg-bg-surface-elevated text-txt-primary border-border-default',
+  cashier: 'bg-bg-surface-elevated text-txt-primary border-border-default',
 };
 
 export const StatusPill = ({
@@ -23,13 +32,13 @@ export const StatusPill = ({
     <span
       className={twMerge(
         clsx(
-          'inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-pill border select-none',
+          'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-pill border select-none leading-normal transition-colors',
           variantClass,
           className
         )
       )}
     >
-      {Icon && <Icon className="w-4 h-4 shrink-0" />}
+      {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
       <span>{content}</span>
     </span>
   );

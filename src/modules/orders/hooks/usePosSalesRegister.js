@@ -1,45 +1,114 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useCreatePosOrderMutation, usePaymentMutation } from './useOrders.js';
 import { lookupCallerApi } from '../../../lib/api/phone-order.api.js';
+import { toast } from '../../../shared/context/ToastContext.jsx';
+import { SOURCE_PERMISSIONS, hasProductModifiers } from '../constants.js';
 
 export const usePosSalesRegister = ({
   products = [],
   tables = [],
   activeBranchId,
   hasPermission,
+  pendingTable = null,
+  onClearPendingTable,
 }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const isSalesRoute = location.pathname === '/pos';
+
   const createPosMutation = useCreatePosOrderMutation();
   const paymentMutation = usePaymentMutation();
+
+  const urlType = isSalesRoute ? (searchParams.get('type') || searchParams.get('orderType')) : null;
+  const urlTableParam = isSalesRoute ? (searchParams.get('table') || searchParams.get('tableId')) : null;
+
+  // Helper to resolve table param (label, number, or ID) to table.id
+  const resolveTableId = useCallback((paramVal) => {
+    if (!paramVal) return null;
+    const clean = String(paramVal).trim();
+    const found = tables.find(
+      (t) =>
+        String(t.id) === clean ||
+        String(t._id) === clean ||
+        String(t.label || '').toLowerCase() === clean.toLowerCase() ||
+        String(t.name || '').toLowerCase() === clean.toLowerCase() ||
+        (t.number != null && String(t.number) === clean)
+    );
+    return found ? found.id : clean;
+  }, [tables]);
+
+  const initialTableId = resolveTableId(urlTableParam) || pendingTable?.id || pendingTable?.tableId || pendingTable?._id || null;
+  const initialOrderType = urlType || (initialTableId ? 'DINE_IN' : 'PICKUP');
 
   const [cat, setCat] = useState('ALL');
   const [q, setQ] = useState('');
   const [cart, setCart] = useState([]);
-  const [orderType, setOrderType] = useState('DINE_IN');
+  const [orderType, setOrderType] = useState(() => initialOrderType);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
-  const [info, setInfo] = useState({ name: '', phone: '', address: '', table: null });
+  const [info, setInfo] = useState(() => ({
+    name: '',
+    phone: '',
+    address: '',
+    table: initialTableId,
+  }));
   const [lastCreatedOrder, setLastCreatedOrder] = useState(null);
   const [caller, setCaller] = useState(null);
   const [modifierProduct, setModifierProduct] = useState(null);
 
+  // Track the last search string written by us to prevent reading back our own updates into state
+  const lastSyncedSearchRef = useRef(null);
+
+  // Handle incoming pendingTable
+  useEffect(() => {
+    if (pendingTable) {
+      const tableId = pendingTable.id || pendingTable.tableId || pendingTable._id;
+      if (tableId) {
+        setOrderType('DINE_IN');
+        setInfo((prev) => ({ ...prev, table: tableId }));
+      }
+      onClearPendingTable?.();
+    }
+  }, [pendingTable, onClearPendingTable]);
+
+  // Initial resolve when tables load from urlTableParam if any
+  useEffect(() => {
+    if (!tables || tables.length === 0) return;
+    if (urlTableParam && !info.table) {
+      const resolved = resolveTableId(urlTableParam);
+      if (resolved) {
+        setInfo((prev) => ({ ...prev, table: resolved }));
+        setOrderType('DINE_IN');
+      }
+    }
+  }, [tables, urlTableParam, resolveTableId]);
+
   const selectedTableObj = useMemo(
-    () => tables.find((t) => t.id === info.table),
+    () => tables.find((t) => String(t.id) === String(info.table) || String(t._id) === String(info.table)),
     [tables, info.table]
   );
   const selectedTableLabel = selectedTableObj
-    ? selectedTableObj.label || selectedTableObj.name || selectedTableObj.tableNumber || selectedTableObj.number
+    ? selectedTableObj.label || selectedTableObj.name || (selectedTableObj.number != null ? selectedTableObj.number : selectedTableObj.tableNumber)
     : null;
 
-  const SOURCE_PERMISSIONS = [
-    { value: 'CASHIER', key: 'orders.source_cashier', label: 'كاشير' },
-    { value: 'PHONE', key: 'orders.source_phone', label: 'هاتف' },
-    { value: 'WHATSAPP', key: 'orders.source_whatsapp', label: 'واتساب' },
-    { value: 'WEBSITE', key: 'orders.source_website', label: 'موقع' },
-  ];
-  const availableSources = SOURCE_PERMISSIONS.filter((s) => hasPermission(s.key));
+  const availableSources = useMemo(
+    () => SOURCE_PERMISSIONS.filter((s) => hasPermission?.(s.key)),
+    [hasPermission]
+  );
+
   const [source, setSource] = useState(() =>
     availableSources.some((s) => s.value === 'CASHIER') ? 'CASHIER' : availableSources[0]?.value || 'CASHIER'
   );
+  const [couponCode, setCouponCode] = useState('');
+  const [couponState, setCouponState] = useState({ id: null, code: null, discountAmount: 0, loading: false, error: null });
+  const [discountAmount, setDiscountAmount] = useState(0);
+
+  useEffect(() => {
+    if (availableSources.length > 0 && !availableSources.some((s) => s.value === source)) {
+      setSource(availableSources[0].value);
+    }
+  }, [availableSources, source]);
 
   // Phone lookup
   useEffect(() => {
@@ -84,8 +153,15 @@ export const usePosSalesRegister = ({
   const addToCart = (product, selectedModifiers = []) => {
     setCart((prev) => {
       const pId = product.id || product.productId;
-      const modKey = (selectedModifiers || [])
-        .map((m) => m.optionId || m.id)
+      const normalizedModifiers = (selectedModifiers || []).map((m) => ({
+        modifierId: m.modifierId || m.id || m.optionId,
+        name: m.name || m.optionName,
+        quantity: Number(m.quantity) || 1,
+        priceDelta: Number(m.priceDelta ?? m.price ?? 0),
+      }));
+
+      const modKey = normalizedModifiers
+        .map((m) => `${m.modifierId}:${m.quantity}`)
         .sort()
         .join(',');
       const itemKey = `${pId}__${modKey}`;
@@ -97,10 +173,12 @@ export const usePosSalesRegister = ({
         );
       }
 
-      const modPrice = (selectedModifiers || []).reduce(
-        (sum, m) => sum + (Number(m.price) || 0) * (m.quantity || 1),
+      const modPrice = normalizedModifiers.reduce(
+        (sum, m) => sum + m.priceDelta * m.quantity,
         0
       );
+      const basePrice = Number(product.price ?? product.basePrice ?? 0);
+      const unitPrice = product.unitPrice ?? (basePrice + modPrice);
 
       return [
         ...prev,
@@ -108,18 +186,21 @@ export const usePosSalesRegister = ({
           itemKey,
           productId: pId,
           name: product.name,
-          price: Number(product.price || 0) + modPrice,
-          basePrice: Number(product.price || 0),
+          price: unitPrice,
+          basePrice,
           qty: 1,
-          modifiers: selectedModifiers || [],
+          modifiers: normalizedModifiers.map((m) => ({
+            modifierId: m.modifierId,
+            quantity: m.quantity,
+          })),
+          modifierNames: product.modifierNames || normalizedModifiers.map((m) => (m.quantity > 1 ? `${m.name} ×${m.quantity}` : m.name)).filter(Boolean),
         },
       ];
     });
   };
 
   const handleSelectProduct = (product) => {
-    const hasMod = product.hasModifiers || (product.modifierGroups && product.modifierGroups.length > 0);
-    if (hasMod) {
+    if (hasProductModifiers(product)) {
       setModifierProduct(product);
       return;
     }
@@ -142,20 +223,55 @@ export const usePosSalesRegister = ({
     setCart([]);
   };
 
-  const cartTotal = useMemo(() => {
-    return cart.reduce((s, it) => s + (Number(it.price) || 0) * (it.qty || 1), 0);
-  }, [cart]);
+  const cartTotal = useMemo(() => cart.reduce((s, it) => s + (Number(it.price) || 0) * (it.qty || 1), 0), [cart]);
+
+  const validateCoupon = useCallback(async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) { setCouponState({ id: null, code: null, discountAmount: 0, loading: false, error: null }); setDiscountAmount(0); return; }
+    if (cart.length === 0) { setCouponState((p) => ({ ...p, error: 'أضف أصناف أولاً' })); return; }
+    setCouponState((p) => ({ ...p, loading: true, error: null }));
+    try {
+      const { validateCouponApi } = await import('../../../lib/api/coupons.api.js');
+      const res = await validateCouponApi({ code, subtotal: cartTotal, items: cart.map((it) => ({ productId: it.productId, subtotal: Math.round(Number(it.price) * it.qty * 100) / 100 })) });
+      const data = res?.data || res;
+      setCouponState({ id: data.id, code: data.code, discountAmount: Number(data.discountAmount || 0), loading: false, error: null });
+      setDiscountAmount(Number(data.discountAmount || 0));
+      toast.success(`تم تطبيق الكوبون ${data.code} — خصم ${Number(data.discountAmount || 0).toFixed(0)}`);
+    } catch (err) {
+      const msg = err?.message || err?.response?.data?.message || 'كود غير صالح';
+      setCouponState((p) => ({ ...p, loading: false, error: msg }));
+      setDiscountAmount(0);
+      toast.error(msg);
+    }
+  }, [couponCode, cart, cartTotal]);
+
+  const clearCoupon = useCallback(() => {
+    setCouponCode('');
+    setCouponState({ id: null, code: null, discountAmount: 0, loading: false, error: null });
+    setDiscountAmount(0);
+  }, []);
+
+  useEffect(() => { if (cart.length === 0 && couponState.id) clearCoupon(); }, [cart.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const cartTotalAfterDiscount = useMemo(() => Math.max(0, cartTotal - discountAmount), [cartTotal, discountAmount]);
 
   // Checkout submission
-  const handleConfirmCheckout = async ({ payMethod, amountReceived: _amountReceived, autoPrint: _autoPrint }) => {
+  const handleConfirmCheckout = async ({
+    paymentType = 'FULL', // 'FULL' | 'PARTIAL' | 'LATER'
+    paidAmount,
+    payMethod = 'CASH',
+    autoPrint: _autoPrint,
+  }) => {
     try {
       const payload = {
         type: orderType,
         source,
         tableId: orderType === 'DINE_IN' ? info.table : undefined,
-        customerName: info.name || undefined,
-        customerPhone: info.phone || undefined,
-        deliveryAddress: orderType === 'DELIVERY' ? info.address : undefined,
+        customerName: info.name?.trim() || undefined,
+        customerPhone: info.phone?.trim() || undefined,
+        address: orderType === 'DELIVERY' ? info.address?.trim() || undefined : undefined,
+        couponId: couponState.id || undefined,
+        discountAmount: !couponState.id && discountAmount > 0 ? discountAmount : undefined,
         items: cart.map((it) => ({
           productId: it.productId,
           quantity: it.qty,
@@ -171,26 +287,47 @@ export const usePosSalesRegister = ({
       const orderData = createdOrder?.data || createdOrder;
       const orderId = orderData?.id;
 
-      if (orderId) {
+      // Only call payment endpoint if paymentType is FULL or PARTIAL and amount > 0 — use discounted total
+      const effectiveTotal = cartTotalAfterDiscount;
+      const actualPaid =
+        paymentType === 'FULL'
+          ? effectiveTotal
+          : paymentType === 'PARTIAL'
+          ? Math.min(effectiveTotal, Math.max(0, Number(paidAmount) || 0))
+          : 0;
+
+      if (orderId && actualPaid > 0 && paymentType !== 'LATER' && payMethod) {
         try {
+          const payIdempotencyKey =
+            typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `pay-${Date.now()}-${Math.random()}`;
+
           await paymentMutation.mutateAsync({
             branchId: activeBranchId,
             orderId,
+            idempotencyKey: payIdempotencyKey,
             payload: {
-              amount: cartTotal,
+              amount: actualPaid,
               paymentMethod: payMethod.toUpperCase(),
+              idempotencyKey: payIdempotencyKey,
             },
           });
+          toast.success('تم إنشاء الطلب وتسجيل الدفع بنجاح');
         } catch (payErr) {
           console.warn('Payment recording error:', payErr);
+          toast.warning('تم إنشاء الطلب بنجاح ولكن تعذر تسجيل الدفع. يمكنك تسجيل الدفعة من قائمة الطلبات');
         }
+      } else {
+        toast.success(paymentType === 'LATER' ? 'تم حفظ الطلب (الدفع لاحقاً)' : 'تم إنشاء وحفظ الطلب بنجاح');
       }
 
       setLastCreatedOrder(orderData);
       setCart([]);
+      clearCoupon();
       setIsCheckoutModalOpen(false);
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'حدث خطأ أثناء حفظ الطلب');
+      toast.error(err?.response?.data?.message || err?.message || 'حدث خطأ أثناء حفظ الطلب');
     }
   };
 
@@ -218,6 +355,13 @@ export const usePosSalesRegister = ({
     setIsCheckoutModalOpen,
     filteredProducts,
     cartTotal,
+    cartTotalAfterDiscount,
+    couponCode,
+    setCouponCode,
+    couponState,
+    discountAmount,
+    validateCoupon,
+    clearCoupon,
     handleSelectProduct,
     addToCart,
     handleChangeCartQty,

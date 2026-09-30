@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useMemo } from 'react';
 import { io } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
@@ -58,25 +58,49 @@ const EVENT_INVALIDATIONS = {
   ],
   'customer.updated': ['customers', 'customer', 'customer-orders', 'customer-addresses'],
   'tableSession.updated': ['table-session', 'table-session-active', 'table-sessions-branch', 'tables'],
+  'menu.updated': ['products', 'categories', 'menu'],
+  'product.updated': ['products', 'categories', 'menu'],
+  'category.updated': ['products', 'categories', 'menu'],
 };
+
+const SocketContext = createContext({
+  isConnected: false,
+  socket: null,
+});
 
 export const SocketProvider = ({ children }) => {
   const { token, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const socketRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
       socketRef.current?.disconnect();
       socketRef.current = null;
+      setIsConnected(false);
       return undefined;
     }
 
     const socket = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
     });
     socketRef.current = socket;
+
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('connect_error', () => {
+      setIsConnected(false);
+    });
 
     Object.entries(EVENT_INVALIDATIONS).forEach(([event, keys]) => {
       socket.on(event, () => {
@@ -86,17 +110,26 @@ export const SocketProvider = ({ children }) => {
       });
     });
 
-    socket.on('realtime.connected', () => {
-
-    });
-
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      setIsConnected(false);
     };
   }, [token, isAuthenticated, queryClient]);
 
-  return children;
+  const value = useMemo(
+    () => ({
+      isConnected,
+      socket: socketRef.current,
+    }),
+    [isConnected]
+  );
+
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+};
+
+export const useSocket = () => {
+  return useContext(SocketContext);
 };
 
 export default SocketProvider;

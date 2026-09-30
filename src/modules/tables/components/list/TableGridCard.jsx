@@ -54,36 +54,36 @@ export const TableGridCard = ({
           <span
             className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
               table.session?.waiterCall?.type === 'BILL'
-                ? 'text-amber-300 bg-amber-500/20 border border-amber-500/30'
-                : 'text-status-warning bg-status-warning/10'
+                ? 'text-status-warning bg-status-warning-bg border border-status-warning/30'
+                : 'text-status-warning bg-status-warning-bg border border-status-warning/20'
             }`}
           >
             {table.session?.waiterCall?.type === 'BILL' ? (
-              <Receipt className="w-3 h-3 animate-pulse text-amber-400" />
+              <Receipt className="w-3 h-3 animate-pulse text-status-warning" />
             ) : null}
             {table.session?.waiterCall?.type === 'BILL' ? 'طلب حساب' : 'نداء ويتر'}
           </span>
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.06] text-xs">
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border-default text-xs">
         {table.session ? (
           <button
             type="button"
             onClick={(e) => onStartSession(e, table)}
-            className="flex items-center gap-1 text-txt-primary hover:text-brand-primary font-mono text-[11px] font-semibold transition-colors"
+            className="flex items-center gap-1 text-txt-primary hover:text-txt-primary font-mono text-[11px] font-semibold transition-colors"
             title="رمز الجلسة"
           >
-            <KeyRound className="w-3 h-3 text-brand-primary" />
+            <KeyRound className="w-3 h-3 text-txt-muted" />
             <span>PIN: {table.session.pin || '••••'}</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={(e) => onStartSession(e, table)}
-            className="flex items-center gap-1 text-txt-muted hover:text-brand-primary text-[11px] font-medium transition-colors"
+            className="flex items-center gap-1 text-txt-muted hover:text-txt-primary text-[11px] font-medium transition-colors"
           >
-            <KeyRound className="w-3 h-3" />
+            <KeyRound className="w-3 h-3 text-txt-muted" />
             <span>بدء جلسة</span>
           </button>
         )}

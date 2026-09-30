@@ -28,8 +28,8 @@ export const ProtectedRoute = ({ children }) => {
       'employees.view',
     ]);
 
-  if (isFloorServerOnly && !location.pathname.startsWith('/pos/waiter') && !location.pathname.startsWith('/waiter')) {
-    return <Navigate to="/pos/waiter" replace />;
+  if (isFloorServerOnly && !location.pathname.startsWith('/waiter')) {
+    return <Navigate to="/waiter" replace />;
   }
 
   return children;
@@ -83,7 +83,7 @@ export const HomeRedirect = () => {
 
   // 5. Floor & Dining Tables (Waiter)
   if (hasPermission('tables.view')) {
-    return <Navigate to="/pos/waiter" replace />;
+    return <Navigate to="/waiter" replace />;
   }
 
   // 6. Customers Management

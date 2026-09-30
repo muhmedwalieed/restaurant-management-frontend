@@ -40,7 +40,7 @@ export const PosPaymentCustomerFields = ({
                     onClick={() => setTableId(t.id)}
                     className={`py-2 px-1 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
                       isSelected
-                        ? 'bg-ac text-white shadow-xs'
+                        ? 'bg-ac text-txt-inverted shadow-xs'
                         : 'bg-white text-txt-primary border border-border-default hover:border-slate-400'
                     }`}
                   >

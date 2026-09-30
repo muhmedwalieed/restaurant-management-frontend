@@ -44,7 +44,7 @@ export const OrderPaymentModal = ({
                     : 'border-border-default'
                 }`}
               >
-                {m === 'CASH' ? 'نقداً (كاش)' : 'بطاقة فيزا'}
+                {m === 'CASH' ? 'نقدي' : 'بطاقة فيزا'}
               </button>
             ))}
           </div>

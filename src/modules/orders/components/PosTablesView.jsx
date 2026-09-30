@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { useTableGridState } from '../../tables/hooks/useTableGridState.js';
 import { printTablePinReceipt, printTableBillReceipt } from '../../tables/utils/tableThermalPrinting.js';
+import { toast } from '../../../shared/context/ToastContext.jsx';
 import { PosTableCard } from './pos-tables/PosTableCard.jsx';
 import { PosTableQrModal } from './pos-tables/PosTableQrModal.jsx';
 import { PosTableSidebarDrawer } from './pos-tables/PosTableSidebarDrawer.jsx';
@@ -94,24 +95,11 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
         });
       }
 
-      if (tid) {
-        try {
-          await updateTableMutation.mutateAsync({
-            branchId: activeBranchId,
-            id: tid,
-            tableId: tid,
-            payload: { status: 'AVAILABLE' },
-          });
-        } catch (_tableErr) {
-          // backend closeSession may have already updated table status
-        }
-      }
-
       setSelectedTableId(null);
       await refetchAll();
-      alert('تم تأكيد السداد وإغلاق الطاولة بنجاح');
+      toast.success('تم تأكيد السداد وإغلاق الطاولة بنجاح');
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر إغلاق الجلسة');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر إغلاق الجلسة');
     } finally {
       setIsClosingSession(false);
     }
@@ -124,13 +112,14 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
         payload: { callType },
       });
       await refetchAll();
+      toast.success('تم تأكيد الحضور بنجاح');
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر تأكيد الحضور');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر تأكيد الحضور');
     }
   };
 
   return (
-    <div className="h-full w-full flex overflow-hidden select-none" dir="rtl" style={{ background: 'var(--bg)' }}>
+    <div className="h-full w-full flex overflow-hidden" dir="rtl" style={{ background: 'var(--bg)' }}>
       {/* Tables Main Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <PosTablesStatsBar

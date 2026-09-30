@@ -61,7 +61,7 @@ export const Modal = ({
         aria-labelledby={title ? titleId : undefined}
         className={twMerge(
           clsx(
-            'relative w-full bg-bg-surface border border-border-default rounded-lg shadow-lg z-10 flex flex-col max-h-[90vh] my-auto overflow-hidden',
+            'relative w-full bg-bg-surface border border-border-default rounded-lg shadow-overlay z-10 flex flex-col max-h-[90vh] my-auto overflow-hidden animate-fadeUp',
             sizeMap[size] || sizeMap.md,
             className
           )

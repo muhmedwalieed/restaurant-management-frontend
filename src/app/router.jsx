@@ -18,6 +18,7 @@ import { WebsiteOrderingPage } from '../modules/website/pages/WebsiteOrderingPag
 import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
 import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
 import { PosPage } from '../modules/orders/pages/PosPage.jsx';
+import { WaiterPage } from '../modules/orders/pages/WaiterPage.jsx';
 import { KdsPage } from '../modules/orders/pages/KdsPage.jsx';
 import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
 import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
@@ -88,11 +89,21 @@ export const router = createBrowserRouter(
     },
     {
       path: '/waiter',
-      element: <Navigate to="/pos/waiter" replace />,
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={WAITER_PERMISSIONS}>
+            <WaiterPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/pos/waiter',
+      element: <Navigate to="/waiter" replace />,
     },
     {
       path: '/waiter/:tab',
-      element: <Navigate to="/pos/waiter" replace />,
+      element: <Navigate to="/waiter" replace />,
     },
     {
       path: '/',

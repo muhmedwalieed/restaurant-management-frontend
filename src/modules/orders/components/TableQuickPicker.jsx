@@ -46,12 +46,12 @@ export const TableQuickPicker = ({ tables = [], value, onChange, required = fals
                 onClick={() => onChange(t.id)}
                 className={`py-1 px-1.5 rounded border text-center flex items-center justify-between transition-all relative ${
                   isSelected
-                    ? 'bg-brand-primary text-white border-brand-primary font-bold shadow-sm'
+                    ? 'bg-brand-primary text-txt-inverted border-brand-primary font-bold shadow-sm'
                     : 'bg-bg-surface text-txt-primary border-border-default hover:border-white/20 hover:bg-white/[0.04]'
                 }`}
               >
                 <span className="text-[11px] font-bold truncate">طاولة {t.label}</span>
-                {isSelected && <Check className="w-3 h-3 text-white shrink-0 ml-0.5" />}
+                {isSelected && <Check className="w-3 h-3 text-txt-inverted shrink-0 ml-0.5" />}
               </button>
             );
           })}

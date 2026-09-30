@@ -37,7 +37,7 @@ export const DashboardSalesChart = ({
         <div className="flex flex-col items-start sm:items-end gap-1">
           <span className="text-[11px] font-medium text-txt-muted">إجمالي الفترة</span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-white">
+            <span className="text-2xl md:text-3xl font-mono font-bold tracking-tight text-txt-primary">
               {formatMoney(totalWeeklyRevenue)}
             </span>
             <GrowthBadge growth={growthStats?.weeklyRevenue} />
@@ -58,24 +58,24 @@ export const DashboardSalesChart = ({
             <svg viewBox="0 0 520 150" className="w-full h-full overflow-visible">
               <defs>
                 <linearGradient id="salesTrendGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.14" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.00" />
+                  <stop offset="0%" stopColor="var(--text-primary)" stopOpacity="0.06" />
+                  <stop offset="100%" stopColor="var(--text-primary)" stopOpacity="0.00" />
                 </linearGradient>
               </defs>
 
               <g className="opacity-30">
-                <line x1="65" y1="20" x2="505" y2="20" stroke="currentColor" className="text-white" strokeDasharray="3 3" strokeWidth="0.7" />
-                <text x="10" y="20" dominantBaseline="middle" className="fill-slate-400 text-[10px] font-mono font-semibold">{formatCompactMoney(maxRevenue)}</text>
+                <line x1="65" y1="20" x2="505" y2="20" stroke="var(--border-default)" strokeDasharray="3 3" strokeWidth="0.8" />
+                <text x="10" y="20" dominantBaseline="middle" fill="var(--text-muted)" className="text-[10px] font-mono font-semibold">{formatCompactMoney(maxRevenue)}</text>
 
-                <line x1="65" y1="75" x2="505" y2="75" stroke="currentColor" className="text-white" strokeDasharray="3 3" strokeWidth="0.7" />
-                <text x="10" y="75" dominantBaseline="middle" className="fill-slate-400 text-[10px] font-mono font-semibold">{formatCompactMoney(maxRevenue / 2)}</text>
+                <line x1="65" y1="75" x2="505" y2="75" stroke="var(--border-default)" strokeDasharray="3 3" strokeWidth="0.8" />
+                <text x="10" y="75" dominantBaseline="middle" fill="var(--text-muted)" className="text-[10px] font-mono font-semibold">{formatCompactMoney(maxRevenue / 2)}</text>
 
-                <line x1="65" y1="130" x2="505" y2="130" stroke="currentColor" className="text-white" strokeWidth="0.9" />
-                <text x="10" y="130" dominantBaseline="middle" className="fill-slate-400 text-[10px] font-mono font-semibold">0</text>
+                <line x1="65" y1="130" x2="505" y2="130" stroke="var(--border-default)" strokeWidth="1" />
+                <text x="10" y="130" dominantBaseline="middle" fill="var(--text-muted)" className="text-[10px] font-mono font-semibold">0</text>
               </g>
 
               <path d={areaPath} fill="url(#salesTrendGradient)" />
-              <path d={linePath} fill="none" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d={linePath} fill="none" stroke="var(--text-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
 
               {chartPoints.map((pt) => (
                 <g key={pt.date} className="group cursor-pointer">
@@ -83,11 +83,11 @@ export const DashboardSalesChart = ({
                   <circle
                     cx={pt.x}
                     cy={pt.y}
-                    r="4.5"
-                    fill="#38bdf8"
-                    stroke="#0F172A"
+                    r="4"
+                    fill="var(--text-primary)"
+                    stroke="var(--bg-surface)"
                     strokeWidth="2"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-md"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-xs"
                   />
                 </g>
               ))}
@@ -102,13 +102,13 @@ export const DashboardSalesChart = ({
                     className="group absolute"
                     style={{ left: `${leftPercent}%`, top: `${(pt.y / 150) * 100}%` }}
                   >
-                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute bottom-3 -translate-x-1/2 left-1/2 bg-slate-900/95 border border-slate-700/80 rounded-md px-2.5 py-1.5 text-[11px] font-mono text-white whitespace-nowrap shadow-xl z-30 pointer-events-none">
+                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 absolute bottom-3 -translate-x-1/2 left-1/2 bg-bg-surface-elevated border border-border-default rounded-md px-2.5 py-1.5 text-[11px] font-mono text-txt-primary whitespace-nowrap shadow-sm z-30 pointer-events-none">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-sky-400">{pt.dayLabel}</span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-slate-300">{pt.orders} طلب</span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-emerald-400 font-bold">{formatMoney(pt.rev)}</span>
+                        <span className="font-bold text-txt-primary">{pt.dayLabel}</span>
+                        <span className="text-txt-dim">·</span>
+                        <span className="text-txt-muted">{pt.orders} طلب</span>
+                        <span className="text-txt-dim">·</span>
+                        <span className="text-txt-primary font-bold">{formatMoney(pt.rev)}</span>
                       </div>
                     </div>
                   </div>
@@ -117,14 +117,14 @@ export const DashboardSalesChart = ({
             </div>
           </div>
 
-          <div className="flex justify-between text-center text-xs text-slate-400 font-medium pr-3 pl-[55px] pt-2 border-t border-border-subtle/30">
+          <div className="flex justify-between text-center text-xs text-txt-muted font-medium pr-3 pl-[55px] pt-2 border-t border-border-subtle/30">
             {chartPoints.map((pt, idx) => {
               const isToday = idx === chartPoints.length - 1;
               return (
                 <div
                   key={pt.date}
                   className={`truncate font-medium transition-colors ${
-                    isToday ? 'text-brand-primary font-bold' : 'text-slate-400 hover:text-slate-200'
+                    isToday ? 'text-txt-primary font-bold' : 'text-txt-muted hover:text-txt-primary'
                   }`}
                   title={pt.date}
                 >

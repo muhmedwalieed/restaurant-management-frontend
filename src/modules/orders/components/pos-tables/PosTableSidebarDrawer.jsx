@@ -77,15 +77,15 @@ export const PosTableSidebarDrawer = ({
 
             {/* Alerts Box */}
             {table.session.alerts?.length > 0 && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs space-y-2">
+              <div className="p-3 rounded-xl bg-status-warning-bg border border-status-warning/30 text-status-warning text-xs space-y-2">
                 <div className="flex items-center gap-2 font-bold">
-                  <Bell size={14} className="animate-bounce" />
+                  <Bell size={14} className="animate-pulse" />
                   <span>تنبيه نداء من الطاولة</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => onDismissCall(table.session.dbSessionId, 'HELP')}
-                  className="w-full py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-xs font-bold transition-colors cursor-pointer"
+                  className="w-full py-1 rounded bg-status-warning/15 hover:bg-status-warning/25 text-xs font-bold transition-colors cursor-pointer"
                 >
                   إلغاء التنبيه
                 </button>
@@ -114,21 +114,21 @@ export const PosTableSidebarDrawer = ({
             {/* Summary */}
             <div className="p-3 rounded-xl border flex items-center justify-between text-xs font-bold" style={{ background: 'var(--s2)', borderColor: 'var(--bd)' }}>
               <span style={{ color: 'var(--t2)' }}>الإجمالي:</span>
-              <span className="mono text-base" style={{ color: 'var(--ac)' }}>
+              <span className="mono text-base font-bold" style={{ color: 'var(--t1)' }}>
                 {Number(table.session.total || 0).toFixed(2)} {currency}
               </span>
             </div>
           </>
         ) : (
           <div className="py-12 text-center space-y-3">
-            <UtensilsCrossed size={32} className="text-slate-600 mx-auto" />
+            <UtensilsCrossed size={32} className="text-txt-dim mx-auto" />
             <p className="text-xs font-semibold" style={{ color: 'var(--t2)' }}>الطاولة متاحة وجاهزة</p>
             {onSelectTableForOrder && (
               <button
                 type="button"
                 onClick={() => onSelectTableForOrder(table)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
-                style={{ background: 'var(--ac)' }}
+                className="px-4 py-2 rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                style={{ background: 'var(--ac)', color: 'var(--ti, #ffffff)' }}
               >
                 <Plus size={14} />
                 <span>إنشاء طلب صالة لهذه الطاولة</span>
@@ -145,7 +145,7 @@ export const PosTableSidebarDrawer = ({
             <button
               type="button"
               onClick={() => onPrintBill(table)}
-              className="py-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 text-slate-200 hover:bg-white/5 cursor-pointer"
+              className="py-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 text-txt-primary hover:bg-bg-surface-elevated cursor-pointer"
               style={{ borderColor: 'var(--bd)' }}
             >
               <Receipt size={14} />
@@ -155,7 +155,7 @@ export const PosTableSidebarDrawer = ({
               <button
                 type="button"
                 onClick={() => onSelectTableForOrder(table)}
-                className="py-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 text-slate-200 hover:bg-white/5 cursor-pointer"
+                className="py-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 text-txt-primary hover:bg-bg-surface-elevated cursor-pointer"
                 style={{ borderColor: 'var(--bd)' }}
               >
                 <Plus size={14} />
@@ -168,7 +168,7 @@ export const PosTableSidebarDrawer = ({
             type="button"
             disabled={isClosingSession}
             onClick={() => onSettleAndClose(table)}
-            className="w-full py-2.5 rounded-xl text-xs font-bold text-white shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-50"
+            className="w-full py-2.5 rounded-xl text-xs font-bold text-txt-inverted shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-50"
             style={{ background: 'var(--ok)' }}
           >
             {isClosingSession ? 'جاري الإغلاق...' : 'تحصيل وإغلاق الطاولة'}

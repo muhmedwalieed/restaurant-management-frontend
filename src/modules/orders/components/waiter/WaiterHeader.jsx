@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LayoutDashboard, LogOut, RefreshCw, Bell, Users } from 'lucide-react';
+import { useAuth } from '../../../auth/context/AuthContext.jsx';
 
 export const WaiterHeader = ({
   user,
@@ -12,6 +13,7 @@ export const WaiterHeader = ({
   onLogout,
 }) => {
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
 
   return (
     <header
@@ -65,7 +67,7 @@ export const WaiterHeader = ({
           <RefreshCw size={15} />
         </button>
 
-        {!(user?.role?.name === 'ويتر' || user?.role?.name?.toLowerCase() === 'waiter') && (
+        {hasPermission('dashboard.view') && (
           <button
             type="button"
             onClick={() => navigate('/dashboard')}

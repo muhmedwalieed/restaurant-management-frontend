@@ -80,7 +80,7 @@ export const ModifierItemRow = ({
               onClick={() => onAdjustQty(mod, 1)}
               disabled={qty >= (mod.maxQuantity || 99)}
               className="w-7 h-7 rounded-md flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30"
-              style={{ background: 'var(--ac)', color: '#fff' }}
+              style={{ background: 'var(--ac)', color: 'var(--ti, #ffffff)' }}
               title="زيادة"
               aria-label={`زيادة ${mod.name}`}
             >
@@ -97,7 +97,7 @@ export const ModifierItemRow = ({
             style={{
               background: isOn ? 'var(--ac)' : 'var(--s1)',
               border: isOn ? 'none' : '1.5px solid var(--bd)',
-              color: '#fff',
+              color: 'var(--ti, #ffffff)',
             }}
           >
             {isOn && <Check size={14} strokeWidth={2.5} />}

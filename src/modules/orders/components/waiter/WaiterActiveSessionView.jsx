@@ -70,7 +70,7 @@ export const WaiterActiveSessionView = ({
                   style={{ background: cfg.bg, borderColor: cfg.border }}
                 >
                   <div className="flex items-center gap-2 font-bold" style={{ color: cfg.color }}>
-                    <Bell size={14} className="animate-bounce" />
+                    <Bell size={14} className="animate-pulse" />
                     <span>العميل {cfg.label}</span>
                   </div>
                   <button
@@ -105,8 +105,8 @@ export const WaiterActiveSessionView = ({
             <button
               type="button"
               onClick={() => onOpenReviewModal(table)}
-              className="w-full py-1.5 rounded-lg font-bold text-xs text-white shadow-sm transition-all active:scale-98 cursor-pointer"
-              style={{ background: 'var(--ac)' }}
+              className="w-full py-1.5 rounded-lg font-bold text-xs shadow-sm transition-all active:scale-98 cursor-pointer"
+              style={{ background: 'var(--ac)', color: 'var(--ti, #ffffff)' }}
             >
               مراجعة وتأكيد الطلب
             </button>

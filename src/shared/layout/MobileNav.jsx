@@ -72,28 +72,35 @@ export const MobileNav = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="md:hidden fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="القائمة الرئيسية">
+    <div
+      className="md:hidden fixed inset-0 z-50 flex"
+      role="dialog"
+      aria-modal="true"
+      aria-label="القائمة الرئيسية"
+    >
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      <div className="relative flex flex-col w-5/6 max-w-xs bg-bg-surface border-l border-white/[0.07] h-[100dvh] max-h-[100dvh] z-10 shadow-2xl overflow-hidden">
+      <div className="relative flex flex-col w-5/6 max-w-xs bg-bg-surface border-l border-border-default h-[100dvh] max-h-[100dvh] z-10 shadow-overlay overflow-hidden animate-slide-in-right">
         {/* Header */}
-        <div className="p-3 border-b border-white/[0.07] shrink-0">
+        <div className="p-3 border-b border-border-default shrink-0">
           <div className="flex items-center justify-between h-11">
             <div className="flex items-center gap-2 min-w-0">
-              <Store className="w-5 h-5 text-brand-primary shrink-0" />
+              <div className="w-7 h-7 rounded-md bg-brand-primary text-txt-inverted flex items-center justify-center shrink-0">
+                <Store className="w-4 h-4" />
+              </div>
               <span className="text-sm font-bold text-txt-primary truncate">
-                نظام إدارة المطاعم
+                إدارة المطاعم
               </span>
             </div>
 
             <button
               ref={closeButtonRef}
               onClick={onClose}
-              className="w-10 h-10 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-white/[0.06] flex items-center justify-center focus-visible:outline-none transition-colors"
+              className="w-8 h-8 rounded-md text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated flex items-center justify-center focus-visible:outline-none transition-colors"
               aria-label="إغلاق القائمة"
             >
               <X className="w-5 h-5" />

@@ -62,14 +62,14 @@ export const TicketChatWindow = ({
                 return (
                   <div
                     key={m.id || idx}
-                    className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-1 mx-4 shadow-sm"
+                    className="p-3 rounded-xl bg-bg-surface-elevated border border-border-default text-txt-primary text-xs space-y-1 mx-4 shadow-sm"
                   >
-                    <div className="flex items-center justify-between font-bold text-[11px] text-amber-400">
+                    <div className="flex items-center justify-between font-bold text-[11px] text-txt-primary">
                       <span className="flex items-center gap-1">
-                        <Lock size={12} />
+                        <Lock size={12} className="text-txt-muted" />
                         <span>ملاحظة داخلية خاصة بالفريق:</span>
                       </span>
-                      <span className="mono font-normal text-amber-400/70">
+                      <span className="mono font-normal text-txt-muted">
                         {new Date(m.createdAt).toLocaleTimeString('ar-EG', {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -89,11 +89,11 @@ export const TicketChatWindow = ({
                   <div
                     className={`max-w-md p-3 rounded-2xl text-xs space-y-1 shadow-sm leading-relaxed whitespace-pre-wrap ${
                       isCust
-                        ? 'bg-bg-base border border-border-default text-txt-primary rounded-tr-none'
-                        : 'bg-emerald-800/40 border border-emerald-500/20 text-emerald-100 rounded-tl-none'
+                        ? 'bg-bg-surface-elevated border border-border-default text-txt-primary rounded-tr-none'
+                        : 'bg-brand-primary text-txt-inverted rounded-tl-none'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-4 text-[10px] text-txt-dim font-medium">
+                    <div className="flex items-center justify-between gap-4 text-[10px] opacity-75 font-medium">
                       <span>{isCust ? ticket.customer?.name || 'العميل' : 'فريق الدعم'}</span>
                       <span className="mono">
                         {new Date(m.createdAt).toLocaleTimeString('ar-EG', {
@@ -121,8 +121,8 @@ export const TicketChatWindow = ({
               <div className="space-y-2 relative before:absolute before:right-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border-default/60">
                 {logs.map((log, idx) => (
                   <div key={log.id || idx} className="flex items-start gap-2.5 relative pr-5 text-xs">
-                    <div className="absolute right-0 top-1 w-4 h-4 rounded-full bg-brand-primary/20 border-2 border-brand-primary flex items-center justify-center">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
+                    <div className="absolute right-0 top-1 w-4 h-4 rounded-full bg-bg-surface-elevated border border-txt-primary flex items-center justify-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-txt-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">

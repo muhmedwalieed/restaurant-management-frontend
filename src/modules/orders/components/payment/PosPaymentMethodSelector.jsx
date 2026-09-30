@@ -1,7 +1,7 @@
 import React from 'react';
 
 const PAY_METHODS = [
-  { id: 'CASH', label: 'كاش' },
+  { id: 'CASH', label: 'نقدي' },
   { id: 'WALLET', label: 'محفظة' },
   { id: 'INSTAPAY', label: 'انستاباي' },
   { id: 'CARD', label: 'بطاقة' },
@@ -24,7 +24,7 @@ export const PosPaymentMethodSelector = ({
               onClick={() => setPayMethod(m.id)}
               className={`py-2 px-1 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
                 isSelected
-                  ? 'bg-ac text-white shadow-xs'
+                  ? 'bg-ac text-txt-inverted shadow-xs'
                   : 'bg-white text-txt-muted border border-border-default hover:text-txt-primary hover:border-slate-400'
               }`}
             >

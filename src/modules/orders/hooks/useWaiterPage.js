@@ -9,6 +9,7 @@ import {
   useRemoveSessionItemStaff,
   useAddSessionItemsStaff,
 } from '../../tables/hooks/useTableSessions.js';
+import { toast } from '../../../shared/context/ToastContext.jsx';
 
 export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
   const {
@@ -109,7 +110,7 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
       }
       await refetchAll();
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر فتح الجلسة للطاولة');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر فتح الجلسة للطاولة');
     } finally {
       setIsStartingSession(false);
     }
@@ -123,7 +124,7 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
       });
       await refetchAll();
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر تأكيد الحضور');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر تأكيد الحضور');
     }
   };
 
@@ -135,21 +136,26 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
       setReviewTable(null);
       await refetchAll();
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر تأكيد الطلب');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر تأكيد الطلب');
     }
   };
 
   const handleRejectReviewOrder = async (table) => {
-    if (!confirm('هل أنت متأكد من رغبتك في إلغاء ورفض هذا الطلب بالكامل؟')) return;
+    const isConfirmed = await toast.confirm(
+      'هل أنت متأكد من رغبتك في إلغاء ورفض هذا الطلب بالكامل؟',
+      'إلغاء الطلب',
+      { type: 'danger', confirmText: 'نعم، إلغاء الطلب', cancelText: 'تراجع' }
+    );
+    if (!isConfirmed) return;
     try {
       await rejectOrderMutation.mutateAsync({
         sessionId: table.session.dbSessionId,
       });
       setReviewTable(null);
       await refetchAll();
-      alert('تم رفض وإلغاء الطلب بنجاح');
+      toast.success('تم رفض وإلغاء الطلب بنجاح');
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر رفض الطلب');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر رفض الطلب');
     }
   };
 
@@ -164,22 +170,28 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
       });
       await refetchAll();
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر تعديل الكمية');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر تعديل الكمية');
     }
   };
 
   const handleRemoveReviewItem = async (item) => {
     const table = reviewTable;
     if (!table?.session?.dbSessionId) return;
-    if (!confirm(`هل أنت متأكد من حذف «${item.name}» من الطلب؟`)) return;
+    const isConfirmed = await toast.confirm(
+      `هل أنت متأكد من حذف «${item.name}» من الطلب؟`,
+      'حذف الصنف',
+      { type: 'danger', confirmText: 'حذف الصنف', cancelText: 'إلغاء' }
+    );
+    if (!isConfirmed) return;
     try {
       await removeItemStaffMutation.mutateAsync({
         sessionId: table.session.dbSessionId,
         itemId: item.itemId || item.id,
       });
       await refetchAll();
+      toast.success(`تم حذف «${item.name}» من الطلب`);
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر حذف الصنف');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر حذف الصنف');
     }
   };
 
@@ -192,8 +204,9 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
         items: [{ productId: product.id, quantity: qty }],
       });
       await refetchAll();
+      toast.success(`تمت إضافة ${product.name} للطلب`);
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر إضافة الصنف للطلب');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر إضافة الصنف للطلب');
     }
   };
 
@@ -222,8 +235,9 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
       }
       setAddItemTable(null);
       await refetchAll();
+      toast.success('تمت إضافة الأصناف بنجاح');
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر إضافة الأصناف للجلسة');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر إضافة الأصناف للجلسة');
     }
   };
 
@@ -279,9 +293,9 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
       setBillTable(null);
       setSelectedTableId(null);
       await refetchAll();
-      alert('تم تأكيد السداد وإغلاق الطاولة بنجاح');
+      toast.success('تم تأكيد السداد وإغلاق الطاولة بنجاح');
     } catch (err) {
-      alert(err?.response?.data?.message || err?.message || 'تعذر تسوية الحساب وإغلاق الجلسة');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر تسوية الحساب وإغلاق الجلسة');
     } finally {
       setIsClosingSession(false);
     }

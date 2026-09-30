@@ -98,8 +98,8 @@ export const WaiterReviewOrdersModal = ({
     >
       <div className="space-y-4 text-xs">
         {/* Info Banner */}
-        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center gap-2">
-          <UtensilsCrossed size={16} className="shrink-0" />
+        <div className="p-3 rounded-lg bg-bg-surface-elevated border border-border-default text-txt-muted flex items-center gap-2">
+          <UtensilsCrossed size={16} className="shrink-0 text-txt-muted" />
           <span>طلب QR بانتظار موافقتك. يمكنك تعديل الكميات أو حذف أو إضافة أصناف قبل إرساله للمطبخ.</span>
         </div>
 
@@ -118,7 +118,7 @@ export const WaiterReviewOrdersModal = ({
             <tbody className="divide-y" style={{ borderColor: 'var(--bd)' }}>
               {reviewItems.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-6 text-center text-slate-400">
+                  <td colSpan={5} className="p-6 text-center text-txt-muted">
                     لا توجد أصناف في هذا الطلب حالياً.
                   </td>
                 </tr>
@@ -127,10 +127,10 @@ export const WaiterReviewOrdersModal = ({
                   const itemId = it.id || it.itemId || it.productId;
                   const isItemBusy = actionLoadingId === itemId;
                   return (
-                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={idx} className="hover:bg-bg-surface-elevated/50 transition-colors">
                       <td className="p-2.5 font-medium" style={{ color: 'var(--t1)' }}>
                         <div className="flex items-center gap-2">
-                          {isItemBusy && <Loader2 size={12} className="animate-spin text-amber-400" />}
+                          {isItemBusy && <Loader2 size={12} className="animate-spin text-txt-muted" />}
                           <span>{it.name}</span>
                         </div>
                       </td>
@@ -140,19 +140,19 @@ export const WaiterReviewOrdersModal = ({
                             type="button"
                             disabled={isItemBusy || isLoading}
                             onClick={() => handleQtyChange(it, -1)}
-                            className="w-6 h-6 rounded flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-300 transition-colors cursor-pointer disabled:opacity-40"
+                            className="w-6 h-6 rounded flex items-center justify-center bg-bg-surface-elevated hover:bg-border-default text-txt-primary transition-colors cursor-pointer disabled:opacity-40"
                             title={it.qty === 1 ? 'حذف الصنف' : 'تقليل الكمية'}
                           >
                             <Minus size={12} />
                           </button>
-                          <span className="mono font-bold text-xs min-w-[20px] text-center" style={{ color: 'var(--ac)' }}>
+                          <span className="mono font-bold text-xs min-w-[20px] text-center" style={{ color: 'var(--t1)' }}>
                             {it.qty}
                           </span>
                           <button
                             type="button"
                             disabled={isItemBusy || isLoading}
                             onClick={() => handleQtyChange(it, 1)}
-                            className="w-6 h-6 rounded flex items-center justify-center bg-white/5 hover:bg-white/10 text-slate-300 transition-colors cursor-pointer disabled:opacity-40"
+                            className="w-6 h-6 rounded flex items-center justify-center bg-bg-surface-elevated hover:bg-border-default text-txt-primary transition-colors cursor-pointer disabled:opacity-40"
                             title="زيادة الكمية"
                           >
                             <Plus size={12} />
@@ -170,7 +170,7 @@ export const WaiterReviewOrdersModal = ({
                           type="button"
                           disabled={isItemBusy || isLoading}
                           onClick={() => handleDeleteItem(it)}
-                          className="p-1 rounded text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-40"
+                          className="p-1 rounded text-status-danger/80 hover:text-status-danger hover:bg-status-danger-bg transition-colors cursor-pointer disabled:opacity-40"
                           title="حذف هذا الصنف"
                         >
                           <Trash2 size={13} />
@@ -186,7 +186,7 @@ export const WaiterReviewOrdersModal = ({
                 <td colSpan={3} className="p-2.5 font-bold" style={{ color: 'var(--t1)' }}>
                   إجمالي الطلب:
                 </td>
-                <td colSpan={2} className="p-2.5 text-left mono font-bold text-sm" style={{ color: 'var(--ac)' }}>
+                <td colSpan={2} className="p-2.5 text-left mono font-bold text-sm" style={{ color: 'var(--t1)' }}>
                   {total.toFixed(2)} {currency}
                 </td>
               </tr>
@@ -201,7 +201,7 @@ export const WaiterReviewOrdersModal = ({
               <button
                 type="button"
                 onClick={() => setShowAddSection(true)}
-                className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-blue-500/10 transition-colors cursor-pointer"
+                className="text-xs font-bold text-txt-primary hover:text-txt-primary flex items-center gap-1.5 py-1 px-2 rounded-lg bg-bg-surface-elevated hover:bg-border-default transition-colors cursor-pointer border border-border-default"
               >
                 <PlusCircle size={14} />
                 <span>إضافة صنف جديد للطلب</span>
@@ -218,7 +218,7 @@ export const WaiterReviewOrdersModal = ({
                       setShowAddSection(false);
                       setSelectedProductId('');
                     }}
-                    className="p-1 text-slate-400 hover:text-white rounded"
+                    className="p-1 text-txt-muted hover:text-txt-primary rounded"
                   >
                     <X size={14} />
                   </button>
@@ -227,7 +227,7 @@ export const WaiterReviewOrdersModal = ({
                 <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_auto] gap-2 items-center">
                   <div className="space-y-1">
                     <div className="relative">
-                      <Search size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-txt-muted" />
                       <input
                         type="text"
                         placeholder="ابحث عن الصنف..."
@@ -254,7 +254,7 @@ export const WaiterReviewOrdersModal = ({
                     <button
                       type="button"
                       onClick={() => setAddQty((q) => Math.max(1, q - 1))}
-                      className="w-7 h-7 rounded border border-border-default flex items-center justify-center bg-white/5 hover:bg-white/10"
+                      className="w-7 h-7 rounded border border-border-default flex items-center justify-center bg-bg-surface-elevated hover:bg-border-default"
                     >
                       <Minus size={12} />
                     </button>
@@ -264,7 +264,7 @@ export const WaiterReviewOrdersModal = ({
                     <button
                       type="button"
                       onClick={() => setAddQty((q) => q + 1)}
-                      className="w-7 h-7 rounded border border-border-default flex items-center justify-center bg-white/5 hover:bg-white/10"
+                      className="w-7 h-7 rounded border border-border-default flex items-center justify-center bg-bg-surface-elevated hover:bg-border-default"
                     >
                       <Plus size={12} />
                     </button>
@@ -274,7 +274,7 @@ export const WaiterReviewOrdersModal = ({
                     type="button"
                     disabled={!selectedProductId || actionLoadingId === 'add-new'}
                     onClick={handleConfirmAddItem}
-                    className="px-3.5 py-2 rounded-lg font-bold text-white transition-all bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                    className="px-3.5 py-2 rounded-lg font-bold text-txt-inverted transition-all bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1 shrink-0"
                   >
                     {actionLoadingId === 'add-new' ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                     <span>إضافة</span>
@@ -291,7 +291,7 @@ export const WaiterReviewOrdersModal = ({
             type="button"
             disabled={isLoading || isRejecting}
             onClick={() => onRejectOrder(table)}
-            className="px-4 py-2 rounded-lg font-bold transition-colors bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 rounded-lg font-bold transition-colors bg-status-danger-bg hover:bg-status-danger/20 text-status-danger flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             {isRejecting ? <Loader2 size={15} className="animate-spin" /> : <XCircle size={15} />}
             <span>{isRejecting ? 'جاري الإلغاء...' : 'رفض الطلب'}</span>
@@ -301,7 +301,7 @@ export const WaiterReviewOrdersModal = ({
             type="button"
             disabled={isLoading || isRejecting || reviewItems.length === 0}
             onClick={() => onConfirmOrder(table)}
-            className="px-5 py-2 rounded-lg font-bold text-white transition-all shadow-sm active:scale-98 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-5 py-2 rounded-lg font-bold text-txt-inverted transition-all shadow-sm active:scale-98 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             style={{ background: 'var(--ok)' }}
           >
             {isLoading ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}

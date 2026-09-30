@@ -1,28 +1,60 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useOrdersQuery, useOrderQuery, useUpdateOrderStatusMutation, useCancelOrderMutation, usePaymentMutation } from '../hooks/useOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
+import { toast } from '../../../shared/context/ToastContext.jsx';
 
 import { PosOrdersFilterBar } from './pos-orders/PosOrdersFilterBar.jsx';
 import { PosOrdersTable } from './pos-orders/PosOrdersTable.jsx';
 import { PosOrderDetailDrawer } from './pos-orders/PosOrderDetailDrawer.jsx';
 
+const normalizeCalendarDate = (dateVal) => {
+  if (!dateVal) return '';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const PosOrdersView = () => {
   const { activeBranchId } = useBranch();
 
   // Date filter with default to local today YYYY-MM-DD
-  const todayStr = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
+  const todayStr = useMemo(() => normalizeCalendarDate(new Date()), []);
   const [date, setDate] = useState(todayStr);
 
   const [q, setQ] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
   const [status, setStatus] = useState('all');
   const [type, setType] = useState('all');
   const [source, setSource] = useState('all');
+  const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const limit = 20;
 
-  const { data: ordersResponse, refetch } = useOrdersQuery(activeBranchId, {
-    page: 1,
-    limit: 100,
+  // Debounce search (250ms) — avoids spamming backend while typing
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const { data: ordersResponse, refetch, isLoading, isFetching } = useOrdersQuery(activeBranchId, {
+    page,
+    limit,
+    status: status !== 'all' ? status : undefined,
+    type: type !== 'all' ? type : undefined,
+    source: source !== 'all' ? source : undefined,
+    date: date || undefined,
+    q: debouncedQ || undefined,
   });
+
+  // Reset to page 1 when filters change
+  useEffect(() => { setPage(1); }, [status, type, source, date, debouncedQ]);
+
+  const rawOrders = useMemo(() => ordersResponse?.items || [], [ordersResponse]);
+  const filteredOrders = rawOrders;
+  const pagination = ordersResponse?.pagination || null;
 
   const { data: fullOrderDetails } = useOrderQuery(activeBranchId, selectedOrder?.id);
   const currentSel = fullOrderDetails && fullOrderDetails.id === selectedOrder?.id ? fullOrderDetails : selectedOrder;
@@ -31,33 +63,13 @@ export const PosOrdersView = () => {
   const cancelMutation = useCancelOrderMutation();
   const paymentMutation = usePaymentMutation();
 
-  const filteredOrders = useMemo(() => {
-    const orders = ordersResponse?.items || [];
-    return orders.filter((o) => {
-      if (date) {
-        const orderDate = new Date(o.createdAt).toLocaleDateString('en-CA');
-        if (orderDate !== date) return false;
-      }
-
-      if (status !== 'all' && o.status !== status) return false;
-      if (type !== 'all' && o.type !== type) return false;
-      if (source !== 'all' && o.source !== source) return false;
-
-      const custName = o.customer?.name || o.customerName || '';
-      const custPhone = o.customer?.phone || o.customerPhone || '';
-      const numStr = String(o.orderNumber || o.id || '');
-
-      if (
-        q.trim() &&
-        !numStr.includes(q.trim()) &&
-        !custName.toLowerCase().includes(q.toLowerCase()) &&
-        !custPhone.includes(q.trim())
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [ordersResponse?.items, date, status, type, source, q]);
+  const handleResetFilters = useCallback(() => {
+    setQ('');
+    setDate('');
+    setStatus('all');
+    setType('all');
+    setSource('all');
+  }, []);
 
   const activeCount = useMemo(
     () => filteredOrders.filter((o) => o.status !== 'COMPLETED' && o.status !== 'DELIVERED' && o.status !== 'CANCELLED').length,
@@ -71,13 +83,13 @@ export const PosOrdersView = () => {
         .reduce((s, o) => {
           const tot = Number(o.total || o.totalAmount || 0);
           if (o.paymentStatus === 'PAID') return s + tot;
-          if (o.paymentStatus === 'PARTIAL') return s + Number(o.amountPaid || tot / 2);
+          if (o.paymentStatus === 'PARTIAL') return s + Number(o.amountPaid || 0);
           return s;
         }, 0),
     [filteredOrders]
   );
 
-  // Status transition handler
+  // Status transition handler — payment guard lives in PosOrderDetailDrawer
   const handleStatusChange = useCallback(async (newStatus) => {
     if (!currentSel) return;
     try {
@@ -86,14 +98,19 @@ export const PosOrdersView = () => {
         id: currentSel.id,
         payload: {
           newStatus,
-          expectedVersion: currentSel.version || 1,
+          expectedVersion: currentSel.version,
         },
       });
 
-      setSelectedOrder((prev) => (prev ? { ...prev, status: newStatus, version: (prev.version || 1) + 1 } : null));
-      refetch();
+      await refetch();
+      toast.success('تم تحديث حالة الطلب بنجاح');
     } catch (err) {
-      alert(err?.message || 'تعذر تغيير حالة الطلب.');
+      if (err?.status === 409 || err?.response?.status === 409) {
+        await refetch();
+        toast.error('تم تحديث هذا الطلب بواسطة مستخدم آخر. تم تحديث البيانات، يرجى المحاولة ثانية.');
+      } else {
+        toast.error(err?.message || 'تعذر تغيير حالة الطلب.');
+      }
     }
   }, [currentSel, activeBranchId, updateStatusMutation, refetch]);
 
@@ -105,15 +122,20 @@ export const PosOrdersView = () => {
         branchId: activeBranchId,
         id: orderId,
         payload: {
-          expectedVersion: currentSel.version || 1,
+          expectedVersion: currentSel.version,
           reason: reason || 'إلغاء من الكاشير',
         },
       });
 
-      setSelectedOrder((prev) => (prev ? { ...prev, status: 'CANCELLED', version: (prev.version || 1) + 1 } : null));
-      refetch();
+      await refetch();
+      toast.success('تم إلغاء الطلب بنجاح');
     } catch (err) {
-      alert(err?.message || 'تعذر إلغاء الطلب.');
+      if (err?.status === 409 || err?.response?.status === 409) {
+        await refetch();
+        toast.error('تم تحديث هذا الطلب بواسطة مستخدم آخر. تم تحديث البيانات، يرجى المحاولة ثانية.');
+      } else {
+        toast.error(err?.message || 'تعذر إلغاء الطلب.');
+      }
     }
   }, [currentSel, activeBranchId, cancelMutation, refetch]);
 
@@ -127,32 +149,27 @@ export const PosOrdersView = () => {
         payload: {
           amount,
           paymentMethod: method || 'CASH',
-          expectedVersion: currentSel.version || 1,
+          expectedVersion: currentSel.version,
         },
       });
 
-      setSelectedOrder((prev) =>
-        prev
-          ? {
-              ...prev,
-              paymentStatus: 'PAID',
-              paymentMethod: method,
-              paidAt: new Date().toISOString(),
-              version: (prev.version || 1) + 1,
-            }
-          : null
-      );
-      refetch();
+      await refetch();
+      toast.success('تم تسجيل الدفعة بنجاح');
     } catch (err) {
-      alert(err?.message || 'تعذر تسجيل الدفعة.');
+      if (err?.status === 409 || err?.response?.status === 409) {
+        await refetch();
+        toast.error('تم تحديث هذا الطلب بواسطة مستخدم آخر. تم تحديث البيانات، يرجى المحاولة ثانية.');
+      } else {
+        toast.error(err?.response?.data?.message || err?.message || 'تعذر تسجيل الدفعة.');
+      }
     }
   }, [currentSel, activeBranchId, paymentMutation, refetch]);
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden" dir="rtl" style={{ background: 'var(--bg)' }}>
+    <div className="h-full w-full flex flex-col overflow-hidden bg-transparent" dir="rtl">
       {/* Filters Bar */}
       <PosOrdersFilterBar
-        totalOrders={filteredOrders.length}
+        totalOrders={pagination?.total ?? filteredOrders.length}
         activeCount={activeCount}
         revenue={revenue}
         searchQuery={q}
@@ -173,6 +190,12 @@ export const PosOrdersView = () => {
           orders={filteredOrders}
           selectedOrderId={currentSel?.id}
           onSelectOrder={(o) => setSelectedOrder(o)}
+          onClearFilters={handleResetFilters}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          pagination={pagination}
+          page={page}
+          onPageChange={setPage}
         />
 
         {currentSel && (

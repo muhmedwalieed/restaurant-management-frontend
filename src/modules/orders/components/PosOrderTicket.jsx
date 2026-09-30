@@ -40,7 +40,7 @@ export const PosOrderTicket = ({
       <div className="p-2.5 border-b border-border-default bg-bg-base/60 space-y-2 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <ShoppingCart className="w-4 h-4 text-brand-primary" />
+            <ShoppingCart className="w-4 h-4 text-txt-muted" />
             <h3 className="text-xs font-bold text-txt-primary">تذكرة الطلب ({itemCount})</h3>
           </div>
           {cart.length > 0 && (
@@ -57,7 +57,7 @@ export const PosOrderTicket = ({
                   <button
                     type="button"
                     onClick={() => setShowClearConfirm(false)}
-                    className="px-2 py-0.5 text-[10px] font-medium bg-white/10 text-txt-muted rounded hover:bg-white/20 transition-colors"
+                    className="px-2 py-0.5 text-[10px] font-medium bg-bg-surface-elevated text-txt-muted border border-border-default rounded hover:bg-border-default transition-colors"
                   >
                     إلغاء
                   </button>
@@ -86,8 +86,8 @@ export const PosOrderTicket = ({
               onClick={() => setOrderType('DINE_IN')}
               className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
                 orderType === 'DINE_IN'
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+                  ? 'bg-brand-primary text-txt-inverted shadow-sm'
+                  : 'text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated'
               }`}
             >
               <Utensils className="w-3.5 h-3.5" />
@@ -98,8 +98,8 @@ export const PosOrderTicket = ({
               onClick={() => setOrderType('PICKUP')}
               className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
                 orderType === 'PICKUP'
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+                  ? 'bg-brand-primary text-txt-inverted shadow-sm'
+                  : 'text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated'
               }`}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
@@ -110,8 +110,8 @@ export const PosOrderTicket = ({
               onClick={() => setOrderType('DELIVERY')}
               className={`py-1 px-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1 transition-all ${
                 orderType === 'DELIVERY'
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+                  ? 'bg-brand-primary text-txt-inverted shadow-sm'
+                  : 'text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated'
               }`}
             >
               <Bike className="w-3.5 h-3.5" />
@@ -160,7 +160,7 @@ export const PosOrderTicket = ({
         {caller?.recentOrders && caller.recentOrders.length > 0 && (
           <div className="p-1.5 bg-bg-surface-elevated/60 border border-border-default rounded space-y-1 text-xs">
             <div className="flex items-center justify-between font-bold text-txt-primary">
-              <span className="flex items-center gap-1 text-brand-primary text-[10px]">
+              <span className="flex items-center gap-1 text-txt-muted text-[10px]">
                 <History className="w-3 h-3" />
                 <span>آخر طلبات العميل ({caller.recentOrders.length})</span>
               </span>
@@ -180,17 +180,17 @@ export const PosOrderTicket = ({
           cart.map((item) => (
             <div
               key={item.lineKey}
-              className="flex items-center justify-between gap-2.5 bg-bg-base/70 border border-border-subtle rounded-lg p-2.5 hover:border-white/10 transition-colors"
+              className="flex items-center justify-between gap-2.5 bg-bg-base/70 border border-border-subtle rounded-lg p-2.5 hover:border-border-default transition-colors"
             >
               <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-bold text-txt-primary truncate leading-normal">{item.name}</p>
-                  <span className="text-xs font-mono font-bold text-brand-primary shrink-0 tabular-nums">
+                  <span className="text-xs font-mono font-bold text-txt-primary shrink-0 tabular-nums">
                     {(item.unitPrice * item.quantity).toFixed(2)} EGP
                   </span>
                 </div>
                 {item.modifierNames && item.modifierNames.length > 0 && (
-                  <p className="text-[10px] text-brand-primary leading-tight truncate">
+                  <p className="text-[10px] text-txt-muted leading-tight truncate">
                     {item.modifierNames.join(' + ')}
                   </p>
                 )}
@@ -200,7 +200,7 @@ export const PosOrderTicket = ({
                 <button
                   type="button"
                   onClick={() => changeQty(item.lineKey, -1)}
-                  className="w-5 h-5 rounded bg-white/[0.05] hover:bg-white/[0.15] flex items-center justify-center text-txt-primary text-xs transition-colors"
+                  className="w-5 h-5 rounded bg-bg-surface-elevated hover:bg-border-default border border-border-subtle flex items-center justify-center text-txt-primary text-xs transition-colors"
                   title="إنقاص"
                 >
                   <Minus className="w-3 h-3" />
@@ -209,7 +209,7 @@ export const PosOrderTicket = ({
                 <button
                   type="button"
                   onClick={() => changeQty(item.lineKey, 1)}
-                  className="w-5 h-5 rounded bg-white/[0.05] hover:bg-white/[0.15] flex items-center justify-center text-txt-primary text-xs transition-colors"
+                  className="w-5 h-5 rounded bg-bg-surface-elevated hover:bg-border-default border border-border-subtle flex items-center justify-center text-txt-primary text-xs transition-colors"
                   title="زيادة"
                 >
                   <Plus className="w-3 h-3" />
@@ -247,24 +247,24 @@ export const PosOrderTicket = ({
             <button
               type="button"
               onClick={() => setShowNotes(true)}
-              className="text-[11px] font-medium text-txt-muted hover:text-brand-primary flex items-center gap-1 transition-colors py-0.5"
+              className="text-[11px] font-medium text-txt-muted hover:text-txt-primary flex items-center gap-1 transition-colors py-0.5"
             >
               <MessageSquarePlus className="w-3.5 h-3.5" />
               <span>{notes.trim() ? 'تعديل ملاحظات الطلب' : '+ إضافة ملاحظات الطلب'}</span>
-              {notes.trim() && <span className="w-1.5 h-1.5 rounded-full bg-brand-primary inline-block" />}
+              {notes.trim() && <span className="w-1.5 h-1.5 rounded-full bg-txt-muted inline-block" />}
             </button>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-1 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between pt-1 border-t border-border-default">
           <span className="text-xs font-semibold text-txt-muted">الإجمالي النهائي:</span>
-          <span className="text-base font-bold text-white font-mono tabular-nums">{total.toFixed(2)} EGP</span>
+          <span className="text-base font-bold text-txt-primary font-mono tabular-nums">{total.toFixed(2)} EGP</span>
         </div>
 
         <PermissionGate permission="orders.create">
           <Button
             size="md"
-            className="w-full bg-brand-primary text-white font-bold hover:bg-brand-primary-hover disabled:bg-white/10 disabled:text-txt-muted disabled:cursor-not-allowed border-none shadow-md transition-all h-9 text-xs"
+            className="w-full bg-brand-primary text-txt-inverted font-bold hover:bg-brand-primary-hover disabled:bg-bg-surface-elevated disabled:text-txt-muted disabled:cursor-not-allowed border-none shadow-md transition-all h-9 text-xs"
             disabled={cart.length === 0 || isPending}
             isLoading={isPending}
             onClick={handleSubmit}

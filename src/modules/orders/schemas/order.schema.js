@@ -16,12 +16,17 @@ export const orderFormSchema = z
     items: z.array(orderItemSchema).min(1, 'أضف صنفًا واحدًا على الأقل'),
   })
   .superRefine((data, ctx) => {
+    if (data.type === 'DINE_IN') {
+      if (!data.tableId?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['tableId'], message: 'يجب اختيار طاولة لطلبات الصالة' });
+      }
+    }
     if (data.type === 'DELIVERY') {
       if (!data.customerName?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerName'], message: 'اسم العميل مطلوب للتوصيل' });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerName'], message: 'اسم العميل مطلوب' });
       }
       if (!data.customerPhone?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerPhone'], message: 'رقم هاتف العميل مطلوب للتوصيل' });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerPhone'], message: 'رقم هاتف العميل مطلوب' });
       }
       if (!data.address?.trim()) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['address'], message: 'عنوان التوصيل مطلوب' });
@@ -50,12 +55,17 @@ export const posOrderSchema = z
     items: z.array(orderItemSchema).min(1, 'أضف صنفًا واحدًا على الأقل'),
   })
   .superRefine((data, ctx) => {
+    if (data.type === 'DINE_IN') {
+      if (!data.tableId?.trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['tableId'], message: 'يجب اختيار طاولة لطلبات الصالة' });
+      }
+    }
     if (data.type === 'DELIVERY') {
       if (!data.customerName?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerName'], message: 'اسم العميل مطلوب للتوصيل' });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerName'], message: 'اسم العميل مطلوب' });
       }
       if (!data.customerPhone?.trim()) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerPhone'], message: 'رقم هاتف العميل مطلوب للتوصيل' });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['customerPhone'], message: 'رقم هاتف العميل مطلوب' });
       }
       if (!data.address?.trim()) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['address'], message: 'عنوان التوصيل مطلوب' });
@@ -75,7 +85,7 @@ export const refundSchema = z.object({
 });
 
 export const PAYMENT_METHOD_LABELS = {
-  CASH: 'كاش',
+  CASH: 'نقدي',
   CARD: 'بطاقة',
   ONLINE: 'أونلاين',
 };
@@ -142,6 +152,17 @@ export const orderStatusPill = (status) => {
     CANCELLED: 'danger',
   };
   return map[status] || 'neutral';
+};
+
+export const orderSourcePill = (source) => {
+  const map = {
+    WHATSAPP: 'whatsapp',
+    QR: 'qr',
+    WEBSITE: 'website',
+    CASHIER: 'cashier',
+    PHONE: 'phone',
+  };
+  return map[source] || 'neutral';
 };
 
 export function nextStatuses(currentStatus, orderType) {

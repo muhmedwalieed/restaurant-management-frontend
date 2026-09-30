@@ -12,20 +12,20 @@ export const GrowthBadge = ({ growth }) => {
   const abs = Math.abs(growth).toFixed(1);
   if (growth > 0.5) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-success bg-status-success-bg px-1.5 py-0.5 rounded border border-status-success/20">
         <ArrowUpRight className="w-3 h-3" /> +{abs}%
       </span>
     );
   }
   if (growth < -0.5) {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-status-danger bg-status-danger-bg px-1.5 py-0.5 rounded border border-status-danger/20">
         <ArrowDownRight className="w-3 h-3" /> -{abs}%
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-400 bg-slate-500/10 px-1.5 py-0.5 rounded border border-slate-500/20">
+    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-txt-muted bg-bg-surface-elevated px-1.5 py-0.5 rounded border border-border-default">
       <Minus className="w-3 h-3" /> مستقر
     </span>
   );
@@ -50,7 +50,7 @@ export const DashboardStatsCards = ({ isLoading, summary, growthStats, activeOrd
           <span className="text-xs font-semibold text-txt-muted">طلبات اليوم</span>
           <GrowthBadge growth={growthStats?.ordersToday} />
         </div>
-        <div className="text-2xl font-mono font-bold tabular-nums text-white">
+        <div className="text-2xl font-mono font-bold tabular-nums text-txt-primary">
           {summary?.ordersToday ?? 0}
         </div>
         <p className="text-[11px] text-txt-muted border-t border-border-subtle/50 pt-2.5">
@@ -64,7 +64,7 @@ export const DashboardStatsCards = ({ isLoading, summary, growthStats, activeOrd
           <span className="text-xs font-semibold text-txt-muted">مبيعات اليوم</span>
           <GrowthBadge growth={growthStats?.revenueToday} />
         </div>
-        <div className="text-2xl font-mono font-bold tabular-nums text-white">
+        <div className="text-2xl font-mono font-bold tabular-nums text-txt-primary">
           {formatMoney(summary?.revenueToday)}
         </div>
         <p className="text-[11px] text-txt-muted border-t border-border-subtle/50 pt-2.5">
@@ -79,14 +79,14 @@ export const DashboardStatsCards = ({ isLoading, summary, growthStats, activeOrd
             <span
               className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                 activeOrdersCount > 0
-                  ? 'bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50'
-                  : 'bg-slate-600/50'
+                  ? 'bg-status-success animate-pulse'
+                  : 'bg-txt-dim'
               }`}
             />
             <span>طلبات نشطة الآن</span>
           </span>
         </div>
-        <div className="text-2xl font-mono font-bold tabular-nums text-amber-400">
+        <div className="text-2xl font-mono font-bold tabular-nums text-txt-primary">
           {activeOrdersCount}
         </div>
         <p className="text-[11px] text-txt-muted border-t border-border-subtle/50 pt-2.5">
@@ -100,11 +100,11 @@ export const DashboardStatsCards = ({ isLoading, summary, growthStats, activeOrd
           <span className="text-xs font-semibold text-txt-muted">متوسط قيمة الطلب</span>
           <GrowthBadge growth={growthStats?.avgOrderValue} />
         </div>
-        <div className="text-2xl font-mono font-bold tabular-nums text-white">
+        <div className="text-2xl font-mono font-bold tabular-nums text-txt-primary">
           {formatMoney(summary?.averageOrderValue)}
         </div>
         <p className="text-[11px] text-txt-muted border-t border-border-subtle/50 pt-2.5">
-          مدفوع المؤكد: <span className="font-mono font-semibold text-emerald-400">{formatMoney(summary?.paidRevenue)}</span>
+          مدفوع المؤكد: <span className="font-mono font-semibold text-txt-primary">{formatMoney(summary?.paidRevenue)}</span>
         </p>
       </div>
     </section>
