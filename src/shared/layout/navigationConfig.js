@@ -14,6 +14,7 @@ import {
   Store,
   Shield,
   ScrollText,
+  Layers,
 } from 'lucide-react';
 
 export const ROLE_LABELS = {
@@ -71,6 +72,12 @@ export const NAV_SECTIONS = [
         path: '/tables',
         icon: Grid,
         permission: ['tables.view', 'tables.manage'],
+      },
+      {
+        label: 'سجل الورديات',
+        path: '/shifts',
+        icon: Layers,
+        permission: ['shifts.view', 'reports.view', 'orders.source_cashier'],
       },
     ],
   },

@@ -25,6 +25,9 @@ export const PosNavHeader = ({
   onSelectTab,
   activeBranch,
   user,
+  activeShift,
+  onOpenStartShift,
+  onToggleShiftMenu,
   onOpenDriverSettlement,
   onLogout,
 }) => {
@@ -117,12 +120,40 @@ export const PosNavHeader = ({
 
       {/* ── Left Section (RTL): Touch Targets & Cashier Info ── */}
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Shift Management Status & Dropdown Button */}
+        {activeShift ? (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={onToggleShiftMenu}
+              className="h-10 px-3 rounded-xl flex items-center gap-2 transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 active:scale-95 cursor-pointer text-xs font-bold shadow-xs"
+              title="إدارة الوردية الحالية"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>وردية #{activeShift.shiftNumber}</span>
+              <span className="hidden sm:inline font-black text-emerald-700 dark:text-emerald-300">
+                ({Number(activeShift.expectedCash || 0).toFixed(0)} ج.م)
+              </span>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onOpenStartShift}
+            className="h-10 px-3 rounded-xl flex items-center gap-1.5 transition-all bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 active:scale-95 cursor-pointer text-xs font-bold shadow-xs animate-pulse"
+            title="فتح وردية عمل جديدة"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span>الوردية مغلقة (افتح وردية)</span>
+          </button>
+        )}
+
         {/* Driver COD Settlement Button */}
         {onOpenDriverSettlement && (
           <button
             type="button"
             onClick={onOpenDriverSettlement}
-            className="h-10 px-3 rounded-xl flex items-center gap-1.5 transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 active:scale-95 cursor-pointer text-xs font-bold shadow-xs"
+            className="h-10 px-3 rounded-xl flex items-center gap-1.5 transition-all bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 active:scale-95 cursor-pointer text-xs font-bold shadow-xs"
             title="تصفية واستلام عهدة الطيارين"
           >
             <Bike size={16} />

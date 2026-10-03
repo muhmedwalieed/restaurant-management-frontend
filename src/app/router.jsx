@@ -21,6 +21,7 @@ import { PosPage } from '../modules/orders/pages/PosPage.jsx';
 import { WaiterPage } from '../modules/orders/pages/WaiterPage.jsx';
 import { KdsPage } from '../modules/orders/pages/KdsPage.jsx';
 import { DeliveryPage } from '../modules/orders/pages/DeliveryPage.jsx';
+import { ShiftsListPage } from '../modules/orders/pages/ShiftsListPage.jsx';
 import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
 import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
 import { WhatsAppPage } from '../modules/whatsapp/pages/WhatsAppPage.jsx';
@@ -159,6 +160,14 @@ export const router = createBrowserRouter(
           element: (
             <RequirePermission permission="orders.view">
               <OrderDetailPage />
+            </RequirePermission>
+          ),
+        },
+        {
+          path: 'shifts',
+          element: (
+            <RequirePermission permission={['shifts.view', 'reports.view', 'orders.source_cashier']}>
+              <ShiftsListPage />
             </RequirePermission>
           ),
         },
