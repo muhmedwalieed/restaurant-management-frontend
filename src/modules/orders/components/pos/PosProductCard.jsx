@@ -20,7 +20,7 @@ export const PosProductCard = ({
   return (
     <div
       onClick={() => onSelect(product)}
-      className={`group flex flex-col rounded-xl overflow-hidden border transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
+      className={`group flex flex-col rounded-xl overflow-hidden border transition-all duration-200 cursor-pointer active:scale-[0.98] ${
         inCart
           ? 'border-zinc-400 dark:border-zinc-600 bg-white dark:bg-zinc-900 shadow-md ring-2 ring-zinc-900/10 dark:ring-zinc-100/10'
           : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-sm hover:shadow-md'

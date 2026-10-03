@@ -35,6 +35,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
       categoryId: '',
       name: '',
       description: '',
+      ingredientsText: '',
       price: '',
       imageUrl: '',
       isAvailable: true,
@@ -52,6 +53,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
           categoryId: productToEdit.categoryId || productToEdit.category?.id || '',
           name: productToEdit.name || '',
           description: productToEdit.description || '',
+          ingredientsText: (productToEdit.ingredients || []).join('، '),
           price: productToEdit.price !== undefined ? String(productToEdit.price) : '',
           imageUrl: productToEdit.imageUrl || '',
           isAvailable: productToEdit.isAvailable ?? true,
@@ -62,6 +64,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
           categoryId: categories.length > 0 ? categories[0].id : '',
           name: '',
           description: '',
+          ingredientsText: '',
           price: '',
           imageUrl: '',
           isAvailable: true,
@@ -72,14 +75,23 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
   }, [isOpen, productToEdit, categories, reset]);
 
   const onSubmit = async (data) => {
+    const { ingredientsText, ...rest } = data;
+    const payload = {
+      ...rest,
+      ingredients: String(ingredientsText || '')
+        .split(/[,،\n]/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+    };
+
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({
           id: productToEdit.id,
-          payload: data,
+          payload,
         });
       } else {
-        await createMutation.mutateAsync(data);
+        await createMutation.mutateAsync(payload);
       }
       onClose();
     } catch (err) {
@@ -141,14 +153,25 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit = null, catego
         <div className="flex flex-col gap-2 w-full text-right">
           <label className="text-xs font-medium text-txt-primary">وصف المنتج</label>
           <textarea
-            rows={3}
-            placeholder="أدخل مكونات أو تفاصيل المنتج..."
+            rows={2}
+            placeholder="أدخل تفاصيل المنتج..."
             className="w-full bg-bg-surface text-txt-primary placeholder:text-txt-muted border border-border-default rounded-md text-sm px-3 py-2 transition-colors focus-visible:outline-none focus-visible:border-brand-primary"
             {...register('description')}
           />
           {errors.description && (
             <p className="text-xs text-status-danger font-medium mt-1">{errors.description.message}</p>
           )}
+        </div>
+
+        <div className="flex flex-col gap-2 w-full text-right">
+          <label className="text-xs font-medium text-txt-primary">المكونات</label>
+          <textarea
+            rows={2}
+            placeholder="مثال: لحمة، جبنة شيدر، طماطم"
+            className="w-full bg-bg-surface text-txt-primary placeholder:text-txt-muted border border-border-default rounded-md text-sm px-3 py-2 transition-colors focus-visible:outline-none focus-visible:border-brand-primary"
+            {...register('ingredientsText')}
+          />
+          <p className="text-[11px] text-txt-muted">افصل بين كل مكوّن والتاني بفاصلة.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-2">

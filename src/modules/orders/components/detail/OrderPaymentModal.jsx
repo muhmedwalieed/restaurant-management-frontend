@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal } from '../../../../shared/components/Modal.jsx';
 import { Input } from '../../../../shared/components/Input.jsx';
 import { Button } from '../../../../shared/components/Button.jsx';
+import { PAYMENT_METHODS } from '../payment/paymentMethods.js';
 
 export const OrderPaymentModal = ({
   isOpen,
@@ -33,18 +34,18 @@ export const OrderPaymentModal = ({
         <div>
           <label className="font-semibold block mb-1">طريقة الدفع:</label>
           <div className="grid grid-cols-2 gap-2">
-            {['CASH', 'CARD'].map((m) => (
+            {PAYMENT_METHODS.map((m) => (
               <button
-                key={m}
+                key={m.id}
                 type="button"
-                onClick={() => onChangePaymentMethod(m)}
-                className={`py-2 px-3 rounded-lg border text-xs font-semibold ${
-                  paymentMethod === m
+                onClick={() => onChangePaymentMethod(m.id)}
+                className={`py-2 px-3 rounded-lg border text-xs font-semibold cursor-pointer ${
+                  paymentMethod === m.id
                     ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
                     : 'border-border-default'
                 }`}
               >
-                {m === 'CASH' ? 'نقدي' : 'بطاقة فيزا'}
+                {m.label}
               </button>
             ))}
           </div>

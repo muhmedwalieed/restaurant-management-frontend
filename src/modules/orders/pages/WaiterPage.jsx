@@ -7,6 +7,7 @@ import { WaiterTableDetailPanel } from '../components/waiter/WaiterTableDetailPa
 import { WaiterReviewOrdersModal } from '../components/waiter/WaiterReviewOrdersModal.jsx';
 import { WaiterAddItemDrawer } from '../components/waiter/WaiterAddItemDrawer.jsx';
 import { WaiterBillModal } from '../components/waiter/WaiterBillModal.jsx';
+import { PosTableQrModal } from '../components/pos-tables/PosTableQrModal.jsx';
 import { useWaiterPage } from '../hooks/useWaiterPage.js';
 
 export const WaiterPage = () => {
@@ -30,15 +31,14 @@ export const WaiterPage = () => {
     setAddItemTable,
     billTable,
     setBillTable,
+    qrTable,
+    setQrTable,
     products,
     categories,
     isStartingSession,
     isClosingSession,
-    refetchAll,
     confirmSessionMutation,
     createPosOrderMutation,
-    handlePrintPin,
-    handlePrintBill,
     handleOpenSession,
     handleDismissCall,
     handleConfirmReviewOrder,
@@ -49,10 +49,10 @@ export const WaiterPage = () => {
     handleAddItemsToSession,
     handleSettleAndClose,
     rejectOrderMutation,
-  } = useWaiterPage({ activeBranchId, activeBranch, user });
+  } = useWaiterPage({ activeBranchId });
 
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden select-none" dir="rtl" style={{ background: 'var(--bg)' }}>
+    <div className="h-screen w-full min-h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-black text-zinc-900 dark:text-zinc-100" dir="rtl">
       {/* Top Header */}
       <WaiterHeader
         user={user}
@@ -60,7 +60,6 @@ export const WaiterPage = () => {
         totalTables={tables.length}
         occupiedCount={totalOccupied}
         alertsCount={totalAlerts}
-        onRefresh={refetchAll}
         onLogout={logout}
       />
 
@@ -74,6 +73,7 @@ export const WaiterPage = () => {
           onChangeFilter={setStatusFilter}
           selectedSection={selectedSection}
           onChangeSection={setSelectedSection}
+          onShowQr={(t) => setQrTable(t)}
         />
 
         {selectedTable && (
@@ -87,8 +87,8 @@ export const WaiterPage = () => {
             onOpenAddItemDrawer={(t) => setAddItemTable(t)}
             onOpenBillModal={(t) => setBillTable(t)}
             onCloseSession={(t) => setBillTable(t)}
-            onPrintPin={handlePrintPin}
             isClosingSession={isClosingSession}
+            onShowQr={(t) => setQrTable(t)}
           />
         )}
       </div>
@@ -124,9 +124,15 @@ export const WaiterPage = () => {
         isOpen={Boolean(billTable)}
         table={billTable}
         onClose={() => setBillTable(null)}
-        onPrintBill={handlePrintBill}
         onSettleBill={handleSettleAndClose}
         isSettling={isClosingSession}
+      />
+
+      {/* Table Self-Ordering QR Modal */}
+      <PosTableQrModal
+        isOpen={Boolean(qrTable)}
+        table={qrTable}
+        onClose={() => setQrTable(null)}
       />
     </div>
   );

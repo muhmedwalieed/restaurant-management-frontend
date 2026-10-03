@@ -19,6 +19,7 @@ import {
   rejectPendingOrderApi,
   getActiveTableSessionApi,
   listBranchSessionsApi,
+  resetTablePinLockoutApi,
   resolveMemberToken,
 } from '../../../lib/api/table-sessions.api.js';
 
@@ -56,6 +57,7 @@ export const useBranchSessionsQuery = (branchIdOrPoll = false, pollOption = fals
   return useQuery({
     queryKey: ['table-sessions-branch', branchId],
     queryFn: () => listBranchSessionsApi(branchId),
+    enabled: Boolean(branchId),
     refetchInterval: poll ? 4000 : false,
   });
 };
@@ -157,6 +159,17 @@ export const useSubmitDraft = (sessionId, memberToken) => {
   return useMutation({
     mutationFn: () => submitDraftApi(sessionId, memberToken),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['table-session', sessionId] }),
+  });
+};
+
+export const useResetTablePinLockout = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (tableId) => resetTablePinLockoutApi(tableId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['tables'] });
+    },
   });
 };
 

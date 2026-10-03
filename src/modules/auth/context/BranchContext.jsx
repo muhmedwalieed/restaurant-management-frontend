@@ -48,8 +48,10 @@ export const BranchProvider = ({ children }) => {
       const exists = branches.some((b) => b.id === activeBranchId);
       if (!activeBranchId || !exists) {
         const defaultBranch = branches.find((b) => b.isMain) || branches[0];
-        setActiveBranchIdState(defaultBranch.id);
-        localStorage.setItem('saas_active_branch_id', defaultBranch.id);
+        if (defaultBranch?.id !== activeBranchId) {
+          setActiveBranchIdState(defaultBranch.id);
+          localStorage.setItem('saas_active_branch_id', defaultBranch.id);
+        }
       }
     }
   }, [branches, activeBranchId]);
@@ -64,14 +66,19 @@ export const BranchProvider = ({ children }) => {
     }
   };
 
-  const activeBranch = branches.find((b) => b.id === activeBranchId) || branches[0] || null;
+  const activeBranch = useMemo(
+    () => branches.find((b) => b.id === activeBranchId) || branches[0] || null,
+    [branches, activeBranchId]
+  );
+
+  const resolvedBranchId = activeBranch?.id || null;
 
   return (
     <BranchContext.Provider
       value={{
         branches,
         activeBranch,
-        activeBranchId: activeBranch?.id || null,
+        activeBranchId: resolvedBranchId,
         setActiveBranch,
         isLoading,
         refetchBranches,

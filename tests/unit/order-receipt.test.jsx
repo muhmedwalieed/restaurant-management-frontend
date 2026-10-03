@@ -35,8 +35,8 @@ describe('ReceiptPrintTemplate Unit Tests (RTL & BiDi Compliance)', () => {
     expect(screen.getByText('Margherita Pizza')).toBeInTheDocument();
     expect(screen.getByText('Double Beef Burger')).toBeInTheDocument();
     expect(screen.getByText('الإجمالي النهائي:')).toBeInTheDocument();
-    expect(screen.getByText('رقم الطلب:')).toBeInTheDocument();
-    expect(screen.getByText('التاريخ والوقت:')).toBeInTheDocument();
+    expect(screen.getByText('فاتورة طلب')).toBeInTheDocument();
+    expect(screen.getByText('التاريخ:')).toBeInTheDocument();
     expect(screen.getByText('نوع الطلب:')).toBeInTheDocument();
     expect(screen.getByText('المصدر:')).toBeInTheDocument();
     expect(screen.getByText('العميل:')).toBeInTheDocument();

@@ -182,6 +182,18 @@
     outline-offset: 2px;
   }
 
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-surface) inset !important;
+    box-shadow: 0 0 0 1000px var(--bg-surface) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--text-primary) !important;
+    border-color: var(--border-default) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   /* Respect reduced-motion preferences */
   @media (prefers-reduced-motion: reduce) {
     *,

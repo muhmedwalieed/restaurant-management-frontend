@@ -6,7 +6,6 @@ export const PosSalesToolbar = ({
   activeCategory = 'ALL',
   onSelectCategory,
   allProducts = [],
-  filteredCount = 0,
   searchQuery = '',
   onChangeSearch,
 }) => {
@@ -21,7 +20,7 @@ export const PosSalesToolbar = ({
 
   return (
     <div
-      className="h-14 px-4 flex items-center justify-between gap-3 shrink-0 select-none bg-transparent border-b border-zinc-200 dark:border-zinc-800 transition-colors"
+      className="min-h-14 px-3 sm:px-4 py-2 flex flex-wrap items-center justify-between gap-2 shrink-0 bg-transparent border-b border-zinc-200 dark:border-zinc-800 transition-colors"
     >
       {/* ── Category Tabs (RTL Right side, scrollable) ── */}
       <div className="flex-1 flex items-center gap-1.5 overflow-x-auto min-w-0 custom-scrollbar py-1">
@@ -72,9 +71,9 @@ export const PosSalesToolbar = ({
         })}
       </div>
 
-      {/* ── Search Input (RTL Left side) ── */}
-      <div className="flex items-center shrink-0">
-        <div className="relative w-36 sm:w-48 lg:w-52">
+      {/* ── Search Input (RTL Left side; its own row on phones) ── */}
+      <div className="flex items-center w-full sm:w-auto shrink-0">
+        <div className="relative w-full sm:w-48 lg:w-52">
           <Search
             size={14}
             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 dark:text-zinc-400"
@@ -84,7 +83,7 @@ export const PosSalesToolbar = ({
             value={searchQuery}
             onChange={(e) => onChangeSearch(e.target.value)}
             placeholder="ابحث عن صنف..."
-            className="w-full pr-8 pl-7 py-1.5 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:bg-white dark:focus:bg-zinc-950 focus:border-zinc-500 dark:focus:border-zinc-500 focus:outline-none transition-colors"
+            className="w-full min-h-[36px] pr-8 pl-7 py-1.5 rounded-full text-base sm:text-xs font-medium bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus:bg-white dark:focus:bg-zinc-950 focus:border-zinc-500 dark:focus:border-zinc-500 focus:outline-none transition-colors"
           />
           {searchQuery && (
             <button

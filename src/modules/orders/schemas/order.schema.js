@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PAY_METHODS } from '../constants.js';
 
 export const orderItemSchema = z.object({
   productId: z.string().min(1, 'اختر منتجًا'),
@@ -74,7 +75,8 @@ export const posOrderSchema = z
   });
 
 export const paymentSchema = z.object({
-  paymentMethod: z.enum(['CASH', 'CARD', 'ONLINE']),
+  // Mirrors the backend `PaymentMethod` enum (see constants.js → PAY_METHODS).
+  paymentMethod: z.enum(PAY_METHODS.map((m) => m.id)),
   amount: z.coerce.number().positive('المبلغ يجب أن يكون موجبًا').optional(),
   expectedVersion: z.coerce.number().int().min(1, 'expectedVersion مطلوب'),
 });
@@ -87,7 +89,8 @@ export const refundSchema = z.object({
 export const PAYMENT_METHOD_LABELS = {
   CASH: 'نقدي',
   CARD: 'بطاقة',
-  ONLINE: 'أونلاين',
+  INSTAPAY: 'انستاباي',
+  WALLET: 'محفظة',
 };
 
 export const PAYMENT_METHOD_OPTIONS = Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => ({

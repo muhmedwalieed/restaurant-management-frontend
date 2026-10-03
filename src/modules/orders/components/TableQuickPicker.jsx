@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Check, Search } from 'lucide-react';
+import { formatTableLabel } from '../../tables/utils/tableLabel.js';
 
 export const TableQuickPicker = ({ tables = [], value, onChange, required = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +51,7 @@ export const TableQuickPicker = ({ tables = [], value, onChange, required = fals
                     : 'bg-bg-surface text-txt-primary border-border-default hover:border-white/20 hover:bg-white/[0.04]'
                 }`}
               >
-                <span className="text-[11px] font-bold truncate">طاولة {t.label}</span>
+                <span className="text-[11px] font-bold truncate">{formatTableLabel(t.label)}</span>
                 {isSelected && <Check className="w-3 h-3 text-txt-inverted shrink-0 ml-0.5" />}
               </button>
             );

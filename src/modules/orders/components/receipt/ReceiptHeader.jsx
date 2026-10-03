@@ -3,7 +3,12 @@ import {
   ORDER_TYPE_LABELS,
   ORDER_SOURCE_LABELS,
 } from '../../schemas/order.schema.js';
+import { formatTableLabel } from '../../../tables/utils/tableLabel.js';
 
+/**
+ * Centered receipt header — same shape as the table thermal bill
+ * (big branch name, order line, date) followed by the order meta block.
+ */
 export const ReceiptHeader = ({
   order,
   restaurantName,
@@ -14,53 +19,43 @@ export const ReceiptHeader = ({
 }) => {
   return (
     <>
-      {/* Restaurant & Branch Header */}
-      <div className="text-center space-y-1 pb-3 border-b border-dashed border-gray-400">
-        <h2 className="text-base font-bold tracking-tight text-black" dir="rtl">
-          {restaurantName}
-        </h2>
+      {/* Restaurant / Branch + order reference, centered */}
+      <div className="text-center pb-2.5 border-b border-dashed border-[#ccc] space-y-0.5">
+        <div className="text-base font-bold text-black" dir="rtl">
+          <bdi>{restaurantName}</bdi>
+        </div>
         {branchName && (
-          <p className="text-xs text-gray-700 font-medium" dir="auto">
+          <div className="text-xs text-[#666] font-medium" dir="auto">
             <bdi>{branchName}</bdi>
-          </p>
+          </div>
         )}
+        <div className="text-xs text-[#666] flex items-center justify-center gap-1">
+          <span dir="rtl">فاتورة طلب</span>
+          <span className="font-mono font-bold text-black" dir="ltr">#{order.orderNumber}</span>
+        </div>
+        <div className="text-[11px] text-[#888] flex items-center justify-center gap-1">
+          <span dir="rtl">التاريخ:</span>
+          <span className="font-mono" dir="ltr">{formattedDate}</span>
+        </div>
       </div>
 
-      {/* Meta details */}
-      <div className="py-2.5 space-y-1.5 border-b border-dashed border-gray-400 text-[11px]">
+      {/* Order meta */}
+      <div className="py-2.5 space-y-1.5 border-b border-dashed border-[#ccc] text-[11px]">
         <div className="flex items-center justify-between">
-          <span className="text-gray-600 font-semibold" dir="rtl">
-            رقم الطلب:
-          </span>
-          <span className="font-bold text-black font-mono inline-block" dir="ltr">
-            #{order.orderNumber}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-gray-600 font-semibold" dir="rtl">
-            التاريخ والوقت:
-          </span>
-          <span className="font-mono text-gray-800 inline-block" dir="ltr">
-            {formattedDate}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-gray-600 font-semibold" dir="rtl">
+          <span className="text-[#555] font-semibold" dir="rtl">
             نوع الطلب:
           </span>
           <span className="font-semibold text-black inline-block" dir="rtl">
             <bdi>{ORDER_TYPE_LABELS[order.type] || order.type}</bdi>
-            {tableLabel && <bdi>{` (طاولة ${tableLabel})`}</bdi>}
+            {tableLabel && <bdi>{` (${formatTableLabel(tableLabel)})`}</bdi>}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-gray-600 font-semibold" dir="rtl">
+          <span className="text-[#555] font-semibold" dir="rtl">
             المصدر:
           </span>
-          <span className="text-gray-800 inline-block" dir="rtl">
+          <span className="text-[#444] inline-block" dir="rtl">
             <bdi>{ORDER_SOURCE_LABELS[order.source] || order.source}</bdi>
           </span>
         </div>
@@ -68,20 +63,20 @@ export const ReceiptHeader = ({
         {(order.type !== 'DINE_IN' || order.customer?.name) && (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600 font-semibold" dir="rtl">
+              <span className="text-[#555] font-semibold" dir="rtl">
                 العميل:
               </span>
-              <span className="text-gray-800 truncate max-w-[180px] inline-block" dir="auto">
+              <span className="text-[#444] truncate max-w-[180px] inline-block" dir="auto">
                 <bdi>{customerName}</bdi>
               </span>
             </div>
 
             {order.customer?.phone && (
               <div className="flex items-center justify-between">
-                <span className="text-gray-600 font-semibold" dir="rtl">
+                <span className="text-[#555] font-semibold" dir="rtl">
                   الهاتف:
                 </span>
-                <span className="font-mono text-gray-800 inline-block" dir="ltr">
+                <span className="font-mono text-[#444] inline-block" dir="ltr">
                   {order.customer.phone}
                 </span>
               </div>
@@ -92,3 +87,5 @@ export const ReceiptHeader = ({
     </>
   );
 };
+
+export default ReceiptHeader;

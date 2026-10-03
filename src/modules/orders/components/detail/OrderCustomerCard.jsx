@@ -1,6 +1,7 @@
 import React from 'react';
 import { User } from 'lucide-react';
 import { ORDER_TYPE_LABELS, ORDER_SOURCE_LABELS } from '../../schemas/order.schema.js';
+import { formatTableLabel } from '../../../tables/utils/tableLabel.js';
 
 export const OrderCustomerCard = ({ order }) => {
   if (!order) return null;
@@ -54,7 +55,7 @@ export const OrderCustomerCard = ({ order }) => {
           <div className="flex items-center justify-between pt-1 border-t border-border-subtle/30">
             <span className="text-txt-muted">الطاولة:</span>
             <span className="font-bold text-brand-primary">
-              طاولة {table.label || table.number || table.name}
+              {formatTableLabel(table.label || table.number || table.name)}
             </span>
           </div>
         )}

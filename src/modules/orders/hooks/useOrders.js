@@ -51,7 +51,11 @@ export const useCreateOrderMutation = () => {
     mutationFn: ({ branchId, payload, idempotencyKey }) => createOrderApi(branchId, payload, idempotencyKey),
     onSuccess: (_, { branchId }) => {
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
     },
   });
 };
@@ -62,9 +66,13 @@ export const useUpdateOrderStatusMutation = () => {
     mutationFn: ({ branchId, id, payload }) => updateOrderStatusApi(branchId, id, payload),
     onSuccess: (_, { branchId, id }) => {
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['order', branchId, id] });
       qc.invalidateQueries({ queryKey: ['order-history', branchId, id] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
     },
   });
 };
@@ -75,9 +83,13 @@ export const useCancelOrderMutation = () => {
     mutationFn: ({ branchId, id, payload }) => cancelOrderApi(branchId, id, payload),
     onSuccess: (_, { branchId, id }) => {
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['order', branchId, id] });
       qc.invalidateQueries({ queryKey: ['order-history', branchId, id] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
     },
   });
 };
@@ -98,7 +110,11 @@ export const useCreatePosOrderMutation = () => {
     onSuccess: (_, args) => {
       const branchId = args?.branchId;
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
     },
   });
 };
@@ -118,7 +134,9 @@ export const usePaymentMutation = () => {
       const bId = vars?.branchId;
       qc.invalidateQueries({ queryKey: ['orders', bId] });
       qc.invalidateQueries({ queryKey: ['tables', bId] });
-      qc.invalidateQueries({ queryKey: ['branch-sessions', bId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
+      qc.invalidateQueries({ queryKey: ['kds', bId] });
       if (oId) qc.invalidateQueries({ queryKey: ['order', bId, oId] });
     },
   });
@@ -130,7 +148,11 @@ export const useRefundMutation = () => {
     mutationFn: ({ branchId, orderId, payload }) => processRefundApi(branchId, orderId, payload),
     onSuccess: (_, { branchId, orderId }) => {
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['order', branchId, orderId] });
+      qc.invalidateQueries({ queryKey: ['tables', branchId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['kds', branchId] });
     },
   });
 };
@@ -140,6 +162,8 @@ export const useKdsOrdersQuery = (branchId, params = {}) => {
     queryKey: ['kds', branchId, params],
     queryFn: () => getKdsOrdersApi(branchId, params),
     enabled: Boolean(branchId),
+    placeholderData: (prev) => prev,
+    staleTime: 3000,
   });
 };
 
@@ -150,7 +174,10 @@ export const useUpdateKdsStatusMutation = () => {
     onSuccess: (_, { branchId }) => {
       qc.invalidateQueries({ queryKey: ['kds', branchId] });
       qc.invalidateQueries({ queryKey: ['orders', branchId] });
+      qc.invalidateQueries({ queryKey: ['all-orders'] });
       qc.invalidateQueries({ queryKey: ['tables', branchId] });
+      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+      qc.invalidateQueries({ queryKey: ['table-session-active'] });
     },
   });
 };

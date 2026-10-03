@@ -38,8 +38,8 @@ export const CartDrawerFooterActions = ({
                   size="sm"
                   icon={Bell}
                   onClick={onCallWaiter}
-                  disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-                  className="px-4 py-3 text-xs rounded-xl border-border-default hover:bg-bg-surface-elevated shrink-0"
+                  isDisabled={isCallWaiterPending || waiterCooldownLeft > 0}
+                  className="px-4 py-3 text-xs rounded-xl bg-transparent border-border-default hover:bg-bg-surface-elevated shrink-0"
                 >
                   {waiterCooldownLeft > 0
                     ? `الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
@@ -50,10 +50,10 @@ export const CartDrawerFooterActions = ({
                   size="sm"
                   icon={Send}
                   onClick={onSubmitOrder}
-                  disabled={isSubmitPending}
-                  className="flex-1 text-xs py-3 rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-white font-bold"
+                  isDisabled={isSubmitPending}
+                  className="flex-1 text-xs py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 font-bold"
                 >
-                  <span>اطلب الآن / إرسال الطلب للمطبخ ({cartTotalPrice} {currency})</span>
+                  <span>اطلب الآن</span>
                 </Button>
               </div>
             ) : (
@@ -69,8 +69,8 @@ export const CartDrawerFooterActions = ({
               size="sm"
               icon={Bell}
               onClick={onCallWaiter}
-              disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-              className="flex-1 py-3 text-xs rounded-xl border-border-default hover:bg-bg-surface-elevated font-bold"
+              isDisabled={isCallWaiterPending || waiterCooldownLeft > 0}
+              className="flex-1 py-3 text-xs rounded-xl bg-transparent border-border-default hover:bg-bg-surface-elevated font-bold"
             >
               {waiterCooldownLeft > 0
                 ? `استدعاء الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
@@ -80,7 +80,7 @@ export const CartDrawerFooterActions = ({
               variant="primary"
               size="sm"
               onClick={onClose}
-              className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-txt-inverted font-bold"
+              className="flex-1 py-3 text-xs rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 font-bold"
             >
               تصفح القائمة
             </Button>
@@ -132,8 +132,8 @@ export const CartDrawerFooterActions = ({
               size="sm"
               icon={Bell}
               onClick={onCallWaiter}
-              disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-              className="flex-1 py-3 text-xs rounded-xl border-border-default hover:bg-bg-surface-elevated font-bold"
+              isDisabled={isCallWaiterPending || waiterCooldownLeft > 0}
+              className="flex-1 py-3 text-xs rounded-xl bg-transparent border-border-default hover:bg-bg-surface-elevated font-bold"
             >
               {waiterCooldownLeft > 0
                 ? `الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
@@ -144,8 +144,8 @@ export const CartDrawerFooterActions = ({
               size="sm"
               icon={Receipt}
               onClick={onRequestBill || onCallWaiter}
-              disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-              className="flex-1 py-3 text-xs rounded-xl bg-brand-primary hover:bg-brand-primary-hover text-txt-inverted font-bold"
+              isDisabled={isCallWaiterPending || waiterCooldownLeft > 0}
+              className="flex-1 py-3 text-xs rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 font-bold"
             >
               {waiterCooldownLeft > 0 && session?.waiterCall?.type === 'BILL'
                 ? `تم الطلب (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`

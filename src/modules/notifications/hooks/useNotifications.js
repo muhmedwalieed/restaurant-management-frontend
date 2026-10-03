@@ -15,10 +15,11 @@ export const useNotificationsQuery = (params = {}) => {
   });
 };
 
-export const useUnreadCountQuery = () => {
+export const useUnreadCountQuery = ({ enabled = true } = {}) => {
   return useQuery({
     queryKey: ['notifications-unread'],
     queryFn: () => getUnreadCountApi(),
+    enabled,
   });
 };
 

@@ -4,6 +4,33 @@ import { PALETTES } from '../theme/palettes.js';
 const THEME_STORAGE_KEY = 'restaurant_saas_theme';
 const PALETTE_STORAGE_KEY = 'restaurant_saas_palette';
 
+// Relative luminance of a hex color (WCAG). Returns null for non-hex input.
+const relativeLuminance = (hex) => {
+  const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!match) return null;
+  let value = match[1];
+  if (value.length === 3) value = value.split('').map((c) => c + c).join('');
+  const channels = [0, 2, 4].map((i) => parseInt(value.slice(i, i + 2), 16) / 255);
+  const linear = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+};
+
+const contrastRatio = (a, b) => {
+  const la = relativeLuminance(a);
+  const lb = relativeLuminance(b);
+  if (la === null || lb === null) return null;
+  const [hi, lo] = la > lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+};
+
+// Picks the higher-contrast label color (near-black or white) for a background.
+// 0.179 is the luminance where black and white text contrast equally.
+const readableTextOn = (backgroundHex) => {
+  const luminance = relativeLuminance(backgroundHex);
+  if (luminance === null) return '#ffffff';
+  return luminance > 0.179 ? '#0b1220' : '#ffffff';
+};
+
 const ThemeContext = createContext({
   theme: 'system',
   isDark: false,
@@ -95,7 +122,13 @@ export const ThemeProvider = ({ children }) => {
       if (activePalette.vars['--text-muted']) root.style.setProperty('--t2', activePalette.vars['--text-muted']);
       if (activePalette.vars['--color-primary']) root.style.setProperty('--ac', activePalette.vars['--color-primary']);
       if (activePalette.vars['--ac-bg']) root.style.setProperty('--ac-bg', activePalette.vars['--ac-bg']);
-      const textInv = activePalette.vars['--text-inverted'] || (activePalette.vars['--color-primary'] === '#ffffff' ? '#000000' : '#ffffff');
+      // Guarantee readable labels on primary-colored surfaces regardless of palette data.
+      const primary = activePalette.vars['--color-primary'];
+      const paletteInverted = activePalette.vars['--text-inverted'];
+      const ratio = contrastRatio(primary, paletteInverted);
+      // Only override when the palette's own pairing is unreadable (below 3:1),
+      // so healthy palettes keep their intended look.
+      const textInv = ratio !== null && ratio >= 3 ? paletteInverted : readableTextOn(primary);
       root.style.setProperty('--ti', textInv);
       root.style.setProperty('--text-inverted', textInv);
     }

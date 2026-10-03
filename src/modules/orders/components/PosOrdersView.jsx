@@ -191,6 +191,7 @@ export const PosOrdersView = () => {
           selectedOrderId={currentSel?.id}
           onSelectOrder={(o) => setSelectedOrder(o)}
           onClearFilters={handleResetFilters}
+          onRefresh={refetch}
           isLoading={isLoading}
           isFetching={isFetching}
           pagination={pagination}

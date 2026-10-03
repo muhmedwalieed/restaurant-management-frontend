@@ -16,29 +16,29 @@ const getModifiers = (item) => {
 
 export const ReceiptItemsTable = ({ items = [] }) => {
   return (
-    <div className="py-2.5 border-b border-dashed border-gray-400">
+    <div className="py-2.5 border-b border-dashed border-[#ccc]">
       <table className="w-full text-right text-[11px] table-fixed" dir="rtl">
         <thead>
-          <tr className="border-b border-gray-300 text-gray-700 font-bold">
-            <th className="pb-1.5 text-right w-[44%]" dir="rtl">
+          <tr className="border-b border-[#ddd] text-black font-bold">
+            <th className="pb-1.5 text-right w-[46%]" dir="rtl">
               الصنف
             </th>
-            <th className="pb-1.5 text-center w-[16%]" dir="rtl">
+            <th className="pb-1.5 text-center w-[12%]" dir="rtl">
               الكمية
             </th>
-            <th className="pb-1.5 text-left w-[20%]" dir="rtl">
+            <th className="pb-1.5 text-left w-[21%]" dir="rtl">
               السعر
             </th>
-            <th className="pb-1.5 text-left w-[20%]" dir="rtl">
+            <th className="pb-1.5 text-left w-[21%]" dir="rtl">
               الإجمالي
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody>
           {items.map((item, idx) => {
             const mods = getModifiers(item);
             return (
-              <tr key={item.id || idx} className="align-top">
+              <tr key={item.id || idx} className="align-top border-b border-[#eee] last:border-0">
                 <td className="py-1.5 font-medium text-black break-words leading-tight" dir="auto">
                   <div dir="auto">{item.productName}</div>
                   {mods.length > 0 && (

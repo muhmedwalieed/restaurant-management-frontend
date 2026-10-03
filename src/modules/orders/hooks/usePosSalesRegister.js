@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { useCreatePosOrderMutation, usePaymentMutation } from './useOrders.js';
 import { lookupCallerApi } from '../../../lib/api/phone-order.api.js';
@@ -13,7 +13,7 @@ export const usePosSalesRegister = ({
   pendingTable = null,
   onClearPendingTable,
 }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const location = useLocation();
   const isSalesRoute = location.pathname === '/pos';
 
@@ -57,9 +57,6 @@ export const usePosSalesRegister = ({
   const [caller, setCaller] = useState(null);
   const [modifierProduct, setModifierProduct] = useState(null);
 
-  // Track the last search string written by us to prevent reading back our own updates into state
-  const lastSyncedSearchRef = useRef(null);
-
   // Handle incoming pendingTable
   useEffect(() => {
     if (pendingTable) {
@@ -82,7 +79,7 @@ export const usePosSalesRegister = ({
         setOrderType('DINE_IN');
       }
     }
-  }, [tables, urlTableParam, resolveTableId]);
+  }, [tables, urlTableParam, resolveTableId, info.table]);
 
   const selectedTableObj = useMemo(
     () => tables.find((t) => String(t.id) === String(info.table) || String(t._id) === String(info.table)),
@@ -262,6 +259,11 @@ export const usePosSalesRegister = ({
     payMethod = 'CASH',
     autoPrint: _autoPrint,
   }) => {
+    if (!activeBranchId) {
+      toast.error('لم يتم تحديد الفرع. يرجى اختيار فرع ثم المحاولة مرة أخرى');
+      return;
+    }
+
     try {
       const payload = {
         type: orderType,

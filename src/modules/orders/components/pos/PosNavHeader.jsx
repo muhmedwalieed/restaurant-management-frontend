@@ -59,10 +59,10 @@ export const PosNavHeader = ({
 
   return (
     <header
-      className="h-14 px-6 flex items-center justify-between shrink-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors select-none"
+      className="h-14 px-3 sm:px-6 flex items-center justify-between gap-2 shrink-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 transition-colors"
     >
       {/* ── Right Section (RTL): Branch / Meta Info ── */}
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200"
         >
@@ -71,14 +71,14 @@ export const PosNavHeader = ({
         <div className="flex flex-col justify-center min-w-0 pb-1">
           <div className="flex items-center gap-2">
             <span
-              className="text-sm font-semibold truncate max-w-[200px] sm:max-w-[320px] leading-tight text-zinc-900 dark:text-zinc-100"
+              className="text-sm font-semibold truncate max-w-[80px] sm:max-w-[160px] md:max-w-[240px] lg:max-w-[320px] leading-tight text-zinc-900 dark:text-zinc-100"
             >
               {activeBranch?.name || 'الفرع الرئيسي'}
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" title="متصل" />
           </div>
           <div
-            className="text-xs flex items-center gap-1.5 mt-0.5 leading-tight text-zinc-500 dark:text-zinc-400 font-normal"
+            className="hidden sm:flex text-xs items-center gap-1.5 mt-0.5 leading-tight text-zinc-500 dark:text-zinc-400 font-normal"
           >
             <Clock size={12} className="shrink-0 text-zinc-400 dark:text-zinc-500" />
             <span>{timeStr}</span>
@@ -88,7 +88,7 @@ export const PosNavHeader = ({
 
       {/* ── Center Section: Cohesive Navigation Tabs ── */}
       <nav
-        className="flex items-center p-1 rounded-full border shadow-inner gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-800"
+        className="flex items-center p-1 rounded-full border shadow-inner gap-0.5 sm:gap-1 shrink-0 bg-zinc-100/80 dark:bg-zinc-900/80 border-zinc-200 dark:border-zinc-800"
       >
         {NAV_ITEMS.map((item) => {
           const Icon = item.Icon;
@@ -98,26 +98,28 @@ export const PosNavHeader = ({
               key={item.id}
               type="button"
               onClick={() => onSelectTab(item.id)}
-              className={`px-4 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer border ${
+              aria-label={item.label}
+              title={item.label}
+              className={`px-2.5 sm:px-4 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer border ${
                 isActive
                   ? 'bg-zinc-800 text-white font-medium border border-zinc-700 shadow-sm'
                   : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 font-medium'
               }`}
             >
               <Icon size={14} strokeWidth={isActive ? 2.2 : 1.8} />
-              <span>{item.label}</span>
+              <span className="hidden md:inline">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
       {/* ── Left Section (RTL): Touch Targets & Cashier Info ── */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Fullscreen Toggle Button (40px) */}
         <button
           type="button"
           onClick={toggleFullscreen}
-          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-zinc-100/80 dark:bg-zinc-900/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 text-zinc-700 dark:text-zinc-300 active:scale-95 cursor-pointer border border-zinc-200 dark:border-zinc-800"
+          className="hidden sm:flex w-10 h-10 rounded-xl items-center justify-center transition-all bg-zinc-100/80 dark:bg-zinc-900/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 text-zinc-700 dark:text-zinc-300 active:scale-95 cursor-pointer border border-zinc-200 dark:border-zinc-800"
           title={isFullscreen ? 'إلغاء ملء الشاشة' : 'ملء الشاشة'}
         >
           {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
@@ -139,7 +141,7 @@ export const PosNavHeader = ({
 
         {/* Cashier Badge */}
         <div
-          className="hidden sm:flex items-center gap-2.5 h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80"
+          className="hidden md:flex items-center gap-2.5 h-10 px-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80"
         >
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center font-medium text-xs shrink-0 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200"

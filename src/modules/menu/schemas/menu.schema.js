@@ -11,6 +11,7 @@ export const productFormSchema = z.object({
   categoryId: z.string().min(1, 'يرجى اختيار التصنيف الخاص بالمنتج'),
   name: z.string().trim().min(2, 'اسم المنتج يجب أن يكون حرفين على الأقل'),
   description: z.string().optional(),
+  ingredientsText: z.string().optional(),
   price: z.coerce.number({ invalid_type_error: 'يرجى إدخال سعر صحيح' }).positive('سعر المنتج يجب أن يكون أكبر من 0'),
   imageUrl: z
     .string()

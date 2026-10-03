@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal } from '../../../../shared/components/Modal.jsx';
 import { Button } from '../../../../shared/components/Button.jsx';
 import { printHtml } from '../../../../lib/print.js';
+import { formatTableLabel } from '../../utils/tableLabel.js';
 import { Copy, Check, Printer } from 'lucide-react';
 
 export const TableSessionPinModal = ({
@@ -28,7 +29,7 @@ export const TableSessionPinModal = ({
       `
       <div style="text-align:center; padding:24px; font-family:Arial, sans-serif;">
         <div style="font-size:14px; color:#333;">رقم الطاولة</div>
-        <div style="font-size:34px; font-weight:800; margin:6px 0 22px; color:#000;">طاولة ${tableLabel}</div>
+        <div style="font-size:34px; font-weight:800; margin:6px 0 22px; color:#000;">${formatTableLabel(tableLabel)}</div>
         <div style="border-top:2px dashed #ccc; margin-bottom:20px;"></div>
         <div style="font-size:13px; color:#333;">رمز الدخول للطلب الذاتي</div>
         <div style="font-size:72px; font-weight:900; letter-spacing:20px; color:#000; direction:ltr; margin:14px 0 10px;">${showPin}</div>

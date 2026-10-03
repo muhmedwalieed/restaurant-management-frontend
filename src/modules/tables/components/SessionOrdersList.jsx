@@ -66,7 +66,7 @@ export const SessionOrdersList = ({ orders = [], currency = 'EGP' }) => {
                 onClick={() => setActiveMember(m.name)}
                 className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
                   selectedMember?.name === m.name
-                    ? 'bg-brand-primary text-white border-brand-primary'
+                    ? 'bg-brand-primary text-txt-inverted border-brand-primary'
                     : 'bg-bg-surface border-border-default text-txt-muted hover:text-txt-primary'
                 }`}
               >

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 
 export const CartDrawerItemRow = ({
   item,
@@ -8,79 +8,63 @@ export const CartDrawerItemRow = ({
   isLocked,
   onDecrement,
   onIncrement,
-  onRemove,
 }) => {
   const isMyItem = Boolean(currentMemberName && item.addedByName === currentMemberName);
+  const lineTotal = Number(item.total) || 0;
+  const totalLabel = lineTotal % 1 === 0 ? lineTotal.toFixed(0) : lineTotal.toFixed(2);
 
   return (
-    <div className="flex items-center justify-between gap-3 bg-bg-base/60 border border-border-subtle rounded-xl p-3">
-      <div className="min-w-0 flex-1 space-y-0.5 text-right">
-        <p className="text-xs font-bold text-txt-primary truncate">{item.productName}</p>
-        <div className="flex items-center gap-2 text-[11px] text-txt-muted">
-          <span className="font-mono font-bold text-brand-primary" dir="ltr">
-            {Number(item.total).toFixed(2)} {currency}
-          </span>
-          {item.quantity > 1 && (
-            <span className="text-[10px] text-txt-muted/70" dir="ltr">
-              ({item.quantity} × {Number(item.unitPrice).toFixed(2)} / قطعة)
-            </span>
-          )}
-        </div>
-        {item.addedByName && (
-          <p className="text-[10px] text-brand-primary/90 flex items-center gap-1 pt-0.5">
-            <Users className="w-3 h-3 shrink-0" />
-            <span>{isMyItem ? `أضفتها أنت (${item.addedByName})` : `أضافها ${item.addedByName}`}</span>
-          </p>
-        )}
+    <div className="py-2 px-2.5 rounded-xl border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+      {/* Section 1: name + price */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+          {item.productName}
+        </span>
+        <span className="text-xs font-bold font-mono text-zinc-900 dark:text-zinc-100 shrink-0" dir="ltr">
+          {totalLabel} {currency}
+        </span>
       </div>
 
-      {!isLocked && (
-        isMyItem ? (
-          <div className="flex items-center gap-1.5 shrink-0 bg-bg-surface border border-border-default rounded-lg p-1">
+      {/* Divider, then quantity + stepper, with who added it pinned far left */}
+      <div className="flex items-center justify-between gap-2 mt-1.5 pt-1.5 border-t border-zinc-100 dark:border-zinc-800/80">
+        {!isLocked && isMyItem ? (
+          <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 font-semibold rounded-lg px-1.5 py-0.5 flex items-center gap-1">
             <button
               type="button"
               onClick={() => onDecrement(item)}
-              className="w-7 h-7 rounded-md bg-bg-base hover:bg-bg-surface-elevated text-txt-primary flex items-center justify-center transition-colors cursor-pointer"
-              aria-label={item.quantity === 1 ? 'حذف الصنف' : 'إنقاص الكمية'}
-              title="إنقاص الكمية"
+              className="w-6 h-6 rounded flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/90 dark:hover:bg-zinc-700 active:scale-95 transition-all cursor-pointer"
+              aria-label={item.quantity === 1 ? 'حذف الصنف' : 'تقليل الكمية'}
+              title={item.quantity === 1 ? 'حذف الصنف' : 'تقليل الكمية'}
             >
-              <Minus className="w-3.5 h-3.5" />
+              <Minus size={12} aria-hidden="true" />
             </button>
-
-            <span className="w-6 text-center text-xs font-mono font-bold text-txt-primary">
+            <span className="text-xs font-bold w-5 text-center font-mono">
               {item.quantity}
             </span>
-
             <button
               type="button"
               onClick={() => onIncrement(item)}
-              className="w-7 h-7 rounded-md bg-bg-base hover:bg-bg-surface-elevated text-txt-primary flex items-center justify-center transition-colors cursor-pointer"
+              className="w-6 h-6 rounded flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/90 dark:hover:bg-zinc-700 active:scale-95 transition-all cursor-pointer"
               aria-label="زيادة الكمية"
               title="زيادة الكمية"
             >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onRemove(item)}
-              className="w-7 h-7 rounded-md hover:text-status-danger hover:bg-status-danger/10 text-txt-muted flex items-center justify-center transition-colors cursor-pointer"
-              aria-label="حذف الصنف"
-              title="حذف الصنف"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Plus size={12} aria-hidden="true" />
             </button>
           </div>
         ) : (
-          <div
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-bg-surface border border-border-default text-xs text-txt-muted shrink-0"
-            title={`أضافها: ${item.addedByName} — لا يمكن تعديلها أو حذفها`}
-          >
-            <span className="text-xs font-mono font-bold text-txt-primary">× {item.quantity}</span>
-            <span className="text-[10px] text-txt-muted/80">({item.addedByName})</span>
-          </div>
-        )
-      )}
+          <span className="text-xs font-mono font-bold text-zinc-500 dark:text-zinc-400" dir="ltr">
+            × {item.quantity}
+          </span>
+        )}
+
+        {item.addedByName && (
+          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate text-left min-w-0">
+            {isMyItem ? 'أضفتها أنت' : `أضافها ${item.addedByName}`}
+          </span>
+        )}
+      </div>
     </div>
   );
 };
+
+export default CartDrawerItemRow;

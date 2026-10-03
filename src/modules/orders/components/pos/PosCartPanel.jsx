@@ -33,7 +33,7 @@ export const PosCartPanel = ({
   const discount = Math.max(0, subtotal - effectiveTotal);
 
   return (
-    <aside className="shrink-0 flex flex-col h-full bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 w-full sm:w-[360px]">
+    <aside className="shrink-0 flex flex-col w-full max-h-[55%] sm:max-h-none sm:h-full sm:w-[360px] bg-white dark:bg-zinc-950 border-t sm:border-t-0 sm:border-r border-zinc-200 dark:border-zinc-800">
       {/* ── Order Type Tabs Header (Strict h-14 Baseline Alignment) ── */}
       <div className="h-14 px-4 flex items-center gap-2 shrink-0 border-b border-zinc-200 dark:border-zinc-800 bg-transparent">
         <div className="flex-1 grid grid-cols-3 gap-1 p-1 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-900/80 shadow-inner">
@@ -77,7 +77,7 @@ export const PosCartPanel = ({
             <select
               value={customerInfo?.table || ''}
               onChange={(e) => onChangeCustomerInfo?.({ ...customerInfo, table: e.target.value || null })}
-              className="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500"
+              className="flex-1 min-h-[36px] py-1.5 px-2.5 rounded-lg text-base sm:text-xs font-semibold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500"
             >
               <option value="" disabled>اختر الطاولة...</option>
               {tables.map((t) => (
@@ -100,7 +100,7 @@ export const PosCartPanel = ({
                 value={customerInfo?.name || ''}
                 onChange={(e) => onChangeCustomerInfo?.({ ...customerInfo, name: e.target.value })}
                 placeholder="اسم العميل *"
-                className="w-full pr-7 pl-2 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-400"
+                className="w-full min-h-[36px] pr-7 pl-2 py-1 rounded-lg text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-400"
               />
             </div>
             <div className="relative">
@@ -111,7 +111,7 @@ export const PosCartPanel = ({
                 value={customerInfo?.phone || ''}
                 onChange={(e) => onChangeCustomerInfo?.({ ...customerInfo, phone: e.target.value })}
                 placeholder="رقم الهاتف *"
-                className="w-full pr-7 pl-2 py-1 rounded-lg text-xs font-medium text-right bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-400 font-mono"
+                className="w-full min-h-[36px] pr-7 pl-2 py-1 rounded-lg text-base sm:text-xs font-medium text-right bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-400 font-mono"
               />
             </div>
           </div>
@@ -122,7 +122,7 @@ export const PosCartPanel = ({
               value={customerInfo?.address || ''}
               onChange={(e) => onChangeCustomerInfo?.({ ...customerInfo, address: e.target.value })}
               placeholder="عنوان التوصيل بالتفصيل *"
-              className="w-full pr-7 pl-2 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-400"
+              className="w-full min-h-[36px] pr-7 pl-2 py-1 rounded-lg text-base sm:text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-500 placeholder:text-zinc-400"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ export const PosCartPanel = ({
 
       {/* ── Coupon Row ── */}
       <div className="px-2.5 py-2 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center gap-1.5">
-        <input type="text" value={couponCode || ''} onChange={(e) => onChangeCouponCode?.(e.target.value.toUpperCase())} placeholder="كود الخصم" className="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-mono bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-400" />
+        <input type="text" value={couponCode || ''} onChange={(e) => onChangeCouponCode?.(e.target.value.toUpperCase())} placeholder="كود الخصم" className="flex-1 min-h-[36px] py-1.5 px-2.5 rounded-lg text-base sm:text-xs font-mono bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-zinc-400" />
         {couponState?.id ? (
           <button type="button" onClick={onClearCoupon} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 dark:bg-red-950/30 text-red-600 border border-red-200 dark:border-red-800 cursor-pointer">إزالة</button>
         ) : (

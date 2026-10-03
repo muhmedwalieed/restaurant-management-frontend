@@ -5,6 +5,7 @@ import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { TableQrPanel } from './TableQrPanel.jsx';
 import { TableSessionPanel } from './TableSessionPanel.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
+import { formatTableLabel } from '../utils/tableLabel.js';
 import { useActiveTableSessionQuery } from '../hooks/useTableSessions.js';
 import { printHtml } from '../../../lib/print.js';
 
@@ -50,7 +51,7 @@ export const TableDetailDrawer = ({ isOpen, onClose, table, branchName }) => {
       `
       <div style="text-align:center; padding:24px; font-family:Arial, sans-serif;">
         <div style="font-size:14px; color:#333;">رقم الطاولة</div>
-        <div style="font-size:34px; font-weight:800; margin:6px 0 22px; color:#000;">طاولة ${table.label}</div>
+        <div style="font-size:34px; font-weight:800; margin:6px 0 22px; color:#000;">${formatTableLabel(table.label)}</div>
         <div style="border-top:2px dashed #ccc; margin-bottom:20px;"></div>
         <div style="font-size:13px; color:#333;">رمز الدخول للطلب الذاتي</div>
         <div style="font-size:72px; font-weight:900; letter-spacing:20px; color:#000; direction:ltr; margin:14px 0 10px;">${session.pin}</div>
@@ -62,7 +63,7 @@ export const TableDetailDrawer = ({ isOpen, onClose, table, branchName }) => {
   };
 
   const tabBtn = (active) =>
-    `py-2 rounded-md text-xs font-bold transition-all ${active ? 'bg-brand-primary text-white shadow-sm' : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
+    `py-2 rounded-md text-xs font-bold transition-all ${active ? 'bg-brand-primary text-txt-inverted shadow-sm' : 'text-txt-muted hover:text-txt-primary hover:bg-white/[0.04]'
     }`;
 
   return (
@@ -76,7 +77,7 @@ export const TableDetailDrawer = ({ isOpen, onClose, table, branchName }) => {
                 <Grid3x3 className="w-4 h-4" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-base font-bold text-txt-primary">طاولة {table.label}</h2>
+                <h2 className="text-base font-bold text-txt-primary">{formatTableLabel(table.label)}</h2>
                 <p className="text-[11px] text-txt-muted truncate">
                   سعة {table.capacity} مقاعد • {branchName || 'الفرع الحالي'}
                 </p>

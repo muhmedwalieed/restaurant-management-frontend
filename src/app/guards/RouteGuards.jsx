@@ -4,10 +4,16 @@ import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
 import { SplashState } from '../../shared/components/SplashState.jsx';
 import { Button } from '../../shared/components/Button.jsx';
 import { DashboardPage } from '../../modules/dashboard/pages/DashboardPage.jsx';
+import { hasRestaurantHost } from '../../shared/tenant/tenant.js';
 
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isBootstrapping, hasPermission } = useAuth();
+  const { isAuthenticated, isBootstrapping, hasPermission, user } = useAuth();
   const location = useLocation();
+
+  // Staff areas only exist on a restaurant host (prime-restaurant.example.com).
+  if (!hasRestaurantHost) {
+    return <NotFoundPage />;
+  }
 
   if (isBootstrapping) {
     return <SplashState />;
@@ -16,7 +22,62 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Pure capability-based check: staff who only have floor/table access are restricted to waiter view
+  const isWaiter =
+    user?.role?.name === 'waiter' ||
+    user?.role?.name === 'ويتر' ||
+    (hasPermission('tables.view') &&
+      hasPermission('orders.create') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'orders.source_phone',
+        'orders.source_whatsapp',
+        'orders.source_website',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+        'branches.manage',
+        'customers.view',
+      ]));
+
+  const isWaiterRoute = location.pathname.startsWith('/waiter');
+
+  if (isWaiter) {
+    if (isWaiterRoute) return children;
+    return <Navigate to="/waiter" replace />;
+  }
+
+  const isKitchen =
+    user?.role?.name === 'kitchen' ||
+    user?.role?.name === 'مطبخ' ||
+    user?.role?.name === 'شيف المطبخ' ||
+    (hasPermission('kds.view') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'orders.source_phone',
+        'orders.source_whatsapp',
+        'orders.source_website',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+      ]));
+
+  const isKdsRoute = location.pathname.startsWith('/kds');
+  if (isKitchen) {
+    if (isKdsRoute) return children;
+    return <Navigate to="/kds" replace />;
+  }
+
+  if (isWaiterRoute || isKdsRoute) {
+    return children;
+  }
+
+  const isPosRoute = location.pathname.startsWith('/pos');
+  if (isPosRoute) {
+    return children;
+  }
+
   const isFloorServerOnly =
     hasPermission('tables.view') &&
     !hasPermission([
@@ -28,7 +89,7 @@ export const ProtectedRoute = ({ children }) => {
       'employees.view',
     ]);
 
-  if (isFloorServerOnly && !location.pathname.startsWith('/waiter')) {
+  if (isFloorServerOnly) {
     return <Navigate to="/waiter" replace />;
   }
 
@@ -52,7 +113,49 @@ export const RequirePermission = ({ permission, children }) => {
 };
 
 export const HomeRedirect = () => {
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
+
+  // 0. Waiter-only staff → directly to waiter single-page view
+  const isWaiterOnly =
+    user?.role?.name === 'waiter' ||
+    user?.role?.name === 'ويتر' ||
+    (hasPermission('tables.view') &&
+      hasPermission('orders.create') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'orders.source_phone',
+        'orders.source_whatsapp',
+        'orders.source_website',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+        'branches.manage',
+        'customers.view',
+      ]));
+  if (isWaiterOnly) {
+    return <Navigate to="/waiter" replace />;
+  }
+
+  // 0.5. Kitchen staff → directly to kitchen display screen (KDS)
+  const isKitchenOnly =
+    user?.role?.name === 'kitchen' ||
+    user?.role?.name === 'مطبخ' ||
+    user?.role?.name === 'شيف المطبخ' ||
+    (hasPermission('kds.view') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'orders.source_phone',
+        'orders.source_whatsapp',
+        'orders.source_website',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+      ]));
+  if (isKitchenOnly) {
+    return <Navigate to="/kds" replace />;
+  }
 
   // 1. Dashboard / Executive Overview
   if (hasPermission('dashboard.view')) {
@@ -114,6 +217,13 @@ export const HomeRedirect = () => {
 
 export const GuestRoute = ({ children }) => {
   const { isAuthenticated, isBootstrapping } = useAuth();
+
+  // A login page is a restaurant's page. Without a restaurant host there is no
+  // login to show — the URL simply does not exist.
+  if (!hasRestaurantHost) {
+    return <NotFoundPage />;
+  }
+
   if (isBootstrapping) {
     return <SplashState />;
   }

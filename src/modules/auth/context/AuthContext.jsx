@@ -1,8 +1,19 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { setAuthToken, setApiCallbacks } from '../../../lib/api-client.js';
 import { loginApi, logoutApi, refreshTokenApi, getCurrentUserApi } from '../../../lib/api/auth.api.js';
+import { restaurantSlug } from '../../../shared/tenant/tenant.js';
 
 const BRANCH_STORAGE_KEY = 'saas_active_branch_id';
+
+/**
+ * True when the authenticated account belongs to a different restaurant than the
+ * one this host serves. On a host without a restaurant (public customer pages)
+ * there is nothing to compare against, so it is never "foreign".
+ */
+const isForeignRestaurant = (me) => {
+  const accountSlug = me?.restaurant?.slug;
+  return Boolean(restaurantSlug && accountSlug && accountSlug !== restaurantSlug);
+};
 
 const AuthContext = createContext(null);
 
@@ -19,22 +30,11 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(token);
   }, [token]);
 
-  useEffect(() => {
-    // Drop any refresh token/account markers from older localStorage-based versions.
-    try {
-      localStorage.removeItem('saas_refresh_token');
-      localStorage.removeItem('saas_refresh_account');
-      sessionStorage.removeItem('saas_tab_account');
-      localStorage.removeItem('saas_auth_migrated_v2');
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   const clearSession = useCallback(() => {
     setUser(null);
     setToken(null);
     setAuthToken(null);
+    localStorage.removeItem('saas_refresh_token');
     localStorage.removeItem(BRANCH_STORAGE_KEY);
   }, []);
 
@@ -45,10 +45,17 @@ export const AuthProvider = ({ children }) => {
 
     refreshPromiseRef.current = (async () => {
       try {
-        const res = await refreshTokenApi();
+        const storedToken = typeof localStorage !== 'undefined' ? localStorage.getItem('saas_refresh_token') : null;
+        if (!storedToken) {
+          return null;
+        }
+        const res = await refreshTokenApi(storedToken);
         if (res?.accessToken) {
           setToken(res.accessToken);
           setAuthToken(res.accessToken);
+          if (res.refreshToken) {
+            localStorage.setItem('saas_refresh_token', res.refreshToken);
+          }
           return res.accessToken;
         }
         return null;
@@ -78,7 +85,12 @@ export const AuthProvider = ({ children }) => {
         const newToken = await handleRefresh();
         if (newToken) {
           const me = await getCurrentUserApi();
-          setUser(me);
+          // A restored session must belong to the restaurant this host serves.
+          if (isForeignRestaurant(me)) {
+            clearSession();
+          } else {
+            setUser(me);
+          }
         } else {
           clearSession();
         }
@@ -116,6 +128,9 @@ export const AuthProvider = ({ children }) => {
 
       setToken(accessToken);
       setAuthToken(accessToken);
+      if (res?.refreshToken) {
+        localStorage.setItem('saas_refresh_token', res.refreshToken);
+      }
 
       let me;
       try {
@@ -123,6 +138,12 @@ export const AuthProvider = ({ children }) => {
       } catch (_err) {
         clearSession();
         throw new Error('فشل في تحميل بيانات الحساب. حاول تاني.');
+      }
+
+      // Belt and braces: the backend already refuses a cross-restaurant login.
+      if (isForeignRestaurant(me)) {
+        clearSession();
+        throw new Error('الحساب ده مش تابع للمطعم المفتوح.');
       }
 
       setUser(me);

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAllOrdersQuery } from '../hooks/useOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { DataTable } from '../../../shared/components/DataTable.jsx';
+import { formatTableLabel } from '../../tables/utils/tableLabel.js';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { OrderFormModal } from '../components/OrderFormModal.jsx';
 import { OrdersStatusTabs } from '../components/list/OrdersStatusTabs.jsx';
@@ -30,6 +31,7 @@ import {
   DollarSign,
   Package,
   Calendar,
+  Search,
 } from 'lucide-react';
 
 const normalizeCalendarDate = (dateVal) => {
@@ -464,7 +466,7 @@ export const OrdersListPage = () => {
         if (row.table) {
           return (
             <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
-              طاولة {row.table.label || row.table.number}
+              {formatTableLabel(row.table.label || row.table.number)}
             </span>
           );
         }

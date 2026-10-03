@@ -1,21 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
-  CreditCard,
-  Banknote,
-  Wallet,
-  QrCode,
   UtensilsCrossed,
   ShoppingBag,
   Bike,
   Printer,
   CheckCircle2,
-  AlertCircle,
-  Clock,
 } from 'lucide-react';
 import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
 import { toast } from '../../../../shared/context/ToastContext.jsx';
-import { ORDER_TYPES as BASE_ORDER_TYPES } from '../../constants.js';
+import { formatTableLabel } from '../../../tables/utils/tableLabel.js';
+import { PAYMENT_METHODS } from '../payment/paymentMethods.js';
 
 const ORDER_TYPE_CFG = {
   PICKUP: { label: 'استلام', Icon: ShoppingBag },
@@ -23,24 +18,14 @@ const ORDER_TYPE_CFG = {
   DINE_IN: { label: 'صالة', Icon: UtensilsCrossed },
 };
 
-const PAY_METHODS = [
-  { id: 'CASH', label: 'نقدي', Icon: Banknote },
-  { id: 'CARD', label: 'بطاقة', Icon: CreditCard },
-  { id: 'INSTAPAY', label: 'انستاباي', Icon: QrCode },
-  { id: 'WALLET', label: 'محفظة', Icon: Wallet },
-];
-
 export const PosCheckoutModal = ({
   isOpen,
   onClose,
   total = 0,
   rawTotal,
   couponState,
-  cart = [],
   orderType = 'DINE_IN',
-  onChangeOrderType,
   customerInfo = {},
-  onChangeCustomerInfo,
   tables = [],
   selectedTableLabel,
   onConfirmCheckout,
@@ -83,9 +68,12 @@ export const PosCheckoutModal = ({
     return tables.find((t) => String(t.id) === String(customerInfo.table) || String(t._id) === String(customerInfo.table));
   }, [tables, customerInfo?.table]);
 
+  const currentTableRaw = currentTableObj
+    ? currentTableObj.label || currentTableObj.name || currentTableObj.number
+    : null;
   const tableDisplayName = currentTableObj
-    ? currentTableObj.label || currentTableObj.name || (currentTableObj.number != null ? `طاولة ${currentTableObj.number}` : 'طاولة')
-    : selectedTableLabel ? `طاولة ${selectedTableLabel}` : null;
+    ? (currentTableRaw != null ? formatTableLabel(currentTableRaw) : 'طاولة')
+    : (selectedTableLabel ? formatTableLabel(selectedTableLabel) : null);
 
   const customerDisplayName = orderType === 'DINE_IN'
     ? (tableDisplayName || 'طاولة غير محددة')
@@ -206,7 +194,7 @@ export const PosCheckoutModal = ({
         <div className="space-y-2">
           <span className="text-xs font-medium text-zinc-400">طريقة الدفع</span>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {PAY_METHODS.map((m) => {
+            {PAYMENT_METHODS.map((m) => {
               const Icon = m.Icon;
               const isActive = payMethod === m.id;
               return (
@@ -305,7 +293,7 @@ export const PosCheckoutModal = ({
             onClick={onClose}
             className="w-full h-10 text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors cursor-pointer"
           >
-            رجوع / إلغاء
+           رجوع
           </button>
         </div>
       </div>

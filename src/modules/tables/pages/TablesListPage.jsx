@@ -4,6 +4,7 @@ import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { useBranchSessionsQuery, useStartTableSession } from '../hooks/useTableSessions.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../../../shared/components/Button.jsx';
+import { formatTableLabel } from '../utils/tableLabel.js';
 import { Modal } from '../../../shared/components/Modal.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
 import { PermissionGate } from '../../../shared/components/PermissionGate.jsx';
@@ -194,7 +195,7 @@ export const TablesListPage = () => {
       <Modal
         isOpen={Boolean(newPin)}
         onClose={() => setNewPin(null)}
-        title={`بدء جلسة - طاولة ${pinTable?.label || ''}`}
+        title={`بدء جلسة - ${formatTableLabel(pinTable?.label)}`}
         size="sm"
       >
         <div className="text-center space-y-4 py-2">

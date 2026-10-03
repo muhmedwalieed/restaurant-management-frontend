@@ -43,6 +43,7 @@ export const usePublicTableMenu = (qrToken) => {
   const [menu, setMenu] = useState(null);
   const [isMenuLoading, setIsMenuLoading] = useState(true);
   const [menuError, setMenuError] = useState(null);
+  const [menuErrorCode, setMenuErrorCode] = useState(null);
   const [selectedCatId, setSelectedCatId] = useState('ALL');
 
   const nameStorageKey = `ts_name_${qrToken}`;
@@ -85,7 +86,10 @@ export const usePublicTableMenu = (qrToken) => {
         const res = await getTableMenuApi(qrToken);
         if (active) setMenu(res);
       } catch (err) {
-        if (active) setMenuError(err?.message || 'تعذر تحميل قائمة الطعام.');
+        if (active) {
+          setMenuError(err?.message || 'تعذر تحميل قائمة الطعام.');
+          setMenuErrorCode(err?.code || null);
+        }
       } finally {
         if (active) setIsMenuLoading(false);
       }
@@ -284,6 +288,7 @@ export const usePublicTableMenu = (qrToken) => {
     menu,
     isMenuLoading,
     menuError,
+    menuErrorCode,
     categories,
     restaurant,
     table,

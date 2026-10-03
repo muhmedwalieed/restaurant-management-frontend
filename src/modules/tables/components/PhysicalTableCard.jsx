@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, KeyRound, QrCode, Bell, Receipt, Utensils, CheckCircle2 } from 'lucide-react';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
+import { formatTableLabel } from '../utils/tableLabel.js';
 
 export const PhysicalTableCard = ({
   table,
@@ -138,10 +139,12 @@ export const PhysicalTableCard = ({
               <Utensils className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0 text-right">
-              <p className="text-xs font-bold text-txt-primary truncate">طاولة {table.label}</p>
+              <p className="text-xs font-bold text-txt-primary truncate">{formatTableLabel(table.label)}</p>
               <p className="text-[10px] text-txt-muted font-medium truncate">
                 {hasSession
-                  ? `${memberCount} جالس الآن`
+                  ? memberCount > 0
+                    ? `${memberCount} جالس الآن`
+                    : 'الجلسة مفتوحة'
                   : table.status === 'AVAILABLE'
                   ? 'جاهزة للاستقبال'
                   : 'غير متاحة'}

@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTableGridState } from '../../tables/hooks/useTableGridState.js';
 import { useProductsQuery, useCategoriesQuery } from '../../menu/hooks/useMenu.js';
 import { useCreatePosOrderMutation } from './useOrders.js';
-import { printTablePinReceipt, printTableBillReceipt } from '../../tables/utils/tableThermalPrinting.js';
+import { formatTableLabel } from '../../tables/utils/tableLabel.js';
 import {
   useRejectPendingOrder,
   useUpdateSessionItemStaff,
@@ -11,19 +11,15 @@ import {
 } from '../../tables/hooks/useTableSessions.js';
 import { toast } from '../../../shared/context/ToastContext.jsx';
 
-export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
+export const useWaiterPage = ({ activeBranchId }) => {
   const {
     tables,
-    rawOrders,
-    tableOrderMap,
     refetchAll,
     recordLocalPin,
+    settleTable,
     startSessionMutation,
-    closeSessionMutation,
     confirmSessionMutation,
     dismissCallMutation,
-    updateTableMutation,
-    paymentMutation,
   } = useTableGridState(activeBranchId);
 
   const { data: productsResponse } = useProductsQuery({ page: 1, limit: 100 });
@@ -45,6 +41,7 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
   const [reviewTable, setReviewTable] = useState(null);
   const [addItemTable, setAddItemTable] = useState(null);
   const [billTable, setBillTable] = useState(null);
+  const [qrTable, setQrTable] = useState(null);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [isClosingSession, setIsClosingSession] = useState(false);
 
@@ -72,25 +69,6 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
     [tables]
   );
 
-  const handlePrintPin = useCallback((table, pin) => {
-    printTablePinReceipt({
-      branchName: activeBranch?.name || 'مطعمنا',
-      displayNum: table.displayNum,
-      pin,
-      waiterName: user?.name || 'طاقم الخدمة',
-    });
-  }, [activeBranch, user]);
-
-  const handlePrintBill = useCallback((table) => {
-    printTableBillReceipt({
-      branchName: activeBranch?.name || 'مطعمنا',
-      displayNum: table.displayNum,
-      items: table.session?.items || [],
-      total: table.session?.total || 0,
-      currency: activeBranch?.settings?.currency || 'ج.م',
-    });
-  }, [activeBranch]);
-
   const handleOpenSession = async (tableId) => {
     setIsStartingSession(true);
     try {
@@ -99,14 +77,13 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
         tableId,
         payload: {
           guestCount: 1,
-          customerName: 'طاولة ' + (selectedTable?.displayNum || ''),
+          customerName: formatTableLabel(selectedTable?.displayNum),
         },
       });
 
       const pin = res?.pin || res?.data?.pin;
       if (pin) {
         recordLocalPin(tableId, pin);
-        handlePrintPin(selectedTable, pin);
       }
       await refetchAll();
     } catch (err) {
@@ -211,6 +188,10 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
   };
 
   const handleAddItemsToSession = async (table, items) => {
+    if (!activeBranchId) {
+      toast.error('لم يتم تحديد الفرع. يرجى اختيار فرع ثم المحاولة مرة أخرى');
+      return;
+    }
     try {
       if (table.session?.dbSessionId) {
         await addItemStaffMutation.mutateAsync({
@@ -244,52 +225,8 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
   const handleSettleAndClose = async (table, paymentMethod = 'CASH') => {
     if (!table) return;
     setIsClosingSession(true);
-    const session = table?.session;
-    const tid = table?.id || table?.tableId || table?._id;
-    const orderId = session?.activeOrder?.id || (tid ? tableOrderMap.get(tid)?.id : null);
-    const total = session?.total || 0;
-
     try {
-      if (orderId) {
-        const matchedOrder = rawOrders.find((o) => o.id === orderId);
-        const amountToPay = matchedOrder ? Number(matchedOrder.total) : total;
-
-        if (matchedOrder?.paymentStatus !== 'PAID') {
-          try {
-            await paymentMutation.mutateAsync({
-              branchId: activeBranchId,
-              orderId,
-              payload: {
-                amount: amountToPay > 0 ? amountToPay : total,
-                paymentMethod: paymentMethod || 'CASH',
-              },
-            });
-          } catch (payErr) {
-            console.warn('Payment warning during close:', payErr);
-          }
-        }
-      }
-
-      if (session?.dbSessionId) {
-        await closeSessionMutation.mutateAsync({
-          sessionId: session.dbSessionId,
-          payload: { settlePayment: true, paymentMethod },
-        });
-      }
-
-      if (tid) {
-        try {
-          await updateTableMutation.mutateAsync({
-            branchId: activeBranchId,
-            id: tid,
-            tableId: tid,
-            payload: { status: 'AVAILABLE' },
-          });
-        } catch (_tableErr) {
-          // backend closeSession may have already updated table status
-        }
-      }
-
+      await settleTable({ table, branchId: activeBranchId, paymentMethod: paymentMethod || 'CASH' });
       setBillTable(null);
       setSelectedTableId(null);
       await refetchAll();
@@ -318,6 +255,8 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
     setAddItemTable,
     billTable,
     setBillTable,
+    qrTable,
+    setQrTable,
     products,
     categories,
     isStartingSession,
@@ -325,8 +264,6 @@ export const useWaiterPage = ({ activeBranchId, activeBranch, user }) => {
     refetchAll,
     confirmSessionMutation,
     createPosOrderMutation,
-    handlePrintPin,
-    handlePrintBill,
     handleOpenSession,
     handleDismissCall,
     handleConfirmReviewOrder,

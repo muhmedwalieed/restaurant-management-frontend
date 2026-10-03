@@ -1,5 +1,5 @@
 import React from 'react';
-import { UtensilsCrossed, Loader2 } from 'lucide-react';
+import { UtensilsCrossed } from 'lucide-react';
 import { PosProductCard } from './PosProductCard.jsx';
 
 export const PosProductGrid = ({
@@ -43,7 +43,7 @@ export const PosProductGrid = ({
             onSelect={onSelectProduct}
             onIncrement={onIncrementProduct}
             onDecrement={onDecrementProduct}
-            cartQty={cartItemMap[p.id] || 0}
+            cartQty={cartItemMap[`${p.id}__`] ?? cartItemMap[p.id] ?? 0}
           />
         ))}
       </div>

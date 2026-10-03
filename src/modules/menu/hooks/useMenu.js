@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOptionalBranch } from '../../auth/context/BranchContext.jsx';
 import {
   getCategoriesApi,
   createCategoryApi,
@@ -15,8 +16,10 @@ import {
 } from '../../../lib/api/menu.api.js';
 
 export const useCategoriesQuery = (params = {}) => {
+  const branchContext = useOptionalBranch();
+  const activeBranchId = branchContext?.activeBranchId || null;
   return useQuery({
-    queryKey: ['categories', params],
+    queryKey: ['categories', activeBranchId, params],
     queryFn: () => getCategoriesApi(params),
   });
 };
@@ -45,8 +48,10 @@ export const useUpdateCategoryMutation = () => {
 };
 
 export const useProductsQuery = (params = {}) => {
+  const branchContext = useOptionalBranch();
+  const activeBranchId = branchContext?.activeBranchId || null;
   return useQuery({
-    queryKey: ['products', params],
+    queryKey: ['products', activeBranchId, params],
     queryFn: () => getProductsApi(params),
   });
 };

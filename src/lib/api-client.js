@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { restaurantSlug } from '../shared/tenant/tenant.js';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 const apiOrigin = new URL(baseURL).origin;
@@ -66,6 +67,11 @@ apiClient.interceptors.request.use(
   (config) => {
     if (authToken && !config.skipAuth && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${authToken}`;
+    }
+    // The restaurant this page is served for (its subdomain). The backend uses it
+    // to scope login/refresh and to reject a token from another restaurant.
+    if (restaurantSlug && !config.headers['X-Restaurant-Slug']) {
+      config.headers['X-Restaurant-Slug'] = restaurantSlug;
     }
     try {
       const activeBranchId = localStorage.getItem('saas_active_branch_id');
@@ -149,7 +155,9 @@ apiClient.interceptors.response.use(unwrapResponse, async (error) => {
 
       // Table self-ordering member routes use their own JWT — never retry them
       // with the staff access token (a staff refresh must not log the user out).
-      if (originalRequest.url && (originalRequest.url.includes('/sessions') || originalRequest.url.includes('/menu/table'))) {
+      const requestUrl = originalRequest.url || '';
+      const isMemberSessionRoute = !requestUrl.includes('/tables/sessions') && requestUrl.includes('/sessions');
+      if (isMemberSessionRoute || requestUrl.includes('/menu/table')) {
         return Promise.reject(normalizedError);
       }
 

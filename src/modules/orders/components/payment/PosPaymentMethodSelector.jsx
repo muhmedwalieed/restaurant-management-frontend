@@ -1,11 +1,5 @@
 import React from 'react';
-
-const PAY_METHODS = [
-  { id: 'CASH', label: 'نقدي' },
-  { id: 'WALLET', label: 'محفظة' },
-  { id: 'INSTAPAY', label: 'انستاباي' },
-  { id: 'CARD', label: 'بطاقة' },
-];
+import { PAYMENT_METHODS } from './paymentMethods.js';
 
 export const PosPaymentMethodSelector = ({
   payMethod,
@@ -15,7 +9,7 @@ export const PosPaymentMethodSelector = ({
     <div className="space-y-1.5">
       <label className="block text-xs font-semibold text-txt-primary">طريقة الدفع</label>
       <div className="grid grid-cols-4 gap-2">
-        {PAY_METHODS.map((m) => {
+        {PAYMENT_METHODS.map((m) => {
           const isSelected = payMethod === m.id;
           return (
             <button

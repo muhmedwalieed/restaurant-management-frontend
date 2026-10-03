@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { Button } from '../../../../shared/components/Button.jsx';
 import { QrCode, Copy, Check, Download, Printer, ArrowUpRight } from 'lucide-react';
+import { formatTableLabel } from '../../utils/tableLabel.js';
 
 const QR_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#f59e0b"/><text x="24" y="31" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a" text-anchor="middle">QR</text></svg>`;
 const QR_LOGO_DATA_URL = `data:image/svg+xml,${encodeURIComponent(QR_LOGO_SVG)}`;
@@ -54,7 +55,7 @@ export const TableQrCard = ({ table, branchName }) => {
     printWindow.document.write(`
       <html dir="rtl">
         <head>
-          <title>طاولة ${table?.label || ''} - رمز QR</title>
+          <title>${formatTableLabel(table?.label)} - رمز QR</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 40px; color: #0f172a; }
             .card { display: inline-block; padding: 32px; border: 2px solid #cbd5e1; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -66,7 +67,7 @@ export const TableQrCard = ({ table, branchName }) => {
         </head>
         <body>
           <div class="card">
-            <h2>طاولة ${table?.label || ''}</h2>
+            <h2>${formatTableLabel(table?.label)}</h2>
             <p>${branchName || ''} • امسح الرمز لطلب الطعام مباشرة</p>
             <div class="qr-wrapper">${qrElem.innerHTML}</div>
             <div class="footer-tip">امسح بكاميرا الهاتف لفتح المنيو الذكي</div>

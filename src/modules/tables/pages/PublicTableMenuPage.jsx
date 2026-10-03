@@ -19,6 +19,7 @@ export const PublicTableMenuPage = () => {
   const {
     isMenuLoading,
     menuError,
+    menuErrorCode,
     categories,
     restaurant,
     table,
@@ -87,17 +88,62 @@ export const PublicTableMenuPage = () => {
   }
 
   if (menuError) {
+    const isInvalidLink =
+      menuErrorCode === 'NOT_FOUND' || menuErrorCode === 'AUTHENTICATION_ERROR';
+    const isConnectionIssue =
+      menuErrorCode === 'NETWORK_ERROR' || menuErrorCode === 'SERVICE_UNAVAILABLE';
+
+    const title = isInvalidLink
+      ? 'رابط الطاولة غير صالح'
+      : isConnectionIssue
+        ? 'تعذر الاتصال'
+        : 'تعذر تحميل القائمة';
+
+    const description = isInvalidLink
+      ? 'الكود اللي فتحت بيه الصفحة مش صالح أو انتهت صلاحيته. امسح كود QR الموجود على الطاولة مرة تانية.'
+      : isConnectionIssue
+        ? 'مقدرناش نوصل بالخادم. اتأكد إن النت شغال وبعدين جرّب تاني.'
+        : menuError;
+
+    const tone = isInvalidLink || !isConnectionIssue ? 'danger' : 'warning';
+
     return (
-      <div className="min-h-screen bg-bg-base flex flex-col items-center justify-center px-4">
-        <div className="bg-bg-surface border border-status-danger/30 rounded-2xl p-8 text-center space-y-4 max-w-sm shadow-lg">
-          <span className="inline-flex p-3.5 rounded-full bg-status-danger/10">
-            <AlertCircle className="w-6 h-6 text-status-danger" />
+      <div className="min-h-screen bg-bg-base flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-sm bg-bg-surface border border-border-default rounded-2xl p-6 sm:p-8 text-center space-y-6 animate-fadeUp">
+          <span
+            className={`inline-flex items-center justify-center w-14 h-14 rounded-full ${
+              tone === 'danger' ? 'bg-status-danger/10' : 'bg-status-warning/10'
+            }`}
+          >
+            <AlertCircle
+              aria-hidden="true"
+              className={`w-7 h-7 ${
+                tone === 'danger' ? 'text-status-danger' : 'text-status-warning'
+              }`}
+            />
           </span>
-          <h1 className="text-lg font-bold text-txt-primary">قائمة الطعام غير متاحة</h1>
-          <p className="text-sm text-txt-muted leading-relaxed">{menuError}</p>
-          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-            إعادة المحاولة
-          </Button>
+
+          <div className="space-y-2">
+            <h1 className="text-lg font-bold text-txt-primary">{title}</h1>
+            <p className="text-sm text-txt-muted leading-relaxed">{description}</p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              variant="primary"
+              size="lg"
+              radius="lg"
+              className="w-full"
+              onClick={() => window.location.reload()}
+            >
+              إعادة المحاولة
+            </Button>
+            {isInvalidLink && (
+              <p className="text-xs text-txt-dim leading-relaxed">
+                لو الصفحة ما فتحتش كمان مرة، كلّم أحد أفراد الخدمة.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -146,7 +192,7 @@ export const PublicTableMenuPage = () => {
         isClosed={isClosed}
       />
 
-      <main className="max-w-6xl mx-auto px-4 py-5 pb-32 lg:pb-10">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 pt-0 pb-28 lg:pb-10">
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-6 lg:items-start">
           <div className="min-w-0">
             <TableCategoryNav

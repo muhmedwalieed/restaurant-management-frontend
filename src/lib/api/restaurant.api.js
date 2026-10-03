@@ -1,5 +1,10 @@
 import { apiClient } from '../api-client.js';
 
+/** Public branding for a restaurant's staff login page — no auth, no tenant data. */
+export const getPublicRestaurantApi = async (slug) => {
+  return apiClient.get(`/restaurant/public/${encodeURIComponent(slug)}`, { skipAuth: true });
+};
+
 export const getRestaurantProfileApi = async () => {
   return apiClient.get('/restaurant');
 };

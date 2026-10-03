@@ -1,4 +1,5 @@
 import { printHtml } from '../../../lib/print.js';
+import { formatTableLabel } from './tableLabel.js';
 
 /**
  * Prints a thermal PIN slip for Dine-In self-ordering.
@@ -15,7 +16,7 @@ export const printTablePinReceipt = ({ branchName = 'مطعمنا', displayNum, 
       <div style="font-size:12px; color:#666;">رمز الدخول للطلب الذاتي (PIN)</div>
       <div style="border-top:2px dashed #ccc; margin:12px 0;"></div>
       <div style="font-size:13px; color:#444;">رقم الطاولة</div>
-      <div style="font-size:32px; font-weight:800; margin:4px 0 12px; color:#000;">طاولة ${displayNum}</div>
+      <div style="font-size:32px; font-weight:800; margin:4px 0 12px; color:#000;">${formatTableLabel(displayNum)}</div>
       <div style="border-top:1px dashed #ccc; margin:12px 0;"></div>
       <div style="font-size:13px; color:#333; font-weight:600;">رمز الدخول للطلب الذاتي</div>
       <div style="font-size:56px; font-weight:900; letter-spacing:14px; color:#000; direction:ltr; margin:12px 0;">${pin}</div>
@@ -38,7 +39,7 @@ export const printTableBillReceipt = ({ branchName = 'مطعمنا', displayNum,
     `
     <div style="text-align:center; padding:20px 10px; font-family:'Cairo', system-ui, sans-serif; direction:rtl;">
       <div style="font-size:16px; font-weight:bold; color:#000;">${branchName}</div>
-      <div style="font-size:12px; color:#666; margin-top:2px;">فاتورة حساب طاولة ${displayNum}</div>
+      <div style="font-size:12px; color:#666; margin-top:2px;">فاتورة حساب ${formatTableLabel(displayNum)}</div>
       <div style="font-size:11px; color:#888; margin-top:2px;">التاريخ: ${new Date().toLocaleString('ar-EG')}</div>
       <div style="border-top:1px dashed #ccc; margin:10px 0;"></div>
       <table style="width:100%; font-size:12px; border-collapse:collapse; text-align:right;">

@@ -19,6 +19,8 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Staff URLs are per-restaurant subdomains: prime-restaurant.localhost:5173
+    allowedHosts: ['.localhost'],
   },
   test: {
     globals: true,

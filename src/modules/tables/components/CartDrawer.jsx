@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { X, ShoppingCart, Receipt } from 'lucide-react';
+import { X, Receipt } from 'lucide-react';
+import { formatTableLabel } from '../utils/tableLabel.js';
 import { SessionOrdersList } from './SessionOrdersList.jsx';
 import { CartDrawerItemList } from './cart/CartDrawerItemList.jsx';
 import { CartDrawerFooterActions } from './cart/CartDrawerFooterActions.jsx';
@@ -108,52 +109,46 @@ export const CartDrawer = ({
 
         {/* Drawer Header */}
         <div className="p-4 border-b border-border-default flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-brand-primary/10 border border-brand-primary/20 text-brand-primary">
-              <ShoppingCart className="w-5 h-5" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="text-sm font-bold text-txt-primary">سلة طلبات الطاولة</h2>
-              <p className="text-xs text-txt-muted truncate">
-                {restaurant?.name || 'مطعمنا'} · طاولة {session?.tableLabel || session?.tableNumber || '—'}
-              </p>
-            </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-txt-primary">سلة طلبات الطاولة</h2>
+            <p className="text-xs text-txt-muted truncate">
+              {restaurant?.name || 'مطعمنا'} · {session?.tableLabel || session?.tableNumber ? formatTableLabel(session.tableLabel || session.tableNumber) : '—'}
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors cursor-pointer"
+            aria-label="إغلاق السلة"
+            className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
         {/* Tab switcher */}
         <div className="px-4 py-2 bg-bg-base/80 border-b border-border-default shrink-0">
-          <div className="grid grid-cols-2 gap-1 p-1 bg-bg-surface border border-border-subtle rounded-xl text-xs font-bold">
+          <div className="grid grid-cols-2 gap-1 p-1 text-xs font-bold">
             <button
               type="button"
               onClick={() => setActiveTab('cart')}
-              className={`py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`min-h-[44px] py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
                 activeTab === 'cart'
-                  ? 'bg-brand-primary text-white shadow-sm font-bold'
-                  : 'text-txt-muted hover:text-txt-primary'
+                  ? 'bg-zinc-900 dark:bg-zinc-800 text-white font-medium border-zinc-900 dark:border-zinc-700'
+                  : 'border-transparent text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated'
               }`}
             >
-              <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">السلة الحالية ({totalPieces})</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('session')}
-              className={`py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              className={`min-h-[44px] py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
                 activeTab === 'session'
-                  ? 'bg-brand-primary text-white shadow-sm font-bold'
-                  : 'text-txt-muted hover:text-txt-primary'
+                  ? 'bg-zinc-900 dark:bg-zinc-800 text-white font-medium border-zinc-900 dark:border-zinc-700'
+                  : 'border-transparent text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated'
               }`}
             >
-              <Receipt className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">
                 أوردرات الجلسة {totalSessionAmount > 0 ? `(${totalSessionAmount.toFixed(0)} ${currency})` : `(${sessionOrders.length})`}
               </span>
@@ -162,7 +157,7 @@ export const CartDrawer = ({
         </div>
 
         {/* Body content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2.5 space-y-2 bg-zinc-50/60 dark:bg-black/40">
           {activeTab === 'cart' ? (
             <CartDrawerItemList
               consolidatedItems={consolidatedItems}

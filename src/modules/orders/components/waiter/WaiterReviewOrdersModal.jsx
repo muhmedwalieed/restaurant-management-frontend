@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Modal } from '../../../../shared/components/Modal.jsx';
 import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
+import { formatTableLabel } from '../../../tables/utils/tableLabel.js';
 
 export const WaiterReviewOrdersModal = ({
   isOpen,
@@ -93,8 +94,7 @@ export const WaiterReviewOrdersModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`مراجعة وتعديل طلب طاولة ${table.displayNum} ${orderNumber ? `(#${orderNumber})` : ''}`}
-      maxWidth="md"
+      title={`مراجعة وتعديل طلب ${formatTableLabel(table.displayNum)} ${orderNumber ? `(#${orderNumber})` : ''}`}
     >
       <div className="space-y-4 text-xs">
         {/* Info Banner */}
@@ -103,9 +103,10 @@ export const WaiterReviewOrdersModal = ({
           <span>طلب QR بانتظار موافقتك. يمكنك تعديل الكميات أو حذف أو إضافة أصناف قبل إرساله للمطبخ.</span>
         </div>
 
-        {/* Review Items Table */}
+        {/* Review Items Table — scrolls horizontally on narrow screens */}
         <div className="border rounded-lg overflow-hidden" style={{ borderColor: 'var(--bd)' }}>
-          <table className="w-full text-right">
+          <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full min-w-[440px] text-right">
             <thead style={{ background: 'var(--s2)' }}>
               <tr className="border-b" style={{ borderColor: 'var(--bd)', color: 'var(--t2)' }}>
                 <th className="p-2.5">الصنف</th>
@@ -192,6 +193,7 @@ export const WaiterReviewOrdersModal = ({
               </tr>
             </tfoot>
           </table>
+          </div>
         </div>
 
         {/* Add Product into this Order Section */}
@@ -233,13 +235,13 @@ export const WaiterReviewOrdersModal = ({
                         placeholder="ابحث عن الصنف..."
                         value={searchFilter}
                         onChange={(e) => setSearchFilter(e.target.value)}
-                        className="w-full pr-8 pl-2.5 py-1.5 rounded-lg border bg-bg-base text-xs text-txt-primary border-border-default focus:border-brand-primary outline-none"
+                        className="w-full min-h-[40px] pr-8 pl-2.5 py-1.5 rounded-lg border bg-bg-base text-base sm:text-xs select-text text-txt-primary border-border-default focus:border-brand-primary outline-none"
                       />
                     </div>
                     <select
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-lg border bg-bg-base text-xs text-txt-primary border-border-default focus:border-brand-primary outline-none mt-1"
+                      className="w-full min-h-[40px] px-2.5 py-1.5 rounded-lg border bg-bg-base text-base sm:text-xs text-txt-primary border-border-default focus:border-brand-primary outline-none mt-1"
                     >
                       <option value="">-- اختر صنفاً --</option>
                       {availableProducts.map((p) => (
@@ -274,7 +276,7 @@ export const WaiterReviewOrdersModal = ({
                     type="button"
                     disabled={!selectedProductId || actionLoadingId === 'add-new'}
                     onClick={handleConfirmAddItem}
-                    className="px-3.5 py-2 rounded-lg font-bold text-txt-inverted transition-all bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                    className="px-3.5 py-2 rounded-lg font-bold text-white transition-all bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 cursor-pointer flex items-center justify-center gap-1 shrink-0"
                   >
                     {actionLoadingId === 'add-new' ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                     <span>إضافة</span>
@@ -301,8 +303,7 @@ export const WaiterReviewOrdersModal = ({
             type="button"
             disabled={isLoading || isRejecting || reviewItems.length === 0}
             onClick={() => onConfirmOrder(table)}
-            className="px-5 py-2 rounded-lg font-bold text-txt-inverted transition-all shadow-sm active:scale-98 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            style={{ background: 'var(--ok)' }}
+            className="px-5 py-2 rounded-lg font-bold text-white transition-all shadow-sm active:scale-98 flex items-center gap-1.5 cursor-pointer disabled:opacity-50 bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/20"
           >
             {isLoading ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
             <span>{isLoading ? 'جاري التأكيد...' : 'تأكيد وإرسال للمطبخ'}</span>

@@ -21,10 +21,13 @@ describe('Module 2 API Functions Unit Tests', () => {
 
     await loginApi({ email: 'admin@restaurant.com', password: 'password123', forceLogout: true });
 
+    // The login is scoped to the restaurant whose host serves the page; on a host
+    // without a restaurant (jsdom's `localhost`) the slug is null.
     expect(postSpy).toHaveBeenCalledWith('/auth/login', {
       email: 'admin@restaurant.com',
       password: 'password123',
       forceLogout: true,
+      restaurantSlug: null,
     });
   });
 

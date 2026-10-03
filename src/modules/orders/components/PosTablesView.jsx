@@ -1,42 +1,33 @@
 import { useState, useMemo, useCallback } from 'react';
+
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { useTableGridState } from '../../tables/hooks/useTableGridState.js';
 import { printTablePinReceipt, printTableBillReceipt } from '../../tables/utils/tableThermalPrinting.js';
 import { toast } from '../../../shared/context/ToastContext.jsx';
-import { PosTableCard } from './pos-tables/PosTableCard.jsx';
-import { PosTableQrModal } from './pos-tables/PosTableQrModal.jsx';
+import { WaiterTableGrid } from './waiter/WaiterTableGrid.jsx';
+import { WaiterBillModal } from './waiter/WaiterBillModal.jsx';
 import { PosTableSidebarDrawer } from './pos-tables/PosTableSidebarDrawer.jsx';
-import { PosTablesStatsBar } from './pos-tables/PosTablesStatsBar.jsx';
+import { PosTableQrModal } from './pos-tables/PosTableQrModal.jsx';
 
 export const PosTablesView = ({ onSelectTableForOrder }) => {
   const { activeBranchId, activeBranch } = useBranch();
   const [selectedTableId, setSelectedTableId] = useState(null);
-  const [qrModalTable, setQrModalTable] = useState(null);
+  const [billTable, setBillTable] = useState(null);
+  const [qrTable, setQrTable] = useState(null);
   const [isClosingSession, setIsClosingSession] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [selectedSection, setSelectedSection] = useState('ALL');
 
   const {
     tables,
-    rawOrders,
-    tableOrderMap,
     refetchAll,
-    closeSessionMutation,
     dismissCallMutation,
-    updateTableMutation,
-    paymentMutation,
+    settleTable,
   } = useTableGridState(activeBranchId);
 
   const selectedTable = useMemo(
     () => tables.find((t) => t.id === selectedTableId) || null,
     [tables, selectedTableId]
-  );
-
-  const occupiedCount = useMemo(
-    () => tables.filter((t) => t.status === 'occupied').length,
-    [tables]
-  );
-  const availableCount = useMemo(
-    () => tables.filter((t) => t.status === 'available').length,
-    [tables]
   );
 
   // Print handlers using shared thermal print utility
@@ -58,43 +49,12 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
     });
   }, [activeBranch]);
 
-  // Settle and close
-  const handleSettleAndClose = async (table) => {
+  const handleSettleAndClose = async (table, paymentMethod = 'CASH') => {
     if (!table) return;
     setIsClosingSession(true);
-    const session = table?.session;
-    const tid = table?.id || table?.tableId || table?._id;
-    const orderId = session?.activeOrder?.id || (tid ? tableOrderMap.get(tid)?.id : null);
-    const total = session?.total || 0;
-
     try {
-      if (orderId) {
-        const matchedOrder = rawOrders.find((o) => o.id === orderId);
-        const amountToPay = matchedOrder ? Number(matchedOrder.total) : total;
-
-        if (matchedOrder?.paymentStatus !== 'PAID') {
-          try {
-            await paymentMutation.mutateAsync({
-              branchId: activeBranchId,
-              orderId,
-              payload: {
-                amount: amountToPay > 0 ? amountToPay : total,
-                paymentMethod: 'CASH',
-              },
-            });
-          } catch (payErr) {
-            console.warn('Payment recording note:', payErr);
-          }
-        }
-      }
-
-      if (session?.dbSessionId) {
-        await closeSessionMutation.mutateAsync({
-          sessionId: session.dbSessionId,
-          payload: { settlePayment: true, paymentMethod: 'CASH' },
-        });
-      }
-
+      await settleTable({ table, branchId: activeBranchId, paymentMethod: paymentMethod || 'CASH' });
+      setBillTable(null);
       setSelectedTableId(null);
       await refetchAll();
       toast.success('تم تأكيد السداد وإغلاق الطاولة بنجاح');
@@ -120,31 +80,17 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
 
   return (
     <div className="h-full w-full flex overflow-hidden" dir="rtl" style={{ background: 'var(--bg)' }}>
-      {/* Tables Main Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <PosTablesStatsBar
-          occupiedCount={occupiedCount}
-          availableCount={availableCount}
-        />
-
-        {/* Grid */}
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <div
-            className="grid gap-3"
-            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))' }}
-          >
-            {tables.map((t) => (
-              <PosTableCard
-                key={t.id}
-                table={t}
-                isSelected={selectedTableId === t.id}
-                onSelect={(tbl) => setSelectedTableId(tbl.id)}
-                onShowQr={(tbl) => setQrModalTable(tbl)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Tables Grid — identical to the Waiter table management view */}
+      <WaiterTableGrid
+        tables={tables}
+        selectedTableId={selectedTableId}
+        onSelectTable={(t) => setSelectedTableId(t.id)}
+        filter={statusFilter}
+        onChangeFilter={setStatusFilter}
+        selectedSection={selectedSection}
+        onChangeSection={setSelectedSection}
+        onShowQr={(t) => setQrTable(t)}
+      />
 
       {/* Selected Table Drawer */}
       <PosTableSidebarDrawer
@@ -154,17 +100,27 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
         onPrintBill={handlePrintBill}
         onSelectTableForOrder={onSelectTableForOrder}
         onDismissCall={handleDismissCall}
-        onSettleAndClose={handleSettleAndClose}
+        onOpenBillModal={(t) => setBillTable(t)}
+        onCloseSession={(t) => setBillTable(t)}
+        onShowQr={(t) => setQrTable(t)}
         isClosingSession={isClosingSession}
         currency={activeBranch?.settings?.currency || 'ج.م'}
       />
 
-      {/* QR Code Modal */}
+      {/* Bill & Settlement Modal */}
+      <WaiterBillModal
+        isOpen={Boolean(billTable)}
+        table={billTable}
+        onClose={() => setBillTable(null)}
+        onSettleBill={handleSettleAndClose}
+        isSettling={isClosingSession}
+      />
+
+      {/* Table Self-Ordering QR Modal */}
       <PosTableQrModal
-        isOpen={Boolean(qrModalTable)}
-        onClose={() => setQrModalTable(null)}
-        table={qrModalTable}
-        activeBranch={activeBranch}
+        isOpen={Boolean(qrTable)}
+        table={qrTable}
+        onClose={() => setQrTable(null)}
       />
     </div>
   );

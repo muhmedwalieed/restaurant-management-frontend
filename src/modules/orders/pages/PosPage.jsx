@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProductsQuery, useCategoriesQuery } from '../../menu/hooks/useMenu.js';
-import { useTablesQuery } from '../../tables/hooks/useTables.js';
+import { useTableGridState } from '../../tables/hooks/useTableGridState.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { useAuth } from '../../auth/context/AuthContext.jsx';
 
@@ -32,22 +32,24 @@ export const PosPage = () => {
   };
 
   const handleSelectTableForOrder = (tbl) => {
-    const tableVal = tbl?.label || tbl?.number || tbl?.name || tbl?.displayNum || tbl?.id || tbl;
+    const idVal = tbl?.id || tbl?.tableId || tbl?._id;
+    const labelVal = tbl?.label || tbl?.number || tbl?.name || tbl?.displayNum || idVal || tbl;
+    const tableParam = idVal || labelVal;
     setPendingTable(tbl);
-    navigate(tableVal ? `/pos?type=DINE_IN&table=${encodeURIComponent(tableVal)}` : '/pos?type=DINE_IN');
+    navigate(tableParam ? `/pos?type=DINE_IN&table=${encodeURIComponent(tableParam)}` : '/pos?type=DINE_IN');
   };
 
-  // Queries for sales and tables
+  const { tables: gridTables } = useTableGridState(activeBranchId);
+
   const { data: productsResponse } = useProductsQuery({ page: 1, limit: 100 });
   const { data: categoriesResponse } = useCategoriesQuery({ page: 1, limit: 100 });
-  const { data: tablesResponse } = useTablesQuery(activeBranchId, { page: 1, limit: 100 });
 
   const products = useMemo(() => productsResponse?.items || [], [productsResponse]);
   const categories = useMemo(() => categoriesResponse?.items || [], [categoriesResponse]);
-  const tables = useMemo(() => tablesResponse?.items || [], [tablesResponse]);
+  const tables = gridTables;
 
   return (
-    <div className="h-screen w-screen min-h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-black text-zinc-900 dark:text-zinc-100" dir="rtl">
+    <div className="h-screen w-full min-h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-black text-zinc-900 dark:text-zinc-100" dir="rtl">
       {/* Top Header */}
       <PosNavHeader
         activeTab={currentTab}

@@ -1,21 +1,6 @@
 import React, { useEffect } from 'react';
-import {
-  Banknote,
-  CreditCard,
-  QrCode,
-  Wallet,
-  Receipt,
-  X,
-  Check,
-} from 'lucide-react';
-import { PAY_METHODS as BASE_PAY_METHODS } from '../../constants.js';
-
-const METHOD_ICONS = {
-  CASH: Banknote,
-  CARD: CreditCard,
-  INSTAPAY: QrCode,
-  WALLET: Wallet,
-};
+import { Receipt, X, Check } from 'lucide-react';
+import { PAYMENT_METHODS } from '../payment/paymentMethods.js';
 
 export const PosOrderPaymentModal = ({
   isOpen,
@@ -107,9 +92,9 @@ export const PosOrderPaymentModal = ({
             طريقة الدفع:
           </label>
           <div className="grid grid-cols-2 gap-2">
-            {BASE_PAY_METHODS.map((m) => {
+            {PAYMENT_METHODS.map((m) => {
               const isSel = payMethod === m.id;
-              const Icon = METHOD_ICONS[m.id] || Banknote;
+              const Icon = m.Icon;
               return (
                 <button
                   key={m.id}

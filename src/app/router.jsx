@@ -106,6 +106,16 @@ export const router = createBrowserRouter(
       element: <Navigate to="/waiter" replace />,
     },
     {
+      path: '/kds',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={['kds.view', 'orders.view']}>
+            <KdsPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
       path: '/',
       element: (
         <ProtectedRoute>
@@ -167,11 +177,7 @@ export const router = createBrowserRouter(
         },
         {
           path: 'kds',
-          element: (
-            <RequirePermission permission={['kds.view', 'orders.view']}>
-              <KdsPage />
-            </RequirePermission>
-          ),
+          element: <Navigate to="/kds" replace />,
         },
         {
           path: 'tables',

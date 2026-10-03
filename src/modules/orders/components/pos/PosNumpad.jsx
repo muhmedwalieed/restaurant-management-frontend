@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Delete, Banknote } from 'lucide-react';
 const QUICK = [50, 100, 200, 500];
-export const PosNumpad = ({ totalAmount = 0, onOpenCheckout }) => {
+export const PosNumpad = ({ totalAmount = 0 }) => {
   const [val, setVal] = useState('');
   const press = (k) => {
     if (k === 'DEL') return setVal((p) => p.slice(0, -1));

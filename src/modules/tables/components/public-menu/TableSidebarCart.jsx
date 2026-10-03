@@ -22,7 +22,7 @@ export const TableSidebarCart = ({
 }) => {
   return (
     <aside className="hidden lg:block lg:sticky lg:top-20">
-      <div className="bg-bg-surface border border-border-default rounded-2xl shadow-md overflow-hidden">
+      <div className="bg-bg-surface border border-border-default rounded-2xl overflow-hidden">
         {/* Header */}
         <div className="px-4 py-3.5 border-b border-border-default flex items-center justify-between">
           <h3 className="text-sm font-bold text-txt-primary flex items-center gap-2">
@@ -63,38 +63,41 @@ export const TableSidebarCart = ({
                   {isMyItem ? (
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
+                        type="button"
                         onClick={() =>
                           onUpdateQuantity(row.itemIds[0], (row.quantity || 1) - 1)
                         }
                         disabled={locked || (row.quantity || 1) <= 1}
-                        className="p-1.5 rounded-lg bg-bg-surface-elevated text-txt-muted hover:text-txt-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center bg-bg-surface-elevated text-txt-muted hover:text-txt-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         title="إنقاص الكمية"
                       >
-                        <Minus className="w-3.5 h-3.5" />
+                        <Minus className="w-4 h-4" aria-hidden="true" />
                       </button>
 
-                      <span className="text-xs font-bold text-txt-primary w-5 text-center">
+                      <span className="text-xs font-bold text-txt-primary w-6 text-center">
                         {row.quantity}
                       </span>
 
                       <button
+                        type="button"
                         onClick={() =>
                           onUpdateQuantity(row.itemIds[0], (row.quantity || 1) + 1)
                         }
                         disabled={locked}
-                        className="p-1.5 rounded-lg bg-bg-surface-elevated text-txt-muted hover:text-txt-primary disabled:opacity-40 transition-colors cursor-pointer"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center bg-bg-surface-elevated text-txt-muted hover:text-txt-primary disabled:opacity-40 transition-colors cursor-pointer"
                         title="زيادة الكمية"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-4 h-4" aria-hidden="true" />
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => onRemoveItem(row.itemIds[0])}
                         disabled={locked}
-                        className="p-1.5 rounded-lg text-txt-muted hover:text-status-danger disabled:opacity-40 transition-colors cursor-pointer"
-                        title="حذف"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center text-txt-muted hover:text-status-danger disabled:opacity-40 transition-colors cursor-pointer"
+                        title="حذف الصنف"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
                       </button>
                     </div>
                   ) : (
@@ -131,11 +134,12 @@ export const TableSidebarCart = ({
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="sm"
+                size="md"
+                radius="lg"
                 icon={Bell}
                 onClick={onRequestWaiter}
-                disabled={isCallWaiterPending || waiterCooldownLeft > 0}
-                className="px-3 text-xs rounded-lg"
+                isDisabled={isCallWaiterPending || waiterCooldownLeft > 0}
+                className="whitespace-nowrap bg-transparent hover:bg-bg-surface-elevated"
               >
                 {waiterCooldownLeft > 0
                   ? `استدعاء الويتر (${String(Math.floor(waiterCooldownLeft / 60)).padStart(2, '0')}:${String(waiterCooldownLeft % 60).padStart(2, '0')})`
@@ -144,11 +148,12 @@ export const TableSidebarCart = ({
 
               <Button
                 variant="primary"
-                size="sm"
+                size="md"
+                radius="lg"
                 icon={Send}
                 onClick={onRequestSubmit}
-                disabled={totalCartItems === 0 || isSubmitPending}
-                className="flex-1 text-xs rounded-lg bg-brand-primary text-white hover:bg-brand-primary-hover font-bold"
+                isDisabled={totalCartItems === 0 || isSubmitPending}
+                className="flex-1"
               >
                 اطلب الآن
               </Button>

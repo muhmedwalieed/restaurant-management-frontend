@@ -126,7 +126,19 @@ export const getActiveTableSessionApi = async (tableId) => {
   return apiClient.get(`/tables/table/${tableId}/session`);
 };
 
+export const getTableSessionPinApi = async (tableId) => {
+  return apiClient.get(`/tables/table/${tableId}/session-pin`);
+};
+
+export const resetTablePinLockoutApi = async (tableId) => {
+  return apiClient.post(`/tables/table/${tableId}/reset-pin-lockout`);
+};
+
 export const listBranchSessionsApi = async (branchId) => {
   const params = branchId ? { branchId } : {};
   return apiClient.get('/tables/sessions', { params });
+};
+
+export const releaseTableApi = async (tableId, payload = {}) => {
+  return apiClient.post(`/tables/table/${tableId}/release`, payload);
 };

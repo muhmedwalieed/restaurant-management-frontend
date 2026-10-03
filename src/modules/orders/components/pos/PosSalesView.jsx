@@ -34,7 +34,6 @@ export const PosSalesView = ({
     info,
     setInfo,
     selectedTableLabel,
-    caller,
     modifierProduct,
     setModifierProduct,
     isCustomerModalOpen,
@@ -66,13 +65,20 @@ export const PosSalesView = ({
     onClearPendingTable,
   });
 
-  // Map product IDs to their current cart count
   const cartItemMap = useMemo(() => {
     const map = {};
+    const modKeyOf = (it) =>
+      (it.modifiers || [])
+        .map((m) => `${m.modifierId}:${m.quantity}`)
+        .sort()
+        .join(',');
     cart.forEach((it) => {
       const pId = it.productId || it.id;
+      const k = `${pId}__${modKeyOf(it)}`;
+      map[k] = (map[k] || 0) + (it.qty || 1);
       map[pId] = (map[pId] || 0) + (it.qty || 1);
     });
+    map.__modKeyOf = modKeyOf;
     return map;
   }, [cart]);
 
@@ -91,25 +97,24 @@ export const PosSalesView = ({
     }
   }, [cart, handleChangeCartQty, addToCart, setModifierProduct]);
 
-  // Card decrement handler
   const handleDecrementProduct = useCallback((product) => {
-    const idx = cart.findLastIndex((it) => (it.productId || it.id) === product.id);
-    if (idx >= 0) {
-      handleChangeCartQty(idx, -1);
-    }
+    const idx = cart.findLastIndex(
+      (it) => (it.productId || it.id) === product.id && (!it.modifiers || it.modifiers.length === 0)
+    );
+    const fallback = idx >= 0 ? idx : cart.findLastIndex((it) => (it.productId || it.id) === product.id);
+    if (fallback >= 0) handleChangeCartQty(fallback, -1);
   }, [cart, handleChangeCartQty]);
 
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex flex-col sm:flex-row overflow-hidden">
       {/* Products & Navigation Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-transparent">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-transparent">
         {/* Unified Horizontal Toolbar (Categories + Search + Count) */}
         <PosSalesToolbar
           categories={categories}
           activeCategory={cat}
           onSelectCategory={setCat}
           allProducts={products}
-          filteredCount={filteredProducts.length}
           searchQuery={q}
           onChangeSearch={setQ}
         />

@@ -4,6 +4,7 @@ import { useTableQuery } from '../hooks/useTables.js';
 import { useTableActiveOrdersQuery } from '../hooks/useTableOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { TABLE_STATUS_LABELS } from '../schemas/table.schema.js';
+import { formatTableLabel } from '../utils/tableLabel.js';
 import { Button } from '../../../shared/components/Button.jsx';
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
@@ -80,7 +81,7 @@ export const TableDetailPage = () => {
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-bold text-txt-primary flex items-center gap-2">
               <Grid3x3 className="w-5 h-5 text-brand-primary" />
-              <span>طاولة {table?.label}</span>
+              <span>{formatTableLabel(table?.label)}</span>
             </h1>
             <StatusPill status={statusPill(table?.status)}>
               {TABLE_STATUS_LABELS[table?.status] || table?.status}

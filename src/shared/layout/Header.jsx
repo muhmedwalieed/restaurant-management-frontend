@@ -24,9 +24,9 @@ export const Header = ({
   const { hasPermission } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { isConnected } = useSocket();
-  const unreadQuery = useUnreadCountQuery();
-  const unreadCount = unreadQuery.data?.count ?? 0;
   const canSeeNotifications = hasPermission('notifications.view');
+  const unreadQuery = useUnreadCountQuery({ enabled: canSeeNotifications });
+  const unreadCount = unreadQuery.data?.count ?? 0;
 
   return (
     <header className="h-14 shrink-0 bg-bg-surface border-b border-border-default px-4 flex items-center justify-between select-none z-20 relative transition-colors">

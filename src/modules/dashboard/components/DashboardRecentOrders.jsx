@@ -5,6 +5,7 @@ import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx'
 import { StatusPill } from '../../../shared/components/StatusPill.jsx';
 import { ORDER_STATUS_LABELS, ORDER_TYPE_LABELS, orderStatusPill } from '../../orders/schemas/order.schema.js';
 import { formatMoney } from './DashboardStatsCards.jsx';
+import { formatTableLabel } from '../../tables/utils/tableLabel.js';
 
 const TYPE_BADGES = {
   DINE_IN: { label: 'صالة' },
@@ -66,7 +67,7 @@ export const DashboardRecentOrders = ({ isLoading, recentOrders = [] }) => {
                   <td className="p-3">
                     <div className="flex flex-col text-xs leading-snug">
                       <span className="font-medium text-slate-100">
-                        {o.customer?.name || (o.table ? `طاولة ${o.table.label}` : 'عميل مباشر')}
+                        {o.customer?.name || (o.table ? `${formatTableLabel(o.table.label)}` : 'عميل مباشر')}
                       </span>
                       <span className="text-[11px] text-txt-muted">
                         {TYPE_BADGES[o.type]?.label || ORDER_TYPE_LABELS[o.type] || o.type}

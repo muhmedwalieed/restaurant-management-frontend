@@ -42,13 +42,7 @@ export const PosOrderDetailDrawer = ({
   const [payAmount, setPayAmount] = useState('');
   const [payMethod, setPayMethod] = useState('CASH');
 
-  if (!order) return null;
-
-  const total = Number(order.total || order.totalAmount || 0);
-  const paid = order.paymentStatus === 'PAID' ? total : Number(order.amountPaid || 0);
-  const remaining = Math.max(0, total - paid);
-  const items = order.items || [];
-
+  // Hooks must run before the early return below.
   const nextActions = React.useMemo(() => {
     if (!order?.status) return [];
     if (order.status === 'READY') {
@@ -59,6 +53,13 @@ export const PosOrderDetailDrawer = ({
     }
     return (NEXT_STATUS_TRANSITIONS[order.status] || []).map((a) => ({ ...a, perm: 'orders.update' }));
   }, [order?.status, order?.type]);
+
+  if (!order) return null;
+
+  const total = Number(order.total || order.totalAmount || 0);
+  const paid = order.paymentStatus === 'PAID' ? total : Number(order.amountPaid || 0);
+  const remaining = Math.max(0, total - paid);
+  const items = order.items || [];
 
   const handleActionClick = (actionId) => {
     onStatusChange(actionId);
@@ -86,7 +87,7 @@ export const PosOrderDetailDrawer = ({
       style={{ background: 'var(--s1)', borderColor: 'var(--bd)' }}
     >
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between shrink-0" style={{ borderColor: 'var(--bd)' }}>
+      <div className="p-3 sm:p-4 border-b flex items-center justify-between gap-2 shrink-0" style={{ borderColor: 'var(--bd)' }}>
         <div>
           <h3 className="text-sm font-black" style={{ color: 'var(--t1)' }}>
             طلب #{order.orderNumber || order.id?.slice(0, 6)}
@@ -101,7 +102,7 @@ export const PosOrderDetailDrawer = ({
             type="button"
             onClick={handlePrint}
             title="طباعة الإيصال"
-            className="w-9 h-9 rounded-lg bg-zinc-800/80 border border-zinc-700/80 text-zinc-300 hover:text-white hover:bg-zinc-700 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700/80 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 flex items-center justify-center transition-colors cursor-pointer"
           >
             <Printer size={15} />
           </button>
@@ -110,7 +111,7 @@ export const PosOrderDetailDrawer = ({
             type="button"
             onClick={onClose}
             title="إغلاق"
-            className="w-9 h-9 rounded-lg bg-zinc-800/80 border border-zinc-700/80 text-zinc-300 hover:text-white hover:bg-zinc-700 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700/80 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-zinc-700 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X size={15} />
           </button>
@@ -118,7 +119,7 @@ export const PosOrderDetailDrawer = ({
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 custom-scrollbar">
         {/* Customer & Location */}
         <PosOrderCustomerDetails order={order} />
 
@@ -169,11 +170,11 @@ export const PosOrderDetailDrawer = ({
           </div>
           <div className="flex items-center justify-between" style={{ color: 'var(--t2)' }}>
             <span className="font-medium">المبلغ المدفوع:</span>
-            <span className="whitespace-nowrap font-bold text-emerald-400 flex items-center gap-1 shrink-0">
+            <span className="whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 shrink-0">
               <span className="font-mono">
                 {paid % 1 === 0 ? paid.toFixed(0) : paid.toFixed(2)}
               </span>
-              <span className="text-xs font-normal text-emerald-400/80">{currency || 'ج.م'}</span>
+              <span className="text-xs font-normal text-emerald-600/80 dark:text-emerald-400/80">{currency || 'ج.م'}</span>
             </span>
           </div>
           {remaining > 0 && (
@@ -206,7 +207,7 @@ export const PosOrderDetailDrawer = ({
       </div>
 
       {/* Footer: Order Status Advancement & Cancel */}
-      <div className="p-4 border-t space-y-2 shrink-0" style={{ background: 'var(--s1)', borderColor: 'var(--bd)' }}>
+      <div className="p-3 sm:p-4 border-t space-y-2 shrink-0" style={{ background: 'var(--s1)', borderColor: 'var(--bd)' }}>
         {canUpdateStatus && nextActions.length > 0 && order.status !== 'CANCELLED' ? (
           <div className="space-y-1.5">
             {nextActions.map((action) => (
@@ -215,7 +216,7 @@ export const PosOrderDetailDrawer = ({
                 type="button"
                 disabled={isUpdatingStatus}
                 onClick={() => handleActionClick(action.id)}
-                className="w-full h-11 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-750 text-zinc-100 border border-zinc-700 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
+                className="w-full h-11 bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 text-zinc-900 border border-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:active:bg-zinc-600 dark:text-zinc-100 dark:border-zinc-700 rounded-xl font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
               >
                 <CheckCircle2 size={16} />
                 <span>{action.label}</span>
@@ -223,7 +224,7 @@ export const PosOrderDetailDrawer = ({
             ))}
           </div>
         ) : (order.status === 'DELIVERED' || order.status === 'COMPLETED') ? (
-          <div className="p-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 flex items-center justify-center gap-2 text-xs font-bold">
+          <div className="p-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-2 text-xs font-bold">
             <CheckCircle2 size={16} />
             <span>الطلب مكتمل وتم التسليم</span>
           </div>

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useMemo 
 import { io } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../modules/auth/context/AuthContext.jsx';
+import { useOptionalBranch } from '../../modules/auth/context/BranchContext.jsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 const SOCKET_URL = new URL(API_BASE_URL).origin;
@@ -19,6 +20,8 @@ const EVENT_INVALIDATIONS = {
     'tables',
     'table',
     'table-orders',
+    'table-sessions-branch',
+    'table-session-active',
   ],
   'order.statusChanged': [
     'orders',
@@ -32,6 +35,8 @@ const EVENT_INVALIDATIONS = {
     'tables',
     'table',
     'table-orders',
+    'table-sessions-branch',
+    'table-session-active',
   ],
   'order.paid': [
     'orders',
@@ -42,6 +47,11 @@ const EVENT_INVALIDATIONS = {
     'dashboard-status',
     'dashboard-trend',
     'dashboard-branch-comparison',
+    'tables',
+    'table',
+    'table-orders',
+    'table-sessions-branch',
+    'table-session-active',
   ],
   'notification.created': ['notifications', 'notifications-unread'],
   'conversation.assigned': [
@@ -57,10 +67,30 @@ const EVENT_INVALIDATIONS = {
     'inbox-ticket',
   ],
   'customer.updated': ['customers', 'customer', 'customer-orders', 'customer-addresses'],
-  'tableSession.updated': ['table-session', 'table-session-active', 'table-sessions-branch', 'tables'],
-  'menu.updated': ['products', 'categories', 'menu'],
-  'product.updated': ['products', 'categories', 'menu'],
-  'category.updated': ['products', 'categories', 'menu'],
+  'tableSession.updated': [
+    'table-session',
+    'table-session-active',
+    'table-sessions-branch',
+    'tables',
+    'table',
+    'table-orders',
+    'orders',
+    'all-orders',
+    'kds',
+  ],
+  'table.updated': [
+    'tables',
+    'table',
+    'table-orders',
+    'table-sessions-branch',
+    'table-session-active',
+    'orders',
+    'all-orders',
+    'kds',
+  ],
+  'menu.updated': ['products', 'categories', 'menu', 'public-menu'],
+  'product.updated': ['products', 'categories', 'menu', 'public-menu'],
+  'category.updated': ['products', 'categories', 'menu', 'public-menu'],
 };
 
 const SocketContext = createContext({
@@ -70,6 +100,8 @@ const SocketContext = createContext({
 
 export const SocketProvider = ({ children }) => {
   const { token, isAuthenticated } = useAuth();
+  const branchContext = useOptionalBranch();
+  const activeBranchId = branchContext?.activeBranchId || null;
   const queryClient = useQueryClient();
   const socketRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -116,6 +148,12 @@ export const SocketProvider = ({ children }) => {
       setIsConnected(false);
     };
   }, [token, isAuthenticated, queryClient]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket || !isConnected || !activeBranchId) return;
+    socket.emit('branch:join', { branchId: activeBranchId });
+  }, [activeBranchId, isConnected]);
 
   const value = useMemo(
     () => ({

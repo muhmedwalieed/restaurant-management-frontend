@@ -53,10 +53,11 @@ describe('CartDrawer Component (2-Tab Segmented Mobile Drawer)', () => {
     expect(screen.getByRole('button', { name: /أوردرات الجلسة/i })).toBeInTheDocument();
 
     expect(screen.getAllByText('Chicken Pizza')).toHaveLength(1);
-    expect(screen.getByText('700.00 EGP')).toBeInTheDocument();
-    expect(screen.getByText('(2 × 350.00 / قطعة)')).toBeInTheDocument();
+    // POS-style card: line total (price × qty) + who added it, no "qty × unit price" text.
+    expect(screen.getByText('700 EGP')).toBeInTheDocument();
+    expect(screen.getAllByText(/أضافها أحمد/)).toHaveLength(3);
 
-    expect(screen.getByRole('button', { name: /إرسال الطلب للمطبخ \(1350.00 EGP\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^اطلب الآن$/ })).toBeInTheDocument();
   });
 
   it('renders clean empty state with browse menu button when draft cart is empty', () => {

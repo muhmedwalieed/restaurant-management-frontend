@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useSocket } from '../../../shared/realtime/SocketProvider.jsx';
 import { useTablesQuery, useUpdateTableMutation } from './useTables.js';
 import {
   useBranchSessionsQuery,
@@ -51,11 +52,15 @@ export const useTableGridState = (activeBranchId) => {
     refetch: refetchOrders,
   } = useOrdersQuery(activeBranchId, { page: 1, limit: 100 });
 
+  const { isConnected } = useSocket();
+
   const {
     data: sessionsData,
     isLoading: isSessionsLoading,
     refetch: refetchSessions,
-  } = useBranchSessionsQuery(activeBranchId, true);
+  } = useBranchSessionsQuery(activeBranchId, !isConnected);
+
+
 
   // Mutations
   const startSessionMutation = useStartTableSession();
@@ -84,8 +89,8 @@ export const useTableGridState = (activeBranchId) => {
     return map;
   }, [branchSessions]);
 
-  // Active dine-in orders map by tableId
-  const tableOrderMap = useMemo(() => {
+  // Active dine-in orders map by tableId — a table may hold several active orders
+  const tableOrdersMap = useMemo(() => {
     const map = new Map();
     for (const o of rawOrders) {
       const tid = o.tableId || o.table?.id;
@@ -93,11 +98,14 @@ export const useTableGridState = (activeBranchId) => {
         tid &&
         o.type === 'DINE_IN' &&
         o.status !== 'DELIVERED' &&
-        o.status !== 'COMPLETED' &&
         o.status !== 'CANCELLED'
       ) {
-        if (!map.has(tid)) map.set(tid, o);
+        if (!map.has(tid)) map.set(tid, []);
+        map.get(tid).push(o);
       }
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
     }
     return map;
   }, [rawOrders]);
@@ -122,11 +130,12 @@ export const useTableGridState = (activeBranchId) => {
 
     return sorted.map((t, idx) => {
       const session = tableSessionMap.get(t.id);
-      const activeOrder = tableOrderMap.get(t.id);
+      const activeOrders = tableOrdersMap.get(t.id) || [];
+      const activeOrder = activeOrders[0] || null;
       const isOccupied =
         String(t.status || '').toUpperCase() === 'OCCUPIED' ||
         Boolean(session) ||
-        Boolean(activeOrder);
+        activeOrders.length > 0;
 
       const hasBillCall = session?.waiterCalls?.some(
         (c) => (c.status === 'PENDING' || c.status === 'ACCEPTED') && c.type === 'BILL'
@@ -148,26 +157,32 @@ export const useTableGridState = (activeBranchId) => {
       let items = [];
       let reviewItems = [];
       let pendingOrderNumber = null;
+      const sessionOrderRealIds = new Set();
+
+      const mergeItem = (target, it) => {
+        const pId = it.productId || it.id;
+        const existing = target.find((i) => (i.productId || i.id) === pId);
+        if (existing) {
+          existing.qty += it.quantity;
+        } else {
+          target.push({
+            id: pId,
+            productId: pId,
+            name: it.productName || it.name,
+            qty: it.quantity,
+            price: Number(it.unitPrice ?? it.price ?? 0),
+          });
+        }
+      };
 
       if (session) {
+        if (session.confirmedOrderId) sessionOrderRealIds.add(session.confirmedOrderId);
+
         if (Array.isArray(session.orders)) {
           for (const o of session.orders) {
+            if (o.orderId) sessionOrderRealIds.add(o.orderId);
             if (Array.isArray(o.items) && o.status === 'CONFIRMED') {
-              for (const it of o.items) {
-                const pId = it.productId || it.id;
-                const existing = items.find((i) => (i.productId || i.id) === pId);
-                if (existing) {
-                  existing.qty += it.quantity;
-                } else {
-                  items.push({
-                    id: pId,
-                    productId: pId,
-                    name: it.productName,
-                    qty: it.quantity,
-                    price: Number(it.unitPrice || 0),
-                  });
-                }
-              }
+              for (const it of o.items) mergeItem(items, it);
             }
           }
         }
@@ -202,37 +217,74 @@ export const useTableGridState = (activeBranchId) => {
             }
           }
         }
-      } else if (activeOrder && Array.isArray(activeOrder.items)) {
-        items = activeOrder.items.map((i) => ({
-          id: i.productId || i.id,
-          productId: i.productId || i.id,
-          name: i.productName || i.name,
-          qty: i.quantity,
-          price: Number(i.unitPrice || i.price || 0),
-        }));
       }
 
+      // Standalone active orders on the table — every active order counts toward
+      // the table's items and total (a table can hold multiple orders per visit).
+      const standaloneOrders = activeOrders.filter((o) => !sessionOrderRealIds.has(o.id));
+      for (const o of standaloneOrders) {
+        if (Array.isArray(o.items)) {
+          for (const it of o.items) mergeItem(items, it);
+        }
+      }
+
+      const rawOpenedAt = session?.openedAt || session?.createdAt || session?.created_at || session?.createdAtRaw || null;
       let openedAt = '—';
-      if (session?.openedAt) {
-        openedAt = new Date(session.openedAt).toLocaleTimeString('ar-EG', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      } else if (activeOrder?.createdAt) {
-        openedAt = new Date(activeOrder.createdAt).toLocaleTimeString('ar-EG', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+      let openedAtIso = null;
+      if (rawOpenedAt) {
+        const d = new Date(rawOpenedAt);
+        if (!isNaN(d.getTime())) {
+          openedAtIso = d.toISOString();
+          openedAt = d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        }
+      }
+      if (openedAt === '—' && activeOrder?.createdAt) {
+        const d2 = new Date(activeOrder.createdAt);
+        if (!isNaN(d2.getTime())) {
+          openedAtIso = d2.toISOString();
+          openedAt = d2.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        }
       }
 
-      const confirmedOrdersTotal = Array.isArray(session?.orders)
-        ? session.orders
-            .filter((o) => o.status === 'CONFIRMED')
-            .reduce((s, o) => s + Number(o.total || 0), 0)
+      const confirmedSessionOrders = Array.isArray(session?.orders)
+        ? session.orders.filter((o) => o.status === 'CONFIRMED')
+        : [];
+
+      const confirmedSessionTotal = Array.isArray(session?.orders)
+        ? confirmedSessionOrders.reduce((s, o) => s + Number(o.total || 0), 0)
         : (session ? Number(session.total || session.confirmedTotal || 0) : 0);
 
-      const orderTotal = activeOrder ? Number(activeOrder.total || 0) : 0;
-      const computedTotal = Math.max(confirmedOrdersTotal, orderTotal);
+      const standaloneTotal = standaloneOrders.reduce((s, o) => s + Number(o.total || 0), 0);
+      const computedTotal = confirmedSessionTotal + standaloneTotal;
+      const ordersCount = confirmedSessionOrders.length + standaloneOrders.length;
+
+      const toDisplayItem = (it) => ({
+        id: it.productId || it.id,
+        productId: it.productId || it.id,
+        name: it.productName || it.name,
+        qty: it.quantity,
+        price: Number(it.unitPrice ?? it.price ?? 0),
+      });
+
+      const orderNumberById = new Map(rawOrders.map((o) => [o.id, o.orderNumber]));
+
+      // Per-order breakdown: the items of each order, while the table total is their sum.
+      const orderGroups = [
+        ...confirmedSessionOrders.map((o) => ({
+          key: `s-${o.id}`,
+          orderNumber: (o.orderId && orderNumberById.get(o.orderId)) ?? o.orderNumber ?? null,
+          status: o.status,
+          total: Number(o.total || 0),
+          items: Array.isArray(o.items) ? o.items.map(toDisplayItem) : [],
+        })),
+        ...standaloneOrders.map((o) => ({
+          key: `o-${o.id}`,
+          orderNumber: o.orderNumber ?? null,
+          status: o.status,
+          total: Number(o.total || 0),
+          items: Array.isArray(o.items) ? o.items.map(toDisplayItem) : [],
+        })),
+      ];
 
       return {
         id: t.id,
@@ -247,18 +299,26 @@ export const useTableGridState = (activeBranchId) => {
         pendingOrder: Boolean(hasOrderCall || isSessionAwaiting || isOrderPending),
         needsBill: hasBillCall,
         qrToken: t.qrToken || null,
+        qrUrl: t.qrUrl || null,
         session: isOccupied
           ? {
               id: session?.id || activeOrder?.id,
               dbSessionId: session?.id || null,
               openedAt,
+              openedAtIso,
               pin: localPins[t.id] || session?.pin || null,
-              ordersCount: (session?.orders?.length || (activeOrder ? 1 : 0)),
-              membersCount: session?.members?.length || 1,
+              ordersCount,
+              failedAttempts: session?.failedAttempts || 0,
+              isPinLocked: Boolean(session?.isLocked),
+              pinLockoutUntil: session?.lockoutUntil || null,
+              attemptsPerTier: session?.attemptsPerTier || 5,
+              membersCount: session?.members?.length || 0,
               itemsCount: items.reduce((s, i) => s + i.qty, 0),
               total: computedTotal,
               alerts,
               activeOrder,
+              activeOrders,
+              orderGroups,
               items,
               reviewItems,
               pendingOrderNumber,
@@ -267,13 +327,42 @@ export const useTableGridState = (activeBranchId) => {
           : null,
       };
     });
-  }, [rawTables, tableSessionMap, tableOrderMap, localPins]);
+  }, [rawTables, tableOrdersMap, tableSessionMap, rawOrders, localPins]);
 
-  const refetchAll = useCallback(() => {
-    refetchTables();
-    refetchOrders();
-    refetchSessions();
+  const settleTable = useCallback(async ({ table, paymentMethod = 'CASH' }) => {
+    const session = table?.session;
+    const tid = table?.id || table?.tableId || table?._id;
+
+    // A table may hold several active orders — settle them all in one action.
+    if (session?.dbSessionId) {
+      await closeSessionMutation.mutateAsync({
+        sessionId: session.dbSessionId,
+        payload: { settlePayment: true, paymentMethod },
+      });
+      return;
+    }
+
+    if (tid) {
+      const { releaseTableApi } = await import('../../../lib/api/table-sessions.api.js');
+      await releaseTableApi(tid, { paymentMethod });
+    }
+  }, [closeSessionMutation]);
+
+  const refetchAll = useCallback(async () => {
+    await Promise.all([refetchTables(), refetchOrders(), refetchSessions()]);
   }, [refetchTables, refetchOrders, refetchSessions]);
+
+  useEffect(() => {
+    // Always keep a periodic reconciliation running: fast while offline, and a
+    // slower safety-net cadence while connected so a dropped/missed realtime
+    // event can never leave waiter and cashier showing different table states.
+    const id = setInterval(() => {
+      refetchTables();
+      refetchOrders();
+      refetchSessions();
+    }, isConnected ? 20000 : 4000);
+    return () => clearInterval(id);
+  }, [isConnected, refetchTables, refetchOrders, refetchSessions]);
 
   const recordLocalPin = useCallback((tableId, pin) => {
     setLocalPins((prev) => ({ ...prev, [tableId]: pin }));
@@ -285,10 +374,11 @@ export const useTableGridState = (activeBranchId) => {
     rawOrders,
     branchSessions,
     tableSessionMap,
-    tableOrderMap,
+    tableOrdersMap,
     isLoading: isTablesLoading || isOrdersLoading || isSessionsLoading,
     refetchAll,
     recordLocalPin,
+    settleTable,
     startSessionMutation,
     closeSessionMutation,
     confirmSessionMutation,

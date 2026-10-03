@@ -68,10 +68,8 @@ export const ReceiptPrintTemplate = ({ order, activeBranch, branch, isPreview = 
 
       <ReceiptFinancialSummary order={order} currency={currency} />
 
-      <div className="pt-2.5 text-center text-[10px] text-gray-600">
-        <p className="font-semibold text-black" dir="rtl">
-          شكراً لزيارتكم!
-        </p>
+      <div className="pt-3 text-center text-[11px] text-[#777]">
+        <p dir="rtl">شكراً لزيارتكم!</p>
       </div>
     </div>
   );

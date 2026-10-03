@@ -3,6 +3,7 @@ import QRCode from 'react-qr-code';
 import { QrCode, Copy, Check, Download, Printer } from 'lucide-react';
 import { Button } from '../../../shared/components/Button.jsx';
 import { printHtml } from '../../../lib/print.js';
+import { formatTableLabel } from '../utils/tableLabel.js';
 
 const QR_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#f59e0b"/><text x="24" y="31" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a" text-anchor="middle">QR</text></svg>`;
 const QR_LOGO_DATA_URL = `data:image/svg+xml,${encodeURIComponent(QR_LOGO_SVG)}`;
@@ -53,7 +54,7 @@ export const TableQrPanel = ({ table, branchName, size = 180 }) => {
     printHtml(
       `
       <div style="text-align:center; padding:32px; font-family:Arial, sans-serif;">
-        <div style="font-size:26px; font-weight:800; color:#000;">طاولة ${table?.label || ''}</div>
+        <div style="font-size:26px; font-weight:800; color:#000;">${formatTableLabel(table?.label)}</div>
         <div style="font-size:14px; color:#555; margin:4px 0 20px;">${branchName || ''} • امسح الرمز لطلب الطعام مباشرة</div>
         <div style="background:#fff; padding:12px; display:inline-block; border-radius:12px;">${qrElem.innerHTML}</div>
         <div style="margin-top:18px; font-size:12px; color:#94a3b8;">امسح بكاميرا الهاتف لفتح المنيو الذكي</div>
