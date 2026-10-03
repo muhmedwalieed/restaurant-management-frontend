@@ -69,7 +69,30 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to="/kds" replace />;
   }
 
-  if (isWaiterRoute || isKdsRoute) {
+  const isDelivery =
+    user?.role?.name === 'delivery' ||
+    user?.role?.name === 'driver' ||
+    user?.role?.name === 'طيار' ||
+    user?.role?.name === 'مندوب توصيل' ||
+    (hasPermission('delivery.view') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'orders.source_phone',
+        'orders.source_whatsapp',
+        'orders.source_website',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+      ]));
+
+  const isDeliveryRoute = location.pathname.startsWith('/delivery');
+  if (isDelivery) {
+    if (isDeliveryRoute) return children;
+    return <Navigate to="/delivery" replace />;
+  }
+
+  if (isWaiterRoute || isKdsRoute || isDeliveryRoute) {
     return children;
   }
 
@@ -155,6 +178,27 @@ export const HomeRedirect = () => {
       ]));
   if (isKitchenOnly) {
     return <Navigate to="/kds" replace />;
+  }
+
+  // 0.7. Delivery staff → directly to delivery mobile portal
+  const isDeliveryOnly =
+    user?.role?.name === 'delivery' ||
+    user?.role?.name === 'driver' ||
+    user?.role?.name === 'طيار' ||
+    user?.role?.name === 'مندوب توصيل' ||
+    (hasPermission('delivery.view') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'orders.source_phone',
+        'orders.source_whatsapp',
+        'orders.source_website',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+      ]));
+  if (isDeliveryOnly) {
+    return <Navigate to="/delivery" replace />;
   }
 
   // 1. Dashboard / Executive Overview

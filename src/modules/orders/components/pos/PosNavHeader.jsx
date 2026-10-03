@@ -10,6 +10,7 @@ import {
   Clock,
   Sun,
   Moon,
+  Bike,
 } from 'lucide-react';
 import { useTheme } from '../../../../shared/context/ThemeContext.jsx';
 
@@ -24,6 +25,7 @@ export const PosNavHeader = ({
   onSelectTab,
   activeBranch,
   user,
+  onOpenDriverSettlement,
   onLogout,
 }) => {
   const { isDark, toggleTheme } = useTheme();
@@ -115,6 +117,19 @@ export const PosNavHeader = ({
 
       {/* ── Left Section (RTL): Touch Targets & Cashier Info ── */}
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Driver COD Settlement Button */}
+        {onOpenDriverSettlement && (
+          <button
+            type="button"
+            onClick={onOpenDriverSettlement}
+            className="h-10 px-3 rounded-xl flex items-center gap-1.5 transition-all bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 active:scale-95 cursor-pointer text-xs font-bold shadow-xs"
+            title="تصفية واستلام عهدة الطيارين"
+          >
+            <Bike size={16} />
+            <span className="hidden sm:inline">عهدة الطيارين</span>
+          </button>
+        )}
+
         {/* Fullscreen Toggle Button (40px) */}
         <button
           type="button"

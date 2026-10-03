@@ -20,6 +20,7 @@ import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
 import { PosPage } from '../modules/orders/pages/PosPage.jsx';
 import { WaiterPage } from '../modules/orders/pages/WaiterPage.jsx';
 import { KdsPage } from '../modules/orders/pages/KdsPage.jsx';
+import { DeliveryPage } from '../modules/orders/pages/DeliveryPage.jsx';
 import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
 import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
 import { WhatsAppPage } from '../modules/whatsapp/pages/WhatsAppPage.jsx';
@@ -111,6 +112,16 @@ export const router = createBrowserRouter(
         <ProtectedRoute>
           <RequirePermission permission={['kds.view', 'orders.view']}>
             <KdsPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/delivery',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={['delivery.view', 'delivery.update_status', 'orders.view']}>
+            <DeliveryPage />
           </RequirePermission>
         </ProtectedRoute>
       ),

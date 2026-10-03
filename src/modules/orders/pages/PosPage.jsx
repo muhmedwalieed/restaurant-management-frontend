@@ -9,6 +9,7 @@ import { PosNavHeader } from '../components/pos/PosNavHeader.jsx';
 import { PosSalesView } from '../components/pos/PosSalesView.jsx';
 import { PosOrdersView } from '../components/PosOrdersView.jsx';
 import { PosTablesView } from '../components/PosTablesView.jsx';
+import { CashierDriverSettlementModal } from '../components/delivery/CashierDriverSettlementModal.jsx';
 
 export const PosPage = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export const PosPage = () => {
   const { activeBranchId, activeBranch } = useBranch();
   const { user, logout } = useAuth();
   const [pendingTable, setPendingTable] = useState(null);
+  const [isSettlementOpen, setIsSettlementOpen] = useState(false);
 
   const currentTab = useMemo(() => {
     if (tab === 'orders') return 'orders';
@@ -56,6 +58,7 @@ export const PosPage = () => {
         onSelectTab={handleSelectTab}
         activeBranch={activeBranch}
         user={user}
+        onOpenDriverSettlement={() => setIsSettlementOpen(true)}
         onLogout={logout}
       />
 
@@ -81,6 +84,13 @@ export const PosPage = () => {
           <PosTablesView onSelectTableForOrder={handleSelectTableForOrder} />
         </div>
       )}
+
+      {/* Driver COD Cash Settlement Modal */}
+      <CashierDriverSettlementModal
+        isOpen={isSettlementOpen}
+        onClose={() => setIsSettlementOpen(false)}
+        branchId={activeBranchId}
+      />
     </div>
   );
 };
