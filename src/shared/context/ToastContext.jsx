@@ -99,10 +99,12 @@ export const ToastProvider = ({ children }) => {
     const id = Date.now() + Math.random().toString(36).substring(2, 7);
     const newToast = {
       id,
-      duration: toastData.duration || 4500,
+      duration: toastData.duration || 3000,
       type: toastData.type || 'info',
       title: toastData.title,
       message: toastData.message,
+      onClick: toastData.onClick,
+      action: toastData.action,
       createdAt: Date.now(),
     };
 
@@ -168,36 +170,32 @@ const TOAST_ICONS = {
 
 const TOAST_STYLES = {
   success: {
-    border: 'border-emerald-500/30 dark:border-emerald-500/40',
-    bg: 'bg-white/95 dark:bg-slate-900/95 shadow-emerald-500/10',
-    iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    glow: 'from-emerald-500/20 to-transparent',
+    border: 'border-zinc-200 dark:border-zinc-800',
+    bg: 'bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl',
+    iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
     progressBar: 'bg-emerald-500',
-    titleColor: 'text-slate-900 dark:text-slate-100',
+    titleColor: 'text-zinc-900 dark:text-zinc-100',
   },
   error: {
-    border: 'border-rose-500/30 dark:border-rose-500/40',
-    bg: 'bg-white/95 dark:bg-slate-900/95 shadow-rose-500/10',
-    iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
-    glow: 'from-rose-500/20 to-transparent',
+    border: 'border-zinc-200 dark:border-zinc-800',
+    bg: 'bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl',
+    iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
     progressBar: 'bg-rose-500',
-    titleColor: 'text-slate-900 dark:text-slate-100',
+    titleColor: 'text-zinc-900 dark:text-zinc-100',
   },
   warning: {
-    border: 'border-amber-500/30 dark:border-amber-500/40',
-    bg: 'bg-white/95 dark:bg-slate-900/95 shadow-amber-500/10',
-    iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    glow: 'from-amber-500/20 to-transparent',
+    border: 'border-zinc-200 dark:border-zinc-800',
+    bg: 'bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl',
+    iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
     progressBar: 'bg-amber-500',
-    titleColor: 'text-slate-900 dark:text-slate-100',
+    titleColor: 'text-zinc-900 dark:text-zinc-100',
   },
   info: {
-    border: 'border-blue-500/30 dark:border-blue-500/40',
-    bg: 'bg-white/95 dark:bg-slate-900/95 shadow-blue-500/10',
-    iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-    glow: 'from-blue-500/20 to-transparent',
-    progressBar: 'bg-blue-500',
-    titleColor: 'text-slate-900 dark:text-slate-100',
+    border: 'border-zinc-200 dark:border-zinc-800',
+    bg: 'bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl',
+    iconBg: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700',
+    progressBar: 'bg-zinc-500',
+    titleColor: 'text-zinc-900 dark:text-zinc-100',
   },
 };
 
@@ -233,44 +231,68 @@ const ToastCard = ({ toast: item, onRemove }) => {
       dir="rtl"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className={`relative group overflow-hidden w-full max-w-sm rounded-2xl border ${style.border} ${style.bg} backdrop-blur-xl shadow-2xl transition-all duration-300 transform translate-y-0 animate-in fade-in slide-in-from-top-4`}
+      onClick={() => {
+        if (item.onClick) {
+          item.onClick();
+          onRemove(item.id);
+        }
+      }}
+      className={`relative group overflow-hidden w-full max-w-[320px] sm:max-w-[340px] rounded-xl border ${style.border} ${style.bg} shadow-2xl transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 ${
+        item.onClick ? 'cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700' : ''
+      }`}
       style={{
-        boxShadow: '0 12px 36px -4px rgba(0, 0, 0, 0.18), 0 4px 12px -2px rgba(0, 0, 0, 0.08)',
+        boxShadow: '0 10px 30px -4px rgba(0, 0, 0, 0.25), 0 4px 8px -2px rgba(0, 0, 0, 0.1)',
       }}
     >
-      {/* Top subtle glow line */}
-      <div className={`absolute top-0 inset-x-0 h-1 bg-gradient-to-r ${style.glow}`} />
-
-      <div className="p-4 flex items-start gap-3.5">
-        <div className={`p-2.5 rounded-xl ${style.iconBg} shrink-0 mt-0.5 ring-1 ring-black/5 dark:ring-white/10`}>
-          <Icon className="w-5 h-5" />
+      <div className="p-3 flex items-start gap-2.5">
+        <div className={`w-7 h-7 rounded-lg ${style.iconBg} flex items-center justify-center shrink-0 mt-0.5 shadow-2xs`}>
+          <Icon size={14} strokeWidth={2.2} />
         </div>
 
         <div className="flex-1 min-w-0 pr-0.5">
           {item.title && (
-            <h4 className={`text-sm font-bold tracking-tight ${style.titleColor}`}>
+            <h4 className={`text-xs font-bold ${style.titleColor}`}>
               {item.title}
             </h4>
           )}
           {item.message && (
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed break-words font-medium">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-snug break-words font-medium">
               {item.message}
             </p>
+          )}
+
+          {item.action && (
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  item.action.onClick?.();
+                  onRemove(item.id);
+                }}
+                className="px-3 py-1 rounded-lg text-xs font-bold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-white active:scale-95 transition-all shadow-xs cursor-pointer"
+              >
+                {item.action.label || 'عرض التفاصيل'}
+              </button>
+            </div>
           )}
         </div>
 
         <button
           type="button"
-          onClick={() => onRemove(item.id)}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 -mr-1 -mt-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(item.id);
+          }}
+          className="w-5 h-5 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
           aria-label="إغلاق"
         >
-          <X className="w-4 h-4" />
+          <X size={12} />
         </button>
       </div>
 
-      {/* Progress Bar */}
-      <div className="w-full h-1 bg-slate-100 dark:bg-slate-800/80">
+      {/* Sleek minimal progress bar (1.5px) */}
+      <div className="w-full h-[1.5px] bg-zinc-100 dark:bg-zinc-800">
         <div
           className={`h-full ${style.progressBar} transition-all duration-75 ease-linear`}
           style={{ width: `${progress}%` }}
@@ -285,7 +307,7 @@ const ToastContainer = ({ toasts, onRemove }) => {
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-[9999] flex flex-col-reverse gap-3 pointer-events-auto max-w-[92vw] w-[380px]"
+      className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col-reverse items-center gap-2 pointer-events-auto max-w-[92vw] w-auto"
       style={{ direction: 'rtl' }}
     >
       {toasts.map((t) => (

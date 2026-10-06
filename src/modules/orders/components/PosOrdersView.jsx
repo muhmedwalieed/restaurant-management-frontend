@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useOrdersQuery, useOrderQuery, useUpdateOrderStatusMutation, useCancelOrderMutation, usePaymentMutation } from '../hooks/useOrders.js';
+import { useOrdersQuery, useOrderQuery, useUpdateOrderStatusMutation, useCancelOrderMutation, usePaymentMutation, useRefundMutation } from '../hooks/useOrders.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { toast } from '../../../shared/context/ToastContext.jsx';
 
@@ -17,7 +17,7 @@ const normalizeCalendarDate = (dateVal) => {
   return `${year}-${month}-${day}`;
 };
 
-export const PosOrdersView = () => {
+export const PosOrdersView = ({ allowStatusChange = true }) => {
   const { activeBranchId } = useBranch();
 
   // Date filter with default to local today YYYY-MM-DD
@@ -30,8 +30,8 @@ export const PosOrdersView = () => {
   const [type, setType] = useState('all');
   const [source, setSource] = useState('all');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const limit = 20;
 
   // Debounce search (250ms) — avoids spamming backend while typing
   useEffect(() => {
@@ -49,8 +49,8 @@ export const PosOrdersView = () => {
     q: debouncedQ || undefined,
   });
 
-  // Reset to page 1 when filters change
-  useEffect(() => { setPage(1); }, [status, type, source, date, debouncedQ]);
+  // Reset to page 1 when filters or limit change
+  useEffect(() => { setPage(1); }, [status, type, source, date, debouncedQ, limit]);
 
   const rawOrders = useMemo(() => ordersResponse?.items || [], [ordersResponse]);
   const filteredOrders = rawOrders;
@@ -62,6 +62,7 @@ export const PosOrdersView = () => {
   const updateStatusMutation = useUpdateOrderStatusMutation();
   const cancelMutation = useCancelOrderMutation();
   const paymentMutation = usePaymentMutation();
+  const refundMutation = useRefundMutation();
 
   const handleResetFilters = useCallback(() => {
     setQ('');
@@ -98,7 +99,7 @@ export const PosOrdersView = () => {
         id: currentSel.id,
         payload: {
           newStatus,
-          expectedVersion: currentSel.version,
+          expectedVersion: Number(currentSel.version || 1),
         },
       });
 
@@ -115,20 +116,32 @@ export const PosOrdersView = () => {
   }, [currentSel, activeBranchId, updateStatusMutation, refetch]);
 
   // Cancel order handler
-  const handleCancelOrder = useCallback(async (orderId, reason) => {
+  const handleCancelOrder = useCallback(async (orderId, cancelData) => {
     if (!currentSel) return;
     try {
+      const reason = typeof cancelData === 'string' ? cancelData : cancelData?.reason || 'إلغاء الطلب';
+      const refund = typeof cancelData === 'object' ? cancelData?.refund : false;
+      const refundMethod = typeof cancelData === 'object' ? cancelData?.refundMethod : undefined;
+      const refundAmount = typeof cancelData === 'object' ? cancelData?.refundAmount : undefined;
+
       await cancelMutation.mutateAsync({
         branchId: activeBranchId,
         id: orderId,
         payload: {
-          expectedVersion: currentSel.version,
-          reason: reason || 'إلغاء من الكاشير',
+          expectedVersion: Number(currentSel.version || 1),
+          reason,
+          refund,
+          refundMethod,
+          refundAmount,
         },
       });
 
       await refetch();
-      toast.success('تم إلغاء الطلب بنجاح');
+      if (refund) {
+        toast.success('تم إلغاء الطلب واسترجاع المبلغ وتحديث حسابات الوردية بنجاح');
+      } else {
+        toast.success('تم إلغاء الطلب بنجاح');
+      }
     } catch (err) {
       if (err?.status === 409 || err?.response?.status === 409) {
         await refetch();
@@ -139,11 +152,38 @@ export const PosOrdersView = () => {
     }
   }, [currentSel, activeBranchId, cancelMutation, refetch]);
 
-  // Payment settle handler
-  const handleAddPayment = useCallback(async (orderId, amount, method) => {
+  // Refund order handler (for cancelled or paid orders)
+  const handleRefundOrder = useCallback(async (orderId, refundData) => {
     if (!currentSel) return;
     try {
-      await paymentMutation.mutateAsync({
+      await refundMutation.mutateAsync({
+        branchId: activeBranchId,
+        orderId,
+        payload: {
+          expectedVersion: Number(refundData.expectedVersion || currentSel.version || 1),
+          reason: refundData.reason,
+          amount: refundData.amount,
+          paymentMethod: refundData.paymentMethod,
+        },
+      });
+
+      await refetch();
+      toast.success('تم استرجاع المبلغ بنجاح وتحديث حسابات الوردية');
+    } catch (err) {
+      if (err?.status === 409 || err?.response?.status === 409) {
+        await refetch();
+        toast.error('تم تحديث هذا الطلب بواسطة مستخدم آخر. تم تحديث البيانات، يرجى المحاولة ثانية.');
+      } else {
+        toast.error(err?.message || 'تعذر استرجاع المبلغ.');
+      }
+    }
+  }, [currentSel, activeBranchId, refundMutation, refetch]);
+
+  // Payment settle handler (with optional autoDeliver)
+  const handleAddPayment = useCallback(async (orderId, amount, method, autoDeliver = false) => {
+    if (!currentSel) return;
+    try {
+      const payRes = await paymentMutation.mutateAsync({
         branchId: activeBranchId,
         orderId,
         payload: {
@@ -153,8 +193,24 @@ export const PosOrdersView = () => {
         },
       });
 
+      const updatedOrder = payRes?.data || payRes;
+      const newVersion = updatedOrder?.version || (Number(currentSel.version || 1) + 1);
+
+      if (autoDeliver) {
+        await updateStatusMutation.mutateAsync({
+          branchId: activeBranchId,
+          id: orderId,
+          payload: {
+            newStatus: 'DELIVERED',
+            expectedVersion: newVersion,
+          },
+        });
+        toast.success('تم تحصيل الدفعة وتسليم الطلب بنجاح');
+      } else {
+        toast.success('تم تسجيل الدفعة بنجاح');
+      }
+
       await refetch();
-      toast.success('تم تسجيل الدفعة بنجاح');
     } catch (err) {
       if (err?.status === 409 || err?.response?.status === 409) {
         await refetch();
@@ -163,10 +219,10 @@ export const PosOrdersView = () => {
         toast.error(err?.response?.data?.message || err?.message || 'تعذر تسجيل الدفعة.');
       }
     }
-  }, [currentSel, activeBranchId, paymentMutation, refetch]);
+  }, [currentSel, activeBranchId, paymentMutation, updateStatusMutation, refetch]);
 
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden bg-transparent" dir="rtl">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-white dark:bg-zinc-950" dir="rtl">
       {/* Filters Bar */}
       <PosOrdersFilterBar
         totalOrders={pagination?.total ?? filteredOrders.length}
@@ -196,19 +252,26 @@ export const PosOrdersView = () => {
           isFetching={isFetching}
           pagination={pagination}
           page={page}
+          limit={limit}
           onPageChange={setPage}
+          onLimitChange={setLimit}
         />
 
         {currentSel && (
           <PosOrderDetailDrawer
+            isOpen={true}
             order={currentSel}
             onClose={() => setSelectedOrder(null)}
-            onStatusChange={handleStatusChange}
+            onStatusChange={allowStatusChange ? handleStatusChange : null}
             onCancelOrder={handleCancelOrder}
+            onRefundOrder={handleRefundOrder}
+            onSettlePayment={handleAddPayment}
             onAddPayment={handleAddPayment}
             isUpdatingStatus={updateStatusMutation.isPending}
             isCancelling={cancelMutation.isPending}
+            isRefunding={refundMutation.isPending}
             isSettlingPayment={paymentMutation.isPending}
+            allowStatusChange={allowStatusChange}
           />
         )}
       </div>

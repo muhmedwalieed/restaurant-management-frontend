@@ -48,14 +48,22 @@ export const useOrderHistoryQuery = (branchId, id) => {
 export const useCreateOrderMutation = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, payload, idempotencyKey }) => createOrderApi(branchId, payload, idempotencyKey),
-    onSuccess: (_, { branchId }) => {
-      qc.invalidateQueries({ queryKey: ['orders', branchId] });
+    mutationFn: (args) => {
+      const branchId = args?.branchId || args?.payload?.branchId;
+      const payload = args?.payload || args;
+      const idempotencyKey = args?.idempotencyKey;
+      return createOrderApi(branchId, payload, idempotencyKey);
+    },
+    onSuccess: (_, args) => {
+      const branchId = args?.branchId || args?.payload?.branchId;
+      if (branchId) {
+        qc.invalidateQueries({ queryKey: ['orders', branchId] });
+        qc.invalidateQueries({ queryKey: ['tables', branchId] });
+        qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
+        qc.invalidateQueries({ queryKey: ['table-session-active'] });
+        qc.invalidateQueries({ queryKey: ['kds', branchId] });
+      }
       qc.invalidateQueries({ queryKey: ['all-orders'] });
-      qc.invalidateQueries({ queryKey: ['tables', branchId] });
-      qc.invalidateQueries({ queryKey: ['table-sessions-branch'] });
-      qc.invalidateQueries({ queryKey: ['table-session-active'] });
-      qc.invalidateQueries({ queryKey: ['kds', branchId] });
     },
   });
 };

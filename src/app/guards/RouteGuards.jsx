@@ -92,7 +92,30 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to="/delivery" replace />;
   }
 
-  if (isWaiterRoute || isKdsRoute || isDeliveryRoute) {
+  const isCallCenter =
+    user?.role?.name === 'call_center' ||
+    user?.role?.name === 'كول سنتر' ||
+    user?.role?.name === 'استقبال طلبات' ||
+    (hasPermission('callcenter.view') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+        'branches.manage',
+      ]));
+
+  const isCallCenterRoute =
+    location.pathname.startsWith('/call-center') ||
+    location.pathname.startsWith('/phone-orders');
+
+  if (isCallCenter) {
+    if (isCallCenterRoute) return children;
+    return <Navigate to="/call-center" replace />;
+  }
+
+  if (isWaiterRoute || isKdsRoute || isDeliveryRoute || isCallCenterRoute) {
     return children;
   }
 
@@ -119,13 +142,41 @@ export const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-export const NotFoundPage = () => (
-  <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
-    <h1 className="text-4xl font-bold text-status-danger">404</h1>
-    <p className="text-sm text-txt-muted">الصفحة التي تبحث عنها غير موجودة.</p>
-    <Button onClick={() => (window.location.href = '/')}>العودة للرئيسية</Button>
-  </div>
-);
+export const NotFoundPage = () => {
+  const { user, hasPermission } = useAuth();
+
+  const handleGoHome = () => {
+    if (
+      user?.role?.name === 'cashier' ||
+      user?.role?.name === 'كاشير' ||
+      hasPermission('orders.source_cashier')
+    ) {
+      window.location.href = '/pos';
+    } else if (
+      user?.role?.name === 'waiter' ||
+      user?.role?.name === 'ويتر' ||
+      hasPermission('tables.view')
+    ) {
+      window.location.href = '/waiter';
+    } else if (
+      user?.role?.name === 'kitchen' ||
+      user?.role?.name === 'مطبخ' ||
+      hasPermission('kds.view')
+    ) {
+      window.location.href = '/kds';
+    } else {
+      window.location.href = '/';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-bg-base flex flex-col items-center justify-center p-12 text-center space-y-4 select-none">
+      <h1 className="text-4xl font-bold text-status-danger">404</h1>
+      <p className="text-sm text-txt-muted">الصفحة التي تبحث عنها غير موجودة.</p>
+      <Button onClick={handleGoHome}>العودة للرئيسية</Button>
+    </div>
+  );
+};
 
 export const RequirePermission = ({ permission, children }) => {
   const { hasPermission } = useAuth();
@@ -199,6 +250,24 @@ export const HomeRedirect = () => {
       ]));
   if (isDeliveryOnly) {
     return <Navigate to="/delivery" replace />;
+  }
+
+  // 0.8. Call Center staff → directly to call center portal
+  const isCallCenterOnly =
+    user?.role?.name === 'call_center' ||
+    user?.role?.name === 'كول سنتر' ||
+    user?.role?.name === 'استقبال طلبات' ||
+    (hasPermission('callcenter.view') &&
+      !hasPermission([
+        'dashboard.view',
+        'orders.source_cashier',
+        'menu.manage',
+        'restaurants.manage',
+        'employees.view',
+        'branches.manage',
+      ]));
+  if (isCallCenterOnly) {
+    return <Navigate to="/call-center" replace />;
   }
 
   // 1. Dashboard / Executive Overview

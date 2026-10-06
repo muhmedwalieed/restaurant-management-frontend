@@ -14,20 +14,20 @@ export const OpenShiftModal = ({
   isEnforced = false,
 }) => {
   const { currency } = useCurrency();
-  const [startingCash, setStartingCash] = useState('0');
+  const [startingCash, setStartingCash] = useState('');
   const [openNotes, setOpenNotes] = useState('');
   const openShiftMutation = useOpenShiftMutation();
 
   if (!isOpen) return null;
 
   const handleQuickAdd = (amount) => {
-    const current = Number(startingCash) || 0;
+    const current = startingCash === '' ? 0 : Number(startingCash) || 0;
     setStartingCash(String(current + amount));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const cashNum = Number(startingCash);
+    const cashNum = startingCash === '' ? 0 : Number(startingCash);
     if (isNaN(cashNum) || cashNum < 0) {
       toast.error('يرجى إدخال رصيد بداية صحيح');
       return;
@@ -56,7 +56,7 @@ export const OpenShiftModal = ({
       subtitle="تحديد رصيد العهدة الافتتاحي للدرج النقدي"
       size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-5 text-right">
+      <form onSubmit={handleSubmit} autoComplete="off" className="space-y-5 text-right">
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 text-emerald-500">
             <KeyRound className="w-5 h-5" />
@@ -73,20 +73,28 @@ export const OpenShiftModal = ({
 
         <div>
           <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-            رصيد بداية الوردية (العهدة النقدية / Float)
+            رصيد بداية الوردية
           </label>
           <div className="relative">
             <Input
               type="number"
               step="0.5"
               min="0"
-              required
+              name="shift_starting_cash_no_autofill"
+              id="shift_starting_cash_no_autofill"
+              autoComplete="new-password"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              data-lpignore="true"
+              data-1p-ignore="true"
+              data-form-type="other"
               value={startingCash}
               onChange={(e) => setStartingCash(e.target.value)}
               placeholder="0.00"
-              className="text-lg font-bold text-left pl-14"
+              className="text-center font-mono font-bold text-lg tracking-wider"
             />
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 pointer-events-none">
               {currency}
             </span>
           </div>
@@ -105,7 +113,7 @@ export const OpenShiftModal = ({
             ))}
             <button
               type="button"
-              onClick={() => setStartingCash('0')}
+              onClick={() => setStartingCash('')}
               className="px-2 py-1 rounded-lg text-[11px] font-medium text-zinc-400 hover:text-zinc-200"
             >
               تصفير
@@ -121,7 +129,6 @@ export const OpenShiftModal = ({
             type="text"
             value={openNotes}
             onChange={(e) => setOpenNotes(e.target.value)}
-            placeholder="مثال: استلام درج كاشير رقم 1 مع فكة 200 جنيه"
           />
         </div>
 

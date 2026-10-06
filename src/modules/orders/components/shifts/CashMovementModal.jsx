@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../../shared/components/Modal.jsx';
-import { Button } from '../../../../shared/components/Button.jsx';
-import { Input } from '../../../../shared/components/Input.jsx';
 import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
 import { useAddCashMovementMutation } from '../../hooks/useShifts.js';
 import { toast } from '../../../../shared/context/ToastContext.jsx';
-import { ArrowDownLeft, ArrowUpRight, DollarSign } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 export const CashMovementModal = ({
   isOpen,
@@ -56,95 +54,111 @@ export const CashMovementModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="حركة نقدية بالدرج (Cash Movement)"
-      subtitle="تسجيل إيداع إضافي أو سحب مصروفات أثناء الوردية"
+      title="حركة نقدية بالدرج"
+      subtitle="تسجيل إيداع إضافي أو سحب مصروفات"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-right">
         {/* Type Selector Toggle */}
-        <div className="grid grid-cols-2 gap-2 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-2xl border border-zinc-200 dark:border-zinc-700/60">
+        <div className="grid grid-cols-2 gap-1.5 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800">
           <button
             type="button"
             onClick={() => setType('CASH_OUT')}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               type === 'CASH_OUT'
-                ? 'bg-rose-500 text-white shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                ? 'bg-red-600 text-white shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50'
             }`}
           >
             <ArrowUpRight className="w-4 h-4" />
-            سحب نقدية / مصروفات (Pay Out)
+            <span>سحب نقدي</span>
           </button>
           <button
             type="button"
             onClick={() => setType('CASH_IN')}
-            className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               type === 'CASH_IN'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50'
             }`}
           >
             <ArrowDownLeft className="w-4 h-4" />
-            إيداع نقدية / فكّة (Pay In)
+            <span>إيداع نقدي</span>
           </button>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+        {/* Amount Input with Currency Badge */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
             المبلغ
           </label>
-          <div className="relative">
-            <Input
+          <div className="relative flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl focus-within:border-zinc-500 dark:focus-within:border-zinc-600 transition-all overflow-hidden" dir="rtl">
+            <input
               type="number"
-              step="0.5"
+              step="any"
               min="0.5"
               required
+              autoFocus
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className="text-lg font-bold text-left pl-14"
+              className="flex-1 h-11 bg-transparent px-3.5 text-base font-mono font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:outline-none text-right"
             />
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">
+            <span className="px-3.5 h-11 flex items-center text-xs font-bold text-zinc-600 dark:text-zinc-400 font-sans pointer-events-none shrink-0 bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
               {currency}
             </span>
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+        {/* Reason Input */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
             سبب الحركة النقدية
           </label>
-          <Input
+          <input
             type="text"
             required
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder={
               type === 'CASH_OUT'
-                ? 'مثال: شراء مستلزمات نظافة طارئة، سحب عهدة للإدارة...'
+                ? 'مثال: شراء مستلزمات نظافة، سحب عهدة للإدارة...'
                 : 'مثال: إضافة فكّة نقدية من الخزينة الرئيسية...'
             }
+            className="w-full h-11 px-3.5 rounded-xl text-xs bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-600 transition-colors"
           />
         </div>
 
-        <div className="pt-2 flex items-center justify-end gap-2.5">
-          <Button type="button" variant="outline" onClick={onClose}>
+        {/* Action Buttons */}
+        <div className="pt-2 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-10 px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs transition-colors cursor-pointer"
+          >
             إلغاء
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
-            variant="primary"
-            isLoading={addMovementMutation.isPending}
-            className={`font-bold px-5 py-2 rounded-xl text-white ${
+            disabled={addMovementMutation.isPending}
+            className={`h-10 px-5 rounded-xl text-white font-bold text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 ${
               type === 'CASH_OUT'
-                ? 'bg-rose-600 hover:bg-rose-500'
-                : 'bg-emerald-600 hover:bg-emerald-500'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-emerald-600 hover:bg-emerald-700'
             }`}
           >
-            تأكيد الحركة النقدية
-          </Button>
+            {addMovementMutation.isPending ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <span>جاري الحفظ...</span>
+              </>
+            ) : (
+              <span>تأكيد الحركة النقدية</span>
+            )}
+          </button>
         </div>
       </form>
     </Modal>
   );
 };
+

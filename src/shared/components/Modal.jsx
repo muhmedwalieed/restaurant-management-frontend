@@ -61,38 +61,38 @@ export const Modal = ({
         aria-labelledby={title ? titleId : undefined}
         className={twMerge(
           clsx(
-            'relative w-full bg-bg-surface border border-border-default rounded-lg shadow-overlay z-10 flex flex-col max-h-[90vh] my-auto overflow-hidden animate-fadeUp',
+            'relative w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl z-10 flex flex-col max-h-[90vh] my-auto overflow-hidden animate-fadeUp',
             sizeMap[size] || sizeMap.md,
             className
           )
         )}
       >
-        {}
+        {/* Modal Header */}
         {(title || onClose) && (
-          <div className="px-6 py-4 border-b border-border-default flex items-center justify-between gap-4 shrink-0">
+          <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/50 flex items-center justify-between gap-4 shrink-0">
             <div>
               {title && (
-                <h3 id={titleId} className="text-base font-bold text-txt-primary">
+                <h3 id={titleId} className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100">
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="text-xs text-txt-muted mt-1">{subtitle}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{subtitle}</p>
               )}
             </div>
             <button
               ref={closeButtonRef}
               onClick={onClose}
-              className="p-2 rounded-md text-txt-muted hover:text-txt-primary hover:bg-bg-surface-elevated transition-colors focus-visible:outline-none"
+              className="w-8 h-8 rounded-xl flex items-center justify-center border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800/80 transition-all focus-visible:outline-none cursor-pointer"
               aria-label="إغلاق النافذة"
             >
-              <X className="w-5 h-5" />
+              <X size={15} />
             </button>
           </div>
         )}
 
-        {}
-        <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        {/* Modal Body */}
+        <div className="p-4 sm:p-5 overflow-y-auto custom-scrollbar flex-1">{children}</div>
       </div>
     </div>
   );

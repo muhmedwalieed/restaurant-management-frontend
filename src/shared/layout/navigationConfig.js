@@ -15,6 +15,8 @@ import {
   Shield,
   ScrollText,
   Layers,
+  PhoneCall,
+  Bike,
 } from 'lucide-react';
 
 export const ROLE_LABELS = {
@@ -33,7 +35,7 @@ export const NAV_SECTIONS = [
     title: 'العمليات التشغيلية',
     items: [
       {
-        label: 'نقطة البيع',
+        label: 'نقطة البيع (POS)',
         path: '/pos',
         icon: Calculator,
         permission: [
@@ -44,10 +46,22 @@ export const NAV_SECTIONS = [
         ],
       },
       {
+        label: 'طلبات الهاتف والأونلاين (Call Center)',
+        path: '/call-center',
+        icon: PhoneCall,
+        permission: ['callcenter.view', 'callcenter.manage'],
+      },
+      {
         label: 'شاشة الويتر',
         path: '/waiter',
         icon: UtensilsCrossed,
-        permission: ['tables.view', 'orders.create'],
+        permission: ['tables.view', 'orders.view', 'orders.create', 'menu.view'],
+      },
+      {
+        label: 'شاشة التوصيل (Delivery)',
+        path: '/delivery',
+        icon: Bike,
+        permission: ['delivery.view', 'delivery.update_status', 'delivery.settle'],
       },
       {
         label: 'لوحة التحكم',
@@ -77,7 +91,7 @@ export const NAV_SECTIONS = [
         label: 'سجل الورديات',
         path: '/shifts',
         icon: Layers,
-        permission: ['shifts.view', 'reports.view', 'orders.source_cashier'],
+        permission: ['shifts.view', 'dashboard.view'],
       },
     ],
   },

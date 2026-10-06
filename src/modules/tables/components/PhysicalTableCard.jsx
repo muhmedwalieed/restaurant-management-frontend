@@ -61,7 +61,7 @@ export const PhysicalTableCard = ({
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') onSelect(table);
       }}
-      className={`group relative cursor-pointer select-none rounded-xl bg-bg-surface p-4 border transition-all duration-200 hover:shadow-sm flex flex-col justify-between overflow-hidden ${toneBorder}`}
+      className={`group relative cursor-pointer rounded-xl bg-bg-surface p-4 border transition-all duration-200 hover:shadow-sm flex flex-col justify-between overflow-hidden ${toneBorder}`}
     >
       {/* Top Header: Table Name & Live Status Badge */}
       <div className="flex items-center justify-between gap-2 z-10">

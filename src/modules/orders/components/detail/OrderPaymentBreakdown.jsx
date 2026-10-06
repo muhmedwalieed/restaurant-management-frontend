@@ -3,12 +3,14 @@ import { Wallet, Banknote, RotateCcw } from 'lucide-react';
 import { StatusPill } from '../../../../shared/components/StatusPill.jsx';
 import { Button } from '../../../../shared/components/Button.jsx';
 import { PAYMENT_STATUS_LABELS, PAYMENT_METHOD_LABELS, paymentStatusPill } from '../../schemas/order.schema.js';
+import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
 
 export const OrderPaymentBreakdown = ({
   order,
   onOpenPaymentModal,
   onOpenRefundModal,
 }) => {
+  const { currency } = useCurrency();
   if (!order) return null;
 
   const total = Number(order.total || 0);
@@ -38,21 +40,21 @@ export const OrderPaymentBreakdown = ({
 
         <div className="flex items-center justify-between">
           <span className="text-txt-muted">المبلغ المدفوع:</span>
-          <span className="font-mono font-bold text-emerald-400">
-            {paid.toFixed(2)} EGP
+          <span className="font-mono font-bold text-emerald-500">
+            {paid % 1 === 0 ? paid.toFixed(0) : paid.toFixed(2)} {currency || 'ج.م'}
           </span>
         </div>
 
         {remaining > 0 && order.status !== 'CANCELLED' && (
-          <div className="flex items-center justify-between text-red-400 font-bold pt-1 border-t border-white/5">
+          <div className="flex items-center justify-between text-red-500 font-bold pt-1 border-t border-zinc-200/60 dark:border-zinc-800">
             <span>المتبقي للتحصيل:</span>
-            <span className="font-mono">{remaining.toFixed(2)} EGP</span>
+            <span className="font-mono">{remaining % 1 === 0 ? remaining.toFixed(0) : remaining.toFixed(2)} {currency || 'ج.م'}</span>
           </div>
         )}
       </div>
 
       {/* Payment & Refund Action Buttons */}
-      <div className="pt-2 border-t border-border-subtle/40 flex items-center gap-2">
+      <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-800 flex items-center gap-2">
         {remaining > 0 && order.status !== 'CANCELLED' && (
           <Button
             size="sm"
@@ -61,7 +63,7 @@ export const OrderPaymentBreakdown = ({
             icon={Banknote}
             onClick={onOpenPaymentModal}
           >
-            تسجيل دفعة
+            تسجيل دفعة ({remaining % 1 === 0 ? remaining.toFixed(0) : remaining.toFixed(2)} {currency || 'ج.م'})
           </Button>
         )}
 

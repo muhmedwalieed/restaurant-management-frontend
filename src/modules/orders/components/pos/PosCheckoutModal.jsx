@@ -1,301 +1,363 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   X,
-  UtensilsCrossed,
-  ShoppingBag,
-  Bike,
+  Banknote,
+  Wallet,
+  Smartphone,
+  Receipt,
   Printer,
-  CheckCircle2,
+  RotateCcw,
+  Tag,
+  Coins,
 } from 'lucide-react';
-import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
-import { toast } from '../../../../shared/context/ToastContext.jsx';
-import { formatTableLabel } from '../../../tables/utils/tableLabel.js';
-import { PAYMENT_METHODS } from '../payment/paymentMethods.js';
-
-const ORDER_TYPE_CFG = {
-  PICKUP: { label: 'استلام', Icon: ShoppingBag },
-  DELIVERY: { label: 'توصيل', Icon: Bike },
-  DINE_IN: { label: 'صالة', Icon: UtensilsCrossed },
-};
 
 export const PosCheckoutModal = ({
   isOpen,
   onClose,
+  cart = [],
   total = 0,
-  rawTotal,
+  rawTotal = 0,
+  couponCode = '',
+  setCouponCode,
   couponState,
+  clearCoupon,
+  onChangeQty,
+  onRemoveItem,
   orderType = 'DINE_IN',
+  onChangeOrderType,
   customerInfo = {},
+  onChangeCustomerInfo,
   tables = [],
   selectedTableLabel,
-  onConfirmCheckout,
-  isLoading = false,
+  source = 'POS',
+  orderNotes = '',
+  onChangeOrderNotes,
+  onConfirm,
+  isSubmitting = false,
+  currency = 'ج.م',
 }) => {
-  const { currency } = useCurrency();
-  const [payMethod, setPayMethod] = useState('CASH');
-  const [enteredAmount, setEnteredAmount] = useState('');
-  const [autoPrint, setAutoPrint] = useState(true);
+  const [payMethod, setPayMethod] = useState('CASH'); // 'CASH' | 'INSTAPAY' | 'WALLET'
+  const [paidAmount, setPaidAmount] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isCouponExpanded, setIsCouponExpanded] = useState(false);
 
-  // Format initial amount
+  const inputRef = useRef(null);
+
+  const finalTotal = total > 0 ? total : 0;
+  const itemCount = cart.reduce((s, it) => s + (it.qty || 1), 0);
+
+  // Calculations
+  const numericPaid = paidAmount === '' ? finalTotal : Number(paidAmount) || 0;
+
+
   useEffect(() => {
     if (isOpen) {
-      const formattedTotal = total % 1 === 0 ? total.toFixed(0) : total.toFixed(2);
-      setEnteredAmount(formattedTotal);
-    }
-  }, [isOpen, total]);
+      setPaidAmount(finalTotal > 0 ? String(finalTotal) : '');
+      setPayMethod('CASH');
+      setNotes(orderNotes || '');
+      setIsCouponExpanded(Boolean(couponCode || couponState?.id));
 
-  // Handle ESC and PopState
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      }, 80);
+    }
+  }, [isOpen, finalTotal, orderNotes]);
+
+  // Close modal on Escape key
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return undefined;
+
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const numAmount = parseFloat(enteredAmount) || 0;
-  const isCash = payMethod === 'CASH';
-  const cashChange = isCash && numAmount > total ? numAmount - total : 0;
-  const isPartial = numAmount > 0 && numAmount < total;
-
-  const currentTypeCfg = ORDER_TYPE_CFG[orderType] || { label: orderType, Icon: ShoppingBag };
-  const TypeIcon = currentTypeCfg.Icon;
-
-  // Resolve active table or customer name
-  const currentTableObj = useMemo(() => {
-    if (!customerInfo?.table) return null;
-    return tables.find((t) => String(t.id) === String(customerInfo.table) || String(t._id) === String(customerInfo.table));
-  }, [tables, customerInfo?.table]);
-
-  const currentTableRaw = currentTableObj
-    ? currentTableObj.label || currentTableObj.name || currentTableObj.number
-    : null;
-  const tableDisplayName = currentTableObj
-    ? (currentTableRaw != null ? formatTableLabel(currentTableRaw) : 'طاولة')
-    : (selectedTableLabel ? formatTableLabel(selectedTableLabel) : null);
-
-  const customerDisplayName = orderType === 'DINE_IN'
-    ? (tableDisplayName || 'طاولة غير محددة')
-    : orderType === 'PICKUP'
-    ? 'طلب استلام'
-    : (customerInfo?.name?.trim() || 'عميل توصيل');
-
-  const handleSubmitPayment = (e) => {
-    e?.preventDefault?.();
-    if (isLoading) return;
-
-    // Validate Dine-in table
-    if (orderType === 'DINE_IN' && !customerInfo?.table) {
-      toast.error('يرجى اختيار طاولة لطلب الصالة');
-      return;
-    }
-
-    // Validate Delivery customer info
-    if (orderType === 'DELIVERY') {
-      if (!customerInfo?.name?.trim()) {
-        toast.error('يرجى إدخال اسم العميل لطلب التوصيل');
-        return;
-      }
-      if (!customerInfo?.phone?.trim()) {
-        toast.error('يرجى إدخال رقم هاتف العميل لطلب التوصيل');
-        return;
-      }
-      if (!customerInfo?.address?.trim()) {
-        toast.error('يرجى إدخال عنوان التوصيل');
-        return;
-      }
-    }
-
-    if (numAmount <= 0) {
-      toast.error('يرجى إدخال مبلغ صحيح');
-      return;
-    }
-
-    const paid = Math.min(total, numAmount);
-    const paymentType = paid >= total ? 'FULL' : 'PARTIAL';
-
-    onConfirmCheckout?.({
-      paymentType,
-      paidAmount: paid,
-      payMethod,
-      autoPrint,
-    });
-  };
-
-  const handlePayLater = () => {
-    if (isLoading) return;
-
-    if (orderType === 'DINE_IN' && !customerInfo?.table) {
-      toast.error('يرجى اختيار طاولة لطلب الصالة');
-      return;
-    }
-
-    onConfirmCheckout?.({
-      paymentType: 'LATER',
-      paidAmount: 0,
-      autoPrint,
-    });
-  };
-
   if (!isOpen) return null;
 
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (isSubmitting) return;
+
+    if (onChangeOrderNotes) {
+      onChangeOrderNotes(notes);
+    }
+
+    let paymentType = 'FULL';
+    let paidAmt = finalTotal;
+
+    if (numericPaid <= 0) {
+      paymentType = 'LATER';
+      paidAmt = 0;
+    } else if (numericPaid < finalTotal) {
+      paymentType = 'PARTIAL';
+      paidAmt = numericPaid;
+    } else {
+      paymentType = 'FULL';
+      paidAmt = finalTotal;
+    }
+
+    onConfirm({
+      paymentType,
+      payMethod,
+      paidAmount: paidAmt,
+      notes,
+    });
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 text-zinc-100 animate-in fade-in zoom-in-95 duration-150">
-        {/* ── Modal Header: Order Type Badge | Customer/Table | Net Total Due ── */}
-        <div className="flex items-start justify-between gap-3 pb-4 border-b border-zinc-800">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 border border-zinc-700 bg-zinc-900 text-zinc-200">
-                <TypeIcon size={13} className="text-zinc-400" />
-                <span>{currentTypeCfg.label}</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs animate-fadeIn">
+      <div
+        className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col text-zinc-900 dark:text-zinc-100 animate-scaleUp"
+        dir="rtl"
+      >
+        {/* Header */}
+        <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 flex items-center justify-center shrink-0 shadow-xs">
+              <Receipt size={17} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">إتمام الطلب والدفع</h3>
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                {itemCount} {itemCount === 1 ? 'صنف' : 'أصناف'} في السلة
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-3.5 max-h-[82vh] overflow-y-auto custom-scrollbar">
+          {/* 1. Total Summary Card */}
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/80 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-xs">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">إجمالي الحساب المطلوب</span>
+            <div className="flex items-baseline gap-1.5" dir="rtl">
+              <span className="text-2xl font-black font-mono text-zinc-900 dark:text-white tracking-tight">
+                {finalTotal % 1 === 0 ? finalTotal.toFixed(0) : finalTotal.toFixed(2)}
               </span>
-              <span className="text-sm font-bold text-zinc-200 truncate max-w-[200px]">
-                {customerDisplayName}
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 font-sans">{currency}</span>
+            </div>
+          </div>
+
+          {/* 2. Coupon Code Section (Compact Collapsible to Save Space) */}
+          {setCouponCode && (
+            <div className="rounded-xl">
+              {couponState?.id ? (
+                <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs animate-fadeIn">
+                  <div className="flex items-center gap-2 truncate">
+                    <Tag size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="font-bold font-mono">{couponState.code}</span>
+                    <span className="text-emerald-600 dark:text-emerald-400/80" dir="rtl">
+                      (-{couponState.discountAmount.toFixed(0)} {currency})
+                    </span>
+                  </div>
+                  {clearCoupon && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearCoupon();
+                        setIsCouponExpanded(false);
+                      }}
+                      className="w-5 h-5 rounded flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                      title="إزالة كود الخصم"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+              ) : isCouponExpanded || couponCode ? (
+                <div className="relative animate-fadeIn">
+                  <input
+                    type="text"
+                    autoFocus
+                    value={couponCode || ''}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="أدخل كود الخصم..."
+                    className="w-full h-9 px-3 pr-8 pl-16 rounded-xl text-xs bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
+                  />
+                  <Tag size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none" />
+                  <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                    {couponState?.loading && (
+                      <RotateCcw size={12} className="animate-spin text-zinc-400" />
+                    )}
+                    {couponCode && clearCoupon && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCouponCode('');
+                          clearCoupon();
+                        }}
+                        className="w-4 h-4 rounded flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer"
+                        title="مسح"
+                      >
+                        <X size={11} />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsCouponExpanded(false)}
+                      className="text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 px-1 py-0.5 rounded cursor-pointer"
+                      title="إخفاء"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsCouponExpanded(true)}
+                  className="w-full py-1.5 px-3 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700/80 hover:border-zinc-400 dark:hover:border-zinc-500 bg-zinc-50/50 hover:bg-zinc-100/70 dark:bg-zinc-900/40 dark:hover:bg-zinc-900/80 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <Tag size={12} className="text-zinc-400 dark:text-zinc-500" />
+                  <span>لديك كود خصم؟ اضغط هنا</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 3. Payment Method Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
+              طريقة الدفع
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPayMethod('CASH')}
+                className={`h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  payMethod === 'CASH'
+                    ? 'bg-zinc-900 text-white dark:bg-zinc-800 dark:text-white border border-zinc-900 dark:border-zinc-600 ring-1 ring-zinc-500/20 shadow-xs'
+                    : 'bg-zinc-50 text-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700'
+                }`}
+              >
+                <Banknote size={14} className="shrink-0" />
+                <span>نقدي</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPayMethod('WALLET')}
+                className={`h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  payMethod === 'WALLET'
+                    ? 'bg-zinc-900 text-white dark:bg-zinc-800 dark:text-white border border-zinc-900 dark:border-zinc-600 ring-1 ring-zinc-500/20 shadow-xs'
+                    : 'bg-zinc-50 text-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700'
+                }`}
+              >
+                <Wallet size={14} className="shrink-0" />
+                <span>محفظة</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPayMethod('INSTAPAY')}
+                className={`h-10 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                  payMethod === 'INSTAPAY'
+                    ? 'bg-zinc-900 text-white dark:bg-zinc-800 dark:text-white border border-zinc-900 dark:border-zinc-600 ring-1 ring-zinc-500/20 shadow-xs'
+                    : 'bg-zinc-50 text-zinc-600 dark:bg-zinc-900/80 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700'
+                }`}
+              >
+                <Smartphone size={14} className="shrink-0" />
+                <span>انستاباي</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4. Streamlined Paid Amount Card */}
+          <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 space-y-2.5">
+            {/* Header with Quick Fill Button */}
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                <Coins size={13} className="text-zinc-500 dark:text-zinc-400" />
+                <span>المبلغ المستلم / المدفوع</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setPaidAmount(String(finalTotal))}
+                className="text-[11px] font-semibold text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white bg-zinc-200/70 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 border border-zinc-300 dark:border-zinc-700 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+              >
+                المبلغ كامل
+              </button>
+            </div>
+
+            {/* Clean Numeric Input with Currency label */}
+            <div className="relative flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl focus-within:border-zinc-500 dark:focus-within:border-zinc-600 transition-all overflow-hidden">
+              <input
+                ref={inputRef}
+                type="number"
+                step="any"
+                min="0"
+                value={paidAmount}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => e.target.select()}
+                onChange={(e) => setPaidAmount(e.target.value)}
+                placeholder={finalTotal % 1 === 0 ? finalTotal.toFixed(0) : finalTotal.toFixed(2)}
+                className="w-full h-10 bg-transparent px-3 text-base font-mono font-bold text-zinc-900 dark:text-white selection:bg-zinc-200 dark:selection:bg-zinc-700 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:outline-none text-right"
+                dir="rtl"
+              />
+              <span className="px-3 text-xs font-bold text-zinc-500 dark:text-zinc-400 font-sans pointer-events-none shrink-0 border-r border-zinc-200 dark:border-zinc-800">
+                {currency}
               </span>
             </div>
-            {orderType === 'DELIVERY' && customerInfo?.phone && (
-              <div className="text-xs text-zinc-400 font-mono" dir="ltr">
-                {customerInfo.phone}
+
+            {/* Change Calculation (الباقي للعميل) if overpaid */}
+            {numericPaid > finalTotal && (
+              <div className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300">
+                <span className="font-semibold">المتبقي للعميل:</span>
+                <div className="flex items-baseline gap-1" dir="rtl">
+                  <span className="font-mono font-black text-sm text-amber-700 dark:text-amber-300">
+                    {(numericPaid - finalTotal).toFixed(2)}
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400/80">{currency}</span>
+                </div>
               </div>
-            )}
-            {couponState?.id && (
-              <div className="text-xs font-bold text-emerald-400">✓ {couponState.code} — خصم {couponState.discountAmount.toFixed(0)} {currency || 'ج.م'}</div>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-left">
-              <span className="text-[11px] text-zinc-400 block font-normal">المبلغ المستحق</span>
-              {rawTotal != null && rawTotal !== total && (
-                <span className="text-xs font-mono text-zinc-500 line-through block text-left">{rawTotal % 1 === 0 ? rawTotal.toFixed(0) : rawTotal.toFixed(2)} {currency || 'ج.م'}</span>
-              )}
-              <span className="whitespace-nowrap font-bold text-zinc-100 flex items-center justify-end gap-1">
-                <span className="text-xl font-mono tracking-tight">
-                  {total % 1 === 0 ? total.toFixed(0) : total.toFixed(2)}
-                </span>
-                <span className="text-xs font-normal text-zinc-400">{currency || 'ج.م'}</span>
-              </span>
-            </div>
-
+          {/* 5. Fixed Action Buttons */}
+          <div className="pt-1.5 flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 border border-zinc-800 flex items-center justify-center transition-colors cursor-pointer"
-              title="إغلاق"
+              className="h-11 px-5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-850 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white font-semibold rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs transition-colors cursor-pointer shrink-0"
             >
-              <X size={16} />
+              إلغاء
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 h-11 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-950 active:scale-[0.99] font-black rounded-xl flex items-center justify-center gap-2 shadow-md text-xs sm:text-sm transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white dark:border-zinc-950 border-t-transparent rounded-full animate-spin" />
+                  <span>جاري التأكيد...</span>
+                </>
+              ) : (
+                <>
+                  <Printer size={15} />
+                  <span>تأكيد وطباعة</span>
+                </>
+              )}
             </button>
           </div>
-        </div>
-
-        {/* ── Payment Methods Grid (4 Methods: نقدي, بطاقة, انستاباي, محفظة) ── */}
-        <div className="space-y-2">
-          <span className="text-xs font-medium text-zinc-400">طريقة الدفع</span>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {PAYMENT_METHODS.map((m) => {
-              const Icon = m.Icon;
-              const isActive = payMethod === m.id;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setPayMethod(m.id)}
-                  className={`h-14 rounded-xl flex items-center justify-center gap-2 text-sm transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-zinc-800 border-zinc-600 text-zinc-100 shadow-sm ring-1 ring-zinc-500 font-bold border'
-                      : 'bg-zinc-900 border border-zinc-800 text-zinc-300 hover:border-zinc-700 font-medium'
-                  }`}
-                >
-                  <Icon size={16} className={isActive ? 'text-zinc-100' : 'text-zinc-400'} />
-                  <span>{m.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Net Amount Input & Change Display ── */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-zinc-400">المبلغ المدفوع</span>
-            {isPartial && (
-              <span className="text-amber-400 font-semibold">
-                دفع جزئي (متبقي: {(total - numAmount).toFixed(0)} {currency || 'ج.م'})
-              </span>
-            )}
-          </div>
-
-          <div className="relative">
-            <input
-              type="number"
-              step="any"
-              value={enteredAmount}
-              onChange={(e) => setEnteredAmount(e.target.value)}
-              onFocus={(e) => e.target.select()}
-              placeholder="0.00"
-              className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl text-center text-xl font-bold font-mono text-zinc-100 focus:border-zinc-600 outline-none transition-colors"
-            />
-          </div>
-
-          {/* Cash Change (الباقي للعميل) Badge */}
-          {isCash && cashChange > 0 && (
-            <div className="rounded-xl px-3.5 py-2 flex items-center justify-between text-xs font-semibold bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 animate-in fade-in duration-100">
-              <span>الباقي للعميل:</span>
-              <span className="font-mono text-sm font-bold" dir="ltr">
-                {cashChange % 1 === 0 ? cashChange.toFixed(0) : cashChange.toFixed(2)} {currency || 'ج.م'}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* ── Auto Print Option ── */}
-        <div className="flex items-center justify-between pt-1 text-xs text-zinc-400">
-          <label className="flex items-center gap-2 cursor-pointer select-none hover:text-zinc-200 transition-colors">
-            <input
-              type="checkbox"
-              checked={autoPrint}
-              onChange={(e) => setAutoPrint(e.target.checked)}
-              className="accent-emerald-600 rounded cursor-pointer"
-            />
-            <Printer size={14} className="text-zinc-400" />
-            <span>طباعة الإيصال تلقائياً بعد السداد</span>
-          </label>
-
-          <button
-            type="button"
-            onClick={handlePayLater}
-            disabled={isLoading}
-            className="text-xs text-zinc-400 hover:text-zinc-200 underline underline-offset-4 cursor-pointer disabled:opacity-50"
-          >
-            حفظ الطلب (الدفع لاحقاً)
-          </button>
-        </div>
-
-        {/* ── Action Buttons ── */}
-        <div className="space-y-2 pt-2 border-t border-zinc-800/80">
-          {/* Primary Confirm Payment Button */}
-          <button
-            type="button"
-            disabled={isLoading || numAmount <= 0}
-            onClick={handleSubmitPayment}
-            className="w-full h-12 bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white font-bold rounded-xl text-base transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <CheckCircle2 size={18} />
-            <span>{isLoading ? 'جاري السداد...' : 'تأكيد السداد'}</span>
-          </button>
-
-          {/* Secondary Ghost Cancel Button */}
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={onClose}
-            className="w-full h-10 text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors cursor-pointer"
-          >
-           رجوع
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );

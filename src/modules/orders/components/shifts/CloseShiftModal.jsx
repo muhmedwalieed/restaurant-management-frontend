@@ -1,32 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { Modal } from '../../../../shared/components/Modal.jsx';
-import { Button } from '../../../../shared/components/Button.jsx';
-import { Input } from '../../../../shared/components/Input.jsx';
-import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
-import { useCloseShiftMutation } from '../../hooks/useShifts.js';
-import { toast } from '../../../../shared/context/ToastContext.jsx';
 import {
+  X,
   Lock,
   DollarSign,
-  CreditCard,
-  Smartphone,
-  Wallet,
-  Coins,
+  AlertCircle,
   CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
   Calculator,
-  Printer,
-  FileSpreadsheet,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
+import { useCurrency } from '../../../../shared/hooks/useCurrency.js';
+import { useCloseShiftMutation } from '../../hooks/useShifts.js';
 
-export const CloseShiftModal = ({
-  isOpen,
-  onClose,
-  branchId,
-  shift,
-  onPrintZReport,
-}) => {
+export const CloseShiftModal = ({ isOpen, onClose, shift }) => {
   const { currency } = useCurrency();
   const [actualCash, setActualCash] = useState('');
   const [closeNotes, setCloseNotes] = useState('');
@@ -43,20 +29,6 @@ export const CloseShiftModal = ({
 
   const closeShiftMutation = useCloseShiftMutation();
 
-  if (!isOpen || !shift) return null;
-
-  const startingCash = Number(shift.startingCash) || 0;
-  const cashSales = Number(shift.cashSales) || 0;
-  const cardSales = Number(shift.cardSales) || 0;
-  const instaPaySales = Number(shift.instaPaySales) || 0;
-  const walletSales = Number(shift.walletSales) || 0;
-  const totalSales = Number(shift.totalSales) || (cashSales + cardSales + instaPaySales + walletSales);
-  const driverSettlementCash = Number(shift.driverSettlementCash) || 0;
-  const cashIn = Number(shift.cashIn) || 0;
-  const cashOut = Number(shift.cashOut) || 0;
-  const totalRefunds = Number(shift.totalRefunds) || 0;
-  const expectedCash = Number(shift.expectedCash) || (startingCash + cashSales + driverSettlementCash + cashIn - totalRefunds - cashOut);
-
   // Computed counted cash from denominations
   const totalFromDenominations = useMemo(() => {
     let sum = 0;
@@ -67,240 +39,254 @@ export const CloseShiftModal = ({
     return sum;
   }, [denominations]);
 
-  const effectiveCountedCash = useDenominations
-    ? totalFromDenominations
-    : Number(actualCash) || 0;
+  if (!isOpen || !shift) return null;
 
-  const discrepancy = effectiveCountedCash - expectedCash;
+  const startingCash = Number(shift.startingCash) || 0;
+  const cashSales = Number(shift.cashSales) || 0;
+  const cardSales = Number(shift.cardSales) || 0;
+  const instapaySales = Number(shift.instapaySales) || 0;
+  const walletSales = Number(shift.walletSales) || 0;
+  const cashIn = Number(shift.cashIn) || 0;
+  const cashOut = Number(shift.cashOut) || 0;
+
+  // Expected Cash = Starting Cash + Cash Sales + Cash In - Cash Out
+  const expectedCash = startingCash + cashSales + cashIn - cashOut;
+
+  // Final counted cash value
+  const countedCash = useDenominations
+    ? totalFromDenominations
+    : (actualCash === '' ? expectedCash : Number(actualCash));
+
+  const cashDifference = countedCash - expectedCash;
 
   const handleDenomChange = (denom, val) => {
-    setDenominations((prev) => ({ ...prev, [denom]: val }));
+    setDenominations((prev) => ({
+      ...prev,
+      [denom]: val,
+    }));
   };
 
-  const handleConfirmClose = async (e) => {
+  const handleCloseShift = async (e) => {
     e.preventDefault();
-    if (!useDenominations && (!actualCash || isNaN(Number(actualCash)))) {
-      toast.error('يرجى كتابة المبلغ الفعلي الموجود في الدرج');
-      return;
-    }
-
     try {
-      const res = await closeShiftMutation.mutateAsync({
-        branchId,
+      await closeShiftMutation.mutateAsync({
         shiftId: shift.id,
-        payload: {
-          actualCash: effectiveCountedCash,
-          closeNotes: closeNotes.trim() || undefined,
-        },
+        actualCash: countedCash,
+        notes: closeNotes,
       });
-      toast.success(res?.data?.message || res?.message || 'تم إغلاق الوردية بنجاح 🔒');
-      if (onPrintZReport) {
-        onPrintZReport(res?.data?.shift || { ...shift, actualCash: effectiveCountedCash, cashDifference: discrepancy });
-      }
-      if (onClose) onClose();
-    } catch (err) {
-      toast.error(err?.message || 'تعذر إغلاق الوردية');
-    }
+      onClose();
+    } catch (_) {}
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`إغلاق الوردية #${shift.shiftNumber} (Z-Report)`}
-      subtitle={`الموظف: ${shift.employee?.name || 'الكاشير'} | بدأت ${new Date(shift.openedAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`}
-      size="lg"
-    >
-      <form onSubmit={handleConfirmClose} className="space-y-5 text-right">
-        {/* 1. Cash Drawer Breakdown Cards */}
-        <div className="bg-zinc-50 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">
-              حسابات الدرج النقدي (Cash Drawer)
-            </span>
-            <span className="text-[11px] text-zinc-400">النقدية المتوقعة في الدرج</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60">
-              <span className="text-[11px] text-zinc-400 block">عهدة البداية</span>
-              <span className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">
-                {startingCash.toFixed(2)} {currency}
-              </span>
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn" dir="rtl">
+      <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col text-zinc-900 dark:text-zinc-100 max-h-[90vh]">
+        {/* Header */}
+        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/30">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center font-bold">
+              <Lock size={16} />
             </div>
-
-            <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60">
-              <span className="text-[11px] text-emerald-500 block">مبيعات كاش (+)</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                +{cashSales.toFixed(2)} {currency}
-              </span>
-            </div>
-
-            <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60">
-              <span className="text-[11px] text-emerald-500 block">تحصيل طيارين (+)</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                +{driverSettlementCash.toFixed(2)} {currency}
-              </span>
-            </div>
-
-            <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-700/60">
-              <span className="text-[11px] text-rose-500 block">مصروفات/سحب (-)</span>
-              <span className="font-bold text-rose-600 dark:text-rose-400 text-sm">
-                -{cashOut.toFixed(2)} {currency}
-              </span>
+            <div>
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                إغلاق الوردية
+              </h3>
+              <p className="text-[11px] text-zinc-400">
+                الوردية #{shift.shiftNumber || shift.id?.slice(-5)}
+              </p>
             </div>
           </div>
-
-          <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-              إجمالي النقدية المتوقعة في الدرج (=):
-            </span>
-            <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
-              {expectedCash.toFixed(2)} {currency}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+          >
+            <X size={16} />
+          </button>
         </div>
 
-        {/* 2. Electronic & Other Payments summary */}
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50">
-            <span className="text-[11px] text-zinc-400 block mb-0.5">فيزا / بطاقات</span>
-            <span className="font-bold text-blue-600 dark:text-blue-400 text-xs">
-              {cardSales.toFixed(2)} {currency}
-            </span>
-          </div>
-          <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50">
-            <span className="text-[11px] text-zinc-400 block mb-0.5">إنستاباي / محفظة</span>
-            <span className="font-bold text-purple-600 dark:text-purple-400 text-xs">
-              {(instaPaySales + walletSales).toFixed(2)} {currency}
-            </span>
-          </div>
-          <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50">
-            <span className="text-[11px] text-zinc-400 block mb-0.5">إجمالي المبيعات</span>
-            <span className="font-bold text-zinc-900 dark:text-zinc-100 text-xs">
-              {totalSales.toFixed(2)} {currency}
-            </span>
-          </div>
-        </div>
-
-        {/* 3. Actual Counted Cash Input & Denominations Counter */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-              النقدية الفعلية المحصية في الدرج (Actual Cash)
-            </label>
-            <button
-              type="button"
-              onClick={() => setUseDenominations(!useDenominations)}
-              className="text-[11px] font-semibold text-primary-500 hover:text-primary-400 flex items-center gap-1"
-            >
-              <Calculator className="w-3.5 h-3.5" />
-              {useDenominations ? 'إدخال المبلغ مباشرة' : 'حاسبة فئات النقدية (200، 100...)'}
-            </button>
-          </div>
-
-          {useDenominations ? (
-            <div className="bg-zinc-50 dark:bg-zinc-900/60 p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 space-y-2">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[200, 100, 50, 20, 10, 5, 1].map((denom) => (
-                  <div key={denom} className="flex items-center gap-1.5">
-                    <span className="w-10 text-xs font-bold text-zinc-500 text-left">
-                      {denom}ج:
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={denominations[denom]}
-                      onChange={(e) => handleDenomChange(denom, e.target.value)}
-                      placeholder="0"
-                      className="w-full text-center font-bold text-xs py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-1 focus:ring-primary-500"
-                    />
-                  </div>
-                ))}
+        {/* Form Body */}
+        <form onSubmit={handleCloseShift} className="p-4 space-y-3.5 overflow-y-auto custom-scrollbar flex-1 text-right">
+          {/* Expected Cash Breakdown */}
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden divide-y divide-zinc-200 dark:divide-zinc-800/80 bg-zinc-50/40 dark:bg-zinc-900/30 text-xs">
+            <div className="p-2.5 px-3 flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+              <span className="font-medium">عهدة البداية (الافتتاحي)</span>
+              <div className="flex items-baseline gap-1" dir="rtl">
+                <span className="font-mono font-bold text-zinc-800 dark:text-zinc-200">{startingCash.toFixed(2)}</span>
+                <span className="text-[10px] font-bold text-zinc-400">{currency}</span>
               </div>
-              <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
-                <span className="text-zinc-500">المجموع المحسوب:</span>
-                <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {totalFromDenominations.toFixed(2)} {currency}
+            </div>
+
+            <div className="p-2.5 px-3 flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+              <span className="font-medium">مبيعات نقدي</span>
+              <div className="flex items-baseline gap-1" dir="rtl">
+                <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">{cashSales.toFixed(2)}</span>
+                <span className="text-[10px] font-bold text-zinc-400">{currency}</span>
+              </div>
+            </div>
+
+            {cashIn > 0 && (
+              <div className="p-2.5 px-3 flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+                <span className="font-medium">إيداعات نقدية</span>
+                <div className="flex items-baseline gap-1" dir="rtl">
+                  <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">{cashIn.toFixed(2)}</span>
+                  <span className="text-[10px] font-bold text-zinc-400">{currency}</span>
+                </div>
+              </div>
+            )}
+
+            {cashOut > 0 && (
+              <div className="p-2.5 px-3 flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+                <span className="font-medium">مصروفات نثرية مسحوبة</span>
+                <div className="flex items-baseline gap-1" dir="rtl">
+                  <span className="font-mono font-bold text-zinc-700 dark:text-zinc-300">{cashOut.toFixed(2)}</span>
+                  <span className="text-[10px] font-bold text-zinc-400">{currency}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Expected Total in Drawer */}
+            <div className="p-3 bg-zinc-100/90 dark:bg-zinc-900 flex items-center justify-between font-bold border-t-2 border-zinc-200 dark:border-zinc-750">
+              <span className="text-zinc-900 dark:text-zinc-100 font-bold text-xs">النقدية المتوقعة بالدرج:</span>
+              <div className="flex items-baseline gap-1.5" dir="rtl">
+                <span className="font-mono font-black text-base text-zinc-950 dark:text-white">
+                  {expectedCash.toFixed(2)}
+                </span>
+                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400">{currency}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actual Cash Input Section */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                المبلغ الفعلي في الدرج
+              </label>
+              <button
+                type="button"
+                onClick={() => setUseDenominations(!useDenominations)}
+                className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <Calculator size={13} />
+                <span>{useDenominations ? 'إدخال رقم مباشر' : 'عد الفئات والعملات'}</span>
+              </button>
+            </div>
+
+            {useDenominations ? (
+              <div className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2 animate-fadeIn">
+                <div className="grid grid-cols-2 gap-2">
+                  {[200, 100, 50, 20, 10, 5, 1].map((denom) => (
+                    <div key={denom} className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold w-12 text-zinc-600 dark:text-zinc-400 font-mono text-left" dir="ltr">
+                        {denom} ج:
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={denominations[denom]}
+                        onChange={(e) => handleDenomChange(denom, e.target.value)}
+                        placeholder="0"
+                        className="w-full h-8 px-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-xs font-mono text-center focus:outline-none focus:border-zinc-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                  <span>إجمالي العد:</span>
+                  <div className="flex items-baseline gap-1" dir="rtl">
+                    <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                      {totalFromDenominations.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] font-bold text-zinc-400">{currency}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="relative flex items-center bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-xl focus-within:border-zinc-500 dark:focus-within:border-zinc-600 transition-all overflow-hidden" dir="rtl">
+                <input
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={actualCash}
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => e.target.select()}
+                  onChange={(e) => setActualCash(e.target.value)}
+                  placeholder={expectedCash.toFixed(2)}
+                  className="flex-1 h-11 bg-transparent px-3.5 text-base font-mono font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:outline-none text-right"
+                />
+                <span className="px-3.5 h-11 flex items-center text-xs font-bold text-zinc-600 dark:text-zinc-400 font-sans pointer-events-none shrink-0 bg-zinc-100 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800">
+                  {currency}
                 </span>
               </div>
-            </div>
-          ) : (
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.5"
-                min="0"
-                required
-                value={actualCash}
-                onChange={(e) => setActualCash(e.target.value)}
-                placeholder="0.00"
-                className="text-xl font-bold text-left pl-14"
-              />
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">
-                {currency}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* 4. Discrepancy Indicator Pill */}
-        <div
-          className={`p-3 rounded-xl border flex items-center justify-between text-xs font-bold transition-all ${
-            Math.abs(discrepancy) < 0.01
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-              : discrepancy > 0
-              ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
-              : 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {Math.abs(discrepancy) < 0.01 ? (
-              <CheckCircle2 className="w-4 h-4" />
-            ) : (
-              <AlertTriangle className="w-4 h-4" />
             )}
-            <span>
-              {Math.abs(discrepancy) < 0.01
-                ? 'الدرج متطابق تماماً مع الحسابات (0.00)'
-                : discrepancy > 0
-                ? `يوجد زيادة نقدية في الدرج (+${discrepancy.toFixed(2)} ${currency})`
-                : `يوجد عجز نقدي في الدرج (${discrepancy.toFixed(2)} ${currency})`}
-            </span>
+
+            {/* Difference Alert */}
+            {cashDifference !== 0 && (
+              <div
+                className={`p-2.5 px-3 rounded-xl border text-xs font-bold flex items-center justify-between animate-fadeIn ${
+                  cashDifference > 0
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-300'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <AlertCircle size={14} />
+                  <span>{cashDifference > 0 ? 'يوجد فائض في الدرج:' : 'يوجد عجز في الدرج:'}</span>
+                </div>
+                <div className="flex items-baseline gap-1" dir="rtl">
+                  <span className="font-mono font-bold">{Math.abs(cashDifference).toFixed(2)}</span>
+                  <span className="text-[10px] font-bold">{currency}</span>
+                </div>
+              </div>
+            )}
           </div>
-          <span className="text-sm font-black">
-            {discrepancy > 0 ? `+${discrepancy.toFixed(2)}` : discrepancy.toFixed(2)} {currency}
-          </span>
-        </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-            ملاحظات إغلاق الوردية (اختياري)
-          </label>
-          <Input
-            type="text"
-            value={closeNotes}
-            onChange={(e) => setCloseNotes(e.target.value)}
-            placeholder="مثال: تم تسليم النقدية لمدير الفرع..."
-          />
-        </div>
+          {/* Notes */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block">
+              ملاحظات الإغلاق (اختياري)
+            </label>
+            <textarea
+              rows={2}
+              value={closeNotes}
+              onChange={(e) => setCloseNotes(e.target.value)}
+              placeholder="أي ملاحظات تخص الوردية أو تسليم العهدة..."
+              className="w-full p-2.5 rounded-xl border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-xs focus:outline-none focus:border-zinc-500 dark:focus:border-zinc-600 resize-none placeholder:text-zinc-400"
+            />
+          </div>
 
-        {/* Actions */}
-        <div className="pt-2 flex items-center justify-end gap-2.5">
-          <Button type="button" variant="outline" onClick={onClose}>
-            إلغاء
-          </Button>
-          <Button
-            type="submit"
-            variant="danger"
-            isLoading={closeShiftMutation.isPending}
-            className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-rose-900/20"
-          >
-            <Lock className="w-4 h-4 ml-1.5" />
-            تأكيد إغلاق الوردية وطباعة Z-Report
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          {/* Action Buttons */}
+          <div className="pt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-11 px-5 rounded-xl text-xs font-bold border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              disabled={closeShiftMutation.isPending}
+              className="flex-1 h-11 rounded-xl text-xs font-bold bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md active:scale-[0.98]"
+            >
+              {closeShiftMutation.isPending ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>جاري الإغلاق...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={15} />
+                  <span>تأكيد إغلاق الوردية</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
+
+export default CloseShiftModal;

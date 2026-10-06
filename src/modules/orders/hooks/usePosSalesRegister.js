@@ -12,6 +12,9 @@ export const usePosSalesRegister = ({
   hasPermission,
   pendingTable = null,
   onClearPendingTable,
+  defaultOrderType = null,
+  allowedOrderTypes = null,
+  defaultSource = null,
 }) => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -39,7 +42,8 @@ export const usePosSalesRegister = ({
   }, [tables]);
 
   const initialTableId = resolveTableId(urlTableParam) || pendingTable?.id || pendingTable?.tableId || pendingTable?._id || null;
-  const initialOrderType = urlType || (initialTableId ? 'DINE_IN' : 'PICKUP');
+  const fallbackOrderType = defaultOrderType || (initialTableId ? 'DINE_IN' : 'PICKUP');
+  const initialOrderType = urlType || fallbackOrderType;
 
   const [cat, setCat] = useState('ALL');
   const [q, setQ] = useState('');
@@ -94,18 +98,20 @@ export const usePosSalesRegister = ({
     [hasPermission]
   );
 
-  const [source, setSource] = useState(() =>
-    availableSources.some((s) => s.value === 'CASHIER') ? 'CASHIER' : availableSources[0]?.value || 'CASHIER'
-  );
+  const [source, setSource] = useState(() => {
+    if (defaultSource) return defaultSource;
+    return availableSources.some((s) => s.value === 'CASHIER') ? 'CASHIER' : availableSources[0]?.value || 'CASHIER';
+  });
   const [couponCode, setCouponCode] = useState('');
   const [couponState, setCouponState] = useState({ id: null, code: null, discountAmount: 0, loading: false, error: null });
   const [discountAmount, setDiscountAmount] = useState(0);
 
   useEffect(() => {
+    if (defaultSource) return;
     if (availableSources.length > 0 && !availableSources.some((s) => s.value === source)) {
       setSource(availableSources[0].value);
     }
-  }, [availableSources, source]);
+  }, [availableSources, source, defaultSource]);
 
   // Phone lookup
   useEffect(() => {
@@ -257,6 +263,7 @@ export const usePosSalesRegister = ({
     paymentType = 'FULL', // 'FULL' | 'PARTIAL' | 'LATER'
     paidAmount,
     payMethod = 'CASH',
+    payments = [],
     autoPrint: _autoPrint,
   }) => {
     if (!activeBranchId) {
@@ -298,7 +305,38 @@ export const usePosSalesRegister = ({
           ? Math.min(effectiveTotal, Math.max(0, Number(paidAmount) || 0))
           : 0;
 
-      if (orderId && actualPaid > 0 && paymentType !== 'LATER' && payMethod) {
+      if (orderId && Array.isArray(payments) && payments.length > 0) {
+        let anySuccess = false;
+        for (const p of payments) {
+          const pAmt = Number(p.amount) || 0;
+          if (pAmt > 0 && p.payMethod) {
+            const payIdempotencyKey =
+              typeof crypto !== 'undefined' && crypto.randomUUID
+                ? crypto.randomUUID()
+                : `pay-${Date.now()}-${Math.random()}`;
+            try {
+              await paymentMutation.mutateAsync({
+                branchId: activeBranchId,
+                orderId,
+                idempotencyKey: payIdempotencyKey,
+                payload: {
+                  amount: pAmt,
+                  paymentMethod: p.payMethod.toUpperCase(),
+                  idempotencyKey: payIdempotencyKey,
+                },
+              });
+              anySuccess = true;
+            } catch (err) {
+              console.warn('Split payment recording error:', err);
+            }
+          }
+        }
+        if (anySuccess) {
+          toast.success('تم إنشاء الطلب وتسجيل الدفعات بنجاح');
+        } else {
+          toast.success('تم إنشاء وحفظ الطلب بنجاح');
+        }
+      } else if (orderId && actualPaid > 0 && paymentType !== 'LATER' && payMethod) {
         try {
           const payIdempotencyKey =
             typeof crypto !== 'undefined' && crypto.randomUUID

@@ -10,6 +10,7 @@ import { OrderFormModal } from '../components/OrderFormModal.jsx';
 import { OrdersStatusTabs } from '../components/list/OrdersStatusTabs.jsx';
 import { OrdersFilterBar } from '../components/list/OrdersFilterBar.jsx';
 import { ReceiptPrintTemplate } from '../components/ReceiptPrintTemplate.jsx';
+import { CashierDriverHandoverModal } from '../components/delivery/CashierDriverHandoverModal.jsx';
 import {
   ORDER_STATUS_LABELS,
   ORDER_TYPE_LABELS,
@@ -775,6 +776,8 @@ export const OrdersListPage = () => {
           </div>
         </div>
       )}
+      {/* Real-time Driver Pickup Handover Modal */}
+      <CashierDriverHandoverModal branchId={activeBranchId} />
     </div>
   );
 };

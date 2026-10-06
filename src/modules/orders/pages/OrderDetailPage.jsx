@@ -1,78 +1,56 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useBranch } from '../../auth/context/BranchContext.jsx';
-import { Modal } from '../../../shared/components/Modal.jsx';
-import { Button } from '../../../shared/components/Button.jsx';
-import { LoadingSkeleton } from '../../../shared/components/LoadingSkeleton.jsx';
-import { ReceiptPrintTemplate } from '../components/ReceiptPrintTemplate.jsx';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
-
+import {
+  ArrowRight,
+  Printer,
+  CreditCard,
+  XCircle,
+  RotateCcw,
+  UtensilsCrossed,
+  Receipt,
+  User,
+  Phone,
+  MapPin,
+  Clock,
+  AlertCircle,
+  DollarSign,
+} from 'lucide-react';
+import { useCurrency } from '../../../shared/hooks/useCurrency.js';
+import { useOrderDetail } from '../hooks/useOrderDetail.js';
 import { OrderDetailHeader } from '../components/detail/OrderDetailHeader.jsx';
 import { OrderStatusTimeline } from '../components/detail/OrderStatusTimeline.jsx';
 import { OrderCustomerCard } from '../components/detail/OrderCustomerCard.jsx';
-import { OrderItemsTable } from '../components/detail/OrderItemsTable.jsx';
 import { OrderPaymentBreakdown } from '../components/detail/OrderPaymentBreakdown.jsx';
 import { OrderHistoryAuditTimeline } from '../components/detail/OrderHistoryAuditTimeline.jsx';
-import { OrderCancelModal } from '../components/detail/OrderCancelModal.jsx';
 import { OrderPaymentModal } from '../components/detail/OrderPaymentModal.jsx';
-import { OrderRefundModal } from '../components/detail/OrderRefundModal.jsx';
-import { useOrderDetail } from '../hooks/useOrderDetail.js';
+import { PosOrderCancelModal } from '../components/pos-orders/PosOrderCancelModal.jsx';
 
 export const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { activeBranchId } = useBranch();
+  const { currency } = useCurrency();
 
   const {
     order,
-    isOrderLoading,
+    isLoading,
     isError,
     error,
-    historyData,
-    orderRounds,
-    actionSuccess,
-    actionError,
-    isCancelModalOpen,
-    setIsCancelModalOpen,
-    cancelReason,
-    setCancelReason,
-    isPaymentModalOpen,
-    setIsPaymentModalOpen,
-    paymentAmount,
-    setPaymentAmount,
-    paymentMethod,
-    setPaymentMethod,
-    isRefundModalOpen,
-    setIsRefundModalOpen,
-    refundAmount,
-    setRefundAmount,
-    refundReason,
-    setRefundReason,
-    isPrintModalOpen,
-    setIsPrintModalOpen,
+    refetch,
     updateStatusMutation,
-    cancelMutation,
     paymentMutation,
-    refundMutation,
-    handleStatusChange,
-    handleCancelOrder,
-    handlePayment,
-    handleRefund,
-  } = useOrderDetail(activeBranchId, id);
+    cancelMutation,
+  } = useOrderDetail(id);
 
-  if (isOrderLoading) {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+
+  if (isLoading) {
     return (
-      <div className="space-y-4 p-4">
-        <LoadingSkeleton height={48} />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <LoadingSkeleton height={200} />
-            <LoadingSkeleton height={150} />
-          </div>
-          <div className="space-y-4">
-            <LoadingSkeleton height={160} />
-            <LoadingSkeleton height={140} />
-          </div>
+      <div className="flex-1 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-semibold text-zinc-500">جاري تحميل تفاصيل الطلب...</span>
         </div>
       </div>
     );
@@ -80,116 +58,149 @@ export const OrderDetailPage = () => {
 
   if (isError || !order) {
     return (
-      <div className="p-6 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs space-y-2">
-        <div className="flex items-center gap-2 font-bold">
-          <AlertCircle className="w-4 h-4" />
-          <span>تعذر تحميل تفاصيل الطلب</span>
+      <div className="p-6 max-w-lg mx-auto text-center space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+          <AlertCircle size={28} />
         </div>
-        <p>{error?.message || 'لم يتم العثور على الطلب المطلوب.'}</p>
-        <Button size="sm" variant="outline" onClick={() => navigate('/orders')}>
-          العودة للطلبات
-        </Button>
+        <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">تعذر العثور على الطلب</h2>
+        <p className="text-xs text-zinc-500">{error?.message || 'قد يكون الطلب غير موجود أو تم حذفه'}</p>
+        <button
+          type="button"
+          onClick={() => navigate('/orders')}
+          className="px-4 py-2 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold"
+        >
+          العودة لقائمة الطلبات
+        </button>
       </div>
     );
   }
 
+  const total = Number(order.totalAmount || order.total || 0);
+  const paid = Number(order.paidAmount || 0);
+  const remaining = Math.max(0, total - paid);
+
+  const handleSettlePayment = ({ method, amount, reference }) => {
+    paymentMutation.mutate(
+      { method, amount, reference },
+      {
+        onSuccess: () => setShowPaymentModal(false),
+      }
+    );
+  };
+
+  const handleConfirmCancel = (cancelData) => {
+    const reason = typeof cancelData === 'string' ? cancelData : cancelData?.reason || 'إلغاء الطلب';
+    const refund = typeof cancelData === 'object' ? cancelData?.refund : false;
+    const refundMethod = typeof cancelData === 'object' ? cancelData?.refundMethod : undefined;
+    const refundAmount = typeof cancelData === 'object' ? cancelData?.refundAmount : undefined;
+
+    cancelMutation.mutate(
+      {
+        expectedVersion: Number(order?.version || 1),
+        reason,
+        refund,
+        refundMethod,
+        refundAmount,
+      },
+      {
+        onSuccess: () => {
+          setShowCancelModal(false);
+          setCancelReason('');
+        },
+      }
+    );
+  };
+
   return (
-    <div className="space-y-5 print:hidden">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto min-h-screen text-zinc-900 dark:text-zinc-100" dir="rtl">
+      {/* Header & Breadcrumb */}
       <OrderDetailHeader
         order={order}
-        onOpenPrintModal={() => setIsPrintModalOpen(true)}
+        onBack={() => navigate(-1)}
+        onOpenPayment={() => setShowPaymentModal(true)}
+        onOpenCancel={() => setShowCancelModal(true)}
+        remainingAmount={remaining}
+        currency={currency}
       />
 
-      {actionSuccess && (
-        <div className="p-3 rounded-lg text-xs font-medium bg-status-success-bg text-status-success border border-status-success/30 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{actionSuccess}</span>
-        </div>
-      )}
-      {actionError && (
-        <div className="p-3 rounded-lg text-xs font-medium bg-status-danger-bg text-status-danger border border-status-danger/30 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{actionError}</span>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        <div className="lg:col-span-2 space-y-5">
+      {/* Main Grid: Status timeline & items on right, breakdown & history on left */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column (2 spans): Items & Status Timeline */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Status Tracker */}
           <OrderStatusTimeline
-            order={order}
-            onStatusChange={handleStatusChange}
-            isUpdatingStatus={updateStatusMutation.isPending}
-            onOpenCancelModal={() => setIsCancelModalOpen(true)}
+            currentStatus={order.status}
+            statusHistory={order.statusHistory}
+            orderType={order.orderType}
+            onUpdateStatus={(status) => updateStatusMutation.mutate({ status })}
+            isUpdating={updateStatusMutation.isPending}
           />
 
-          <OrderItemsTable
-            order={order}
-            orderRounds={orderRounds}
-          />
+          {/* Items Table Card */}
+          <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 space-y-4 shadow-sm">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
+              <span>الأصناف ({order.items?.reduce((s, it) => s + (it.quantity || 1), 0) || 0})</span>
+            </h3>
+
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800/80">
+              {(order.items || []).map((it, idx) => (
+                <div key={it.id || idx} className="py-3 flex items-start justify-between gap-4 text-xs">
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 font-mono font-bold flex items-center justify-center shrink-0">
+                      {it.quantity || 1}
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-zinc-900 dark:text-zinc-100">{it.productName || it.name || 'صنف'}</h4>
+                      {it.notes && <p className="text-[11px] text-zinc-400 mt-0.5">{it.notes}</p>}
+                    </div>
+                  </div>
+
+                  <div className="font-mono font-bold text-zinc-900 dark:text-zinc-100 shrink-0" dir="ltr">
+                    {(Number(it.unitPrice || it.price || 0) * (it.quantity || 1)).toFixed(2)} {currency}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Audit History Timeline */}
+          <OrderHistoryAuditTimeline order={order} />
         </div>
 
-        <div className="space-y-5">
+        {/* Right Column (1 span): Customer Info & Financial Breakdown */}
+        <div className="space-y-6">
+          {/* Customer Card */}
           <OrderCustomerCard order={order} />
 
+          {/* Financial Breakdown Card */}
           <OrderPaymentBreakdown
             order={order}
-            onOpenPaymentModal={() => {
-              setPaymentAmount(String(Math.max(0, Number(order.total || 0) - Number(order.amountPaid || 0))));
-              setIsPaymentModalOpen(true);
-            }}
-            onOpenRefundModal={() => {
-              setRefundAmount(String(order.amountPaid || order.total || 0));
-              setIsRefundModalOpen(true);
-            }}
+            onOpenPaymentModal={() => setShowPaymentModal(true)}
+            currency={currency}
           />
-
-          <OrderHistoryAuditTimeline history={historyData || []} />
         </div>
       </div>
 
-      <OrderCancelModal
-        isOpen={isCancelModalOpen}
-        onClose={() => setIsCancelModalOpen(false)}
+      {/* Payment Modal */}
+      <OrderPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        order={order}
+        onConfirmPayment={handleSettlePayment}
+        isSubmitting={paymentMutation.isPending}
+      />
+
+      {/* Cancel Modal */}
+      <PosOrderCancelModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        order={order}
         cancelReason={cancelReason}
         onChangeCancelReason={setCancelReason}
-        onConfirmCancel={handleCancelOrder}
-        isLoading={cancelMutation.isPending}
+        onConfirmCancel={handleConfirmCancel}
+        isCancelling={cancelMutation.isPending}
+        currency={currency}
       />
-
-      <OrderPaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        paymentAmount={paymentAmount}
-        onChangePaymentAmount={setPaymentAmount}
-        paymentMethod={paymentMethod}
-        onChangePaymentMethod={setPaymentMethod}
-        onConfirmPayment={handlePayment}
-        isLoading={paymentMutation.isPending}
-      />
-
-      <OrderRefundModal
-        isOpen={isRefundModalOpen}
-        onClose={() => setIsRefundModalOpen(false)}
-        refundAmount={refundAmount}
-        onChangeRefundAmount={setRefundAmount}
-        refundReason={refundReason}
-        onChangeRefundReason={setRefundReason}
-        onConfirmRefund={handleRefund}
-        isLoading={refundMutation.isPending}
-      />
-
-      {isPrintModalOpen && (
-        <Modal
-          isOpen={isPrintModalOpen}
-          onClose={() => setIsPrintModalOpen(false)}
-          title="طباعة إيصال الفاتورة"
-          maxWidth="sm"
-        >
-          <div className="space-y-4 text-xs text-center p-4">
-            <ReceiptPrintTemplate order={order} />
-          </div>
-        </Modal>
-      )}
     </div>
   );
 };

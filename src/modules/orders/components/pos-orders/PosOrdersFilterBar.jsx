@@ -281,7 +281,7 @@ function FilterDropdown({ label, value, onChange, options }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-h-[36px] pr-2.5 pl-6 text-base sm:text-xs bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-700 dark:text-zinc-300 appearance-none focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-700 cursor-pointer transition-colors"
+        className="h-9 pr-3 pl-7 text-xs bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-700 dark:text-zinc-300 font-semibold appearance-none focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 cursor-pointer transition-colors shadow-2xs"
         title={label}
       >
         <option value="all">{label}: الكل</option>
@@ -290,8 +290,8 @@ function FilterDropdown({ label, value, onChange, options }) {
         ))}
       </select>
       <ChevronDown
-        size={12}
-        className="absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 dark:text-zinc-500"
+        size={13}
+        className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 dark:text-zinc-500"
       />
     </div>
   );
@@ -315,25 +315,25 @@ export const PosOrdersFilterBar = ({
   const { currency } = useCurrency();
 
   return (
-    <div className="w-full border-b border-zinc-200 dark:border-zinc-800 bg-transparent px-3 sm:px-6 py-2 min-h-14 flex flex-wrap items-center justify-between gap-2 sm:gap-4 shrink-0">
+    <div className="w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xs px-4 sm:px-6 py-2.5 min-h-14 flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 shrink-0" dir="rtl">
 
       {/* ── 1. Right: Search Bar ── */}
       <div className="relative w-full sm:w-64 sm:shrink-0 min-w-0">
         <Search
           size={14}
-          className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400"
+          className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400 dark:text-zinc-500"
         />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onChangeSearch(e.target.value)}
           placeholder="بحث برقم الطلب، العميل..."
-          className="w-full h-9 text-base sm:text-xs bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg pr-9 pl-3 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-500 transition-colors"
+          className="w-full h-9 text-xs bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl pr-9 pl-3 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors shadow-2xs"
         />
       </div>
 
       {/* ── 2. Center: Date + Filters ── */}
-      <div className="flex items-center gap-2 flex-1 justify-center min-w-0 overflow-x-auto custom-scrollbar">
+      <div className="flex items-center gap-2 flex-1 justify-center min-w-0 overflow-x-auto custom-scrollbar py-0.5">
         <DatePickerField value={date} onChange={onChangeDate} />
         <FilterDropdown label="الحالة" value={status} onChange={onChangeStatus} options={STATUS_OPTIONS} />
         <FilterDropdown label="النوع" value={type} onChange={onChangeType} options={TYPE_OPTIONS} />
@@ -341,25 +341,27 @@ export const PosOrdersFilterBar = ({
       </div>
 
       {/* ── 3. Left: KPI Metrics Summary ── */}
-      <div className="flex items-center gap-3 sm:gap-4 flex-wrap shrink-0">
-        <div className="flex items-center gap-1.5 text-xs">
+      <div className="flex items-center gap-3.5 sm:gap-4 shrink-0 px-1 text-xs">
+        <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-          <span className="font-bold text-zinc-900 dark:text-zinc-100 font-mono tabular-nums">{totalOrders}</span>
-          <span className="text-zinc-500">طلب</span>
+          <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">{totalOrders}</span>
+          <span className="text-zinc-500 dark:text-zinc-400 font-medium">طلب</span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-          <span className="font-bold text-zinc-900 dark:text-zinc-100 font-mono tabular-nums">{activeCount}</span>
-          <span className="text-zinc-500">نشط</span>
+
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <span className="font-mono font-bold text-amber-700 dark:text-amber-400">{activeCount}</span>
+          <span className="text-amber-700/80 dark:text-amber-400/80 font-medium">نشط</span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs">
+
+        <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-          <span className="whitespace-nowrap flex items-center gap-1">
-            <span className="font-bold text-zinc-900 dark:text-zinc-100 font-mono tabular-nums">
-              {revenue % 1 === 0 ? revenue.toFixed(0) : revenue.toFixed(2)}
+          <div className="flex items-baseline gap-1" dir="rtl">
+            <span className="font-mono font-black text-zinc-900 dark:text-zinc-100">
+              {revenue.toFixed(2)}
             </span>
-            <span className="text-zinc-500">{currency || 'ج.م'}</span>
-          </span>
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 font-sans">{currency}</span>
+          </div>
         </div>
       </div>
     </div>

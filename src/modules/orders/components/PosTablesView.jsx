@@ -33,7 +33,7 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
   // Print handlers using shared thermal print utility
   const handlePrintPin = useCallback((table, pin) => {
     printTablePinReceipt({
-      branchName: activeBranch?.name || 'مطعمنا',
+      branchName: activeBranch?.name || '',
       displayNum: table.displayNum,
       pin,
     });
@@ -41,11 +41,11 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
 
   const handlePrintBill = useCallback((table) => {
     printTableBillReceipt({
-      branchName: activeBranch?.name || 'مطعمنا',
+      branchName: activeBranch?.name || '',
       displayNum: table.displayNum,
       items: table.session?.items || [],
       total: table.session?.total || 0,
-      currency: activeBranch?.settings?.currency || 'ج.م',
+      currency: activeBranch?.settings?.currency || activeBranch?.currency || '',
     });
   }, [activeBranch]);
 
@@ -79,7 +79,7 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
   };
 
   return (
-    <div className="h-full w-full flex overflow-hidden" dir="rtl" style={{ background: 'var(--bg)' }}>
+    <div className="h-full w-full flex overflow-hidden bg-zinc-50 dark:bg-zinc-950" dir="rtl">
       {/* Tables Grid — identical to the Waiter table management view */}
       <WaiterTableGrid
         tables={tables}
@@ -104,7 +104,7 @@ export const PosTablesView = ({ onSelectTableForOrder }) => {
         onCloseSession={(t) => setBillTable(t)}
         onShowQr={(t) => setQrTable(t)}
         isClosingSession={isClosingSession}
-        currency={activeBranch?.settings?.currency || 'ج.م'}
+        currency={activeBranch?.settings?.currency || activeBranch?.currency || ''}
       />
 
       {/* Bill & Settlement Modal */}

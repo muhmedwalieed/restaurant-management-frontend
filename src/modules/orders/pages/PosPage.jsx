@@ -1,23 +1,26 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProductsQuery, useCategoriesQuery } from '../../menu/hooks/useMenu.js';
 import { useTableGridState } from '../../tables/hooks/useTableGridState.js';
 import { useBranch } from '../../auth/context/BranchContext.jsx';
 import { useAuth } from '../../auth/context/AuthContext.jsx';
 import { useCurrentShiftQuery } from '../hooks/useShifts.js';
+import { usePendingHandoversQuery } from '../hooks/useDelivery.js';
+import { toast } from '../../../shared/context/ToastContext.jsx';
 
 import { PosNavHeader } from '../components/pos/PosNavHeader.jsx';
 import { PosSalesView } from '../components/pos/PosSalesView.jsx';
 import { PosOrdersView } from '../components/PosOrdersView.jsx';
 import { PosTablesView } from '../components/PosTablesView.jsx';
 import { CashierDriverSettlementModal } from '../components/delivery/CashierDriverSettlementModal.jsx';
+import { CashierDriverHandoverModal } from '../components/delivery/CashierDriverHandoverModal.jsx';
 import { OpenShiftModal } from '../components/shifts/OpenShiftModal.jsx';
 import { CloseShiftModal } from '../components/shifts/CloseShiftModal.jsx';
 import { CashMovementModal } from '../components/shifts/CashMovementModal.jsx';
 import { XReportModal } from '../components/shifts/XReportModal.jsx';
+import { ShiftsHistoryModal } from '../components/shifts/ShiftsHistoryModal.jsx';
 import { ShiftThermalReceipt } from '../components/shifts/ShiftThermalReceipt.jsx';
 import { useCurrency } from '../../../shared/hooks/useCurrency.js';
-import { FileText, DollarSign, Lock, Layers } from 'lucide-react';
 
 export const PosPage = () => {
   const navigate = useNavigate();
@@ -28,20 +31,67 @@ export const PosPage = () => {
 
   const [pendingTable, setPendingTable] = useState(null);
   const [isSettlementOpen, setIsSettlementOpen] = useState(false);
+  const [isHandoverOpen, setIsHandoverOpen] = useState(false);
+  const [selectedHandoverOrderId, setSelectedHandoverOrderId] = useState(null);
+
+  // Track notified delivery handover requests
+  const notifiedOrderIdsRef = useRef(new Set());
+  const isInitialMountRef = useRef(true);
+
+  // Delivery pending handovers query
+  const { data: handoversResponse } = usePendingHandoversQuery(activeBranchId);
+  const pendingHandovers = useMemo(() => {
+    const raw = handoversResponse?.data || handoversResponse || [];
+    return Array.isArray(raw) ? raw : [];
+  }, [handoversResponse]);
+
+  // Notify cashier gracefully when a new handover request arrives (without blocking modal popup)
+  useEffect(() => {
+    if (!pendingHandovers || pendingHandovers.length === 0) {
+      isInitialMountRef.current = false;
+      return;
+    }
+
+    if (isInitialMountRef.current) {
+      // On initial load, record existing IDs without triggering noisy toasts
+      pendingHandovers.forEach((o) => notifiedOrderIdsRef.current.add(o.id));
+      isInitialMountRef.current = false;
+      return;
+    }
+
+    // Check for any newly arrived handover orders
+    pendingHandovers.forEach((order) => {
+      if (!notifiedOrderIdsRef.current.has(order.id)) {
+        notifiedOrderIdsRef.current.add(order.id);
+        toast.info(
+          `طلب استلام أوردر #${order.orderNumber} من الطيار ${order.driver?.name || 'المندوب'}`,
+          'طلب استلام دليفري',
+          {
+            duration: 5000,
+            onClick: () => setIsHandoverOpen(true),
+            action: {
+              label: 'استعراض وتسليم',
+              onClick: () => setIsHandoverOpen(true),
+            },
+          }
+        );
+      }
+    });
+  }, [pendingHandovers]);
 
   // Shift States & Modals
   const [isOpenShiftModalOpen, setIsOpenShiftModalOpen] = useState(false);
   const [isCloseShiftModalOpen, setIsCloseShiftModalOpen] = useState(false);
   const [isCashMovementModalOpen, setIsCashMovementModalOpen] = useState(false);
-  const [isXReportModalOpen, setIsXReportModalOpen] = useState(false);
-  const [isShiftDropdownOpen, setIsShiftDropdownOpen] = useState(false);
+  const [isXReportOpen, setIsXReportOpen] = useState(false);
+  const [isShiftsHistoryOpen, setIsShiftsHistoryOpen] = useState(false);
 
   // Printable receipt state
   const [printableShift, setPrintableShift] = useState(null);
   const [printType, setPrintType] = useState('Z_REPORT');
 
   const { data: shiftResponse, refetch: refetchShift } = useCurrentShiftQuery(activeBranchId);
-  const activeShift = shiftResponse?.data?.activeShift;
+  const activeShift = shiftResponse?.activeShift ?? shiftResponse?.data?.activeShift ?? null;
 
   const currentTab = useMemo(() => {
     if (tab === 'orders') return 'orders';
@@ -82,12 +132,12 @@ export const PosPage = () => {
   const tables = gridTables;
 
   return (
-    <div className="h-screen w-full min-h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-black text-zinc-900 dark:text-zinc-100 relative" dir="rtl">
+    <div className="h-screen w-full min-h-screen flex flex-col overflow-hidden bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 relative" dir="rtl">
       {/* Printable Thermal Receipt Component */}
       <ShiftThermalReceipt
         shift={printableShift}
         reportType={printType}
-        restaurantName={activeBranch?.name || 'مطعم برايم'}
+        restaurantName={activeBranch?.name || ''}
         currency={currency}
       />
 
@@ -99,61 +149,16 @@ export const PosPage = () => {
         user={user}
         activeShift={activeShift}
         onOpenStartShift={() => setIsOpenShiftModalOpen(true)}
-        onToggleShiftMenu={() => setIsShiftDropdownOpen(!isShiftDropdownOpen)}
         onOpenDriverSettlement={() => setIsSettlementOpen(true)}
+        onOpenHandoverModal={() => setIsHandoverOpen(true)}
+        pendingHandoversCount={pendingHandovers.length}
+        onOpenXReport={() => setIsXReportOpen(true)}
+        onOpenCashMovement={() => setIsCashMovementModalOpen(true)}
+        onOpenCloseShift={() => setIsCloseShiftModalOpen(true)}
+        onNavigateShifts={() => setIsShiftsHistoryOpen(true)}
         onLogout={logout}
+        currency={currency}
       />
-
-      {/* Shift Quick Actions Dropdown Menu */}
-      {isShiftDropdownOpen && activeShift && (
-        <div
-          className="absolute top-14 left-4 sm:left-24 z-50 w-56 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 space-y-1 text-right text-xs"
-          onClick={() => setIsShiftDropdownOpen(false)}
-        >
-          <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-            <span className="text-[11px] text-zinc-400 block">الوردية الحالية</span>
-            <span className="font-bold text-zinc-800 dark:text-zinc-200">
-              وردية #{activeShift.shiftNumber} ({activeShift.employee?.name})
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsXReportOpen(true)}
-            className="w-full px-3 py-2 rounded-xl text-right flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold"
-          >
-            <FileText className="w-4 h-4 text-primary-500" />
-            تقرير لحظي (X-Report)
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsCashMovementModalOpen(true)}
-            className="w-full px-3 py-2 rounded-xl text-right flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold"
-          >
-            <DollarSign className="w-4 h-4 text-amber-500" />
-            حركة نقدية بالدرج (Pay In/Out)
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/shifts')}
-            className="w-full px-3 py-2 rounded-xl text-right flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-semibold"
-          >
-            <Layers className="w-4 h-4 text-zinc-400" />
-            سجل وأرشيف الورديات
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsCloseShiftModalOpen(true)}
-            className="w-full px-3 py-2 rounded-xl text-right flex items-center gap-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 font-bold border-t border-zinc-100 dark:border-zinc-800"
-          >
-            <Lock className="w-4 h-4" />
-            إغلاق الوردية (Z-Report)
-          </button>
-        </div>
-      )}
 
       {/* Main Tab Views */}
       <div className={`flex-1 flex overflow-hidden ${currentTab === 'sales' ? '' : 'hidden'}`}>
@@ -178,11 +183,16 @@ export const PosPage = () => {
         </div>
       )}
 
-      {/* Driver COD Cash Settlement Modal */}
+      {/* Driver COD Cash Settlement & Delivery Pickup Modal */}
       <CashierDriverSettlementModal
         isOpen={isSettlementOpen}
         onClose={() => setIsSettlementOpen(false)}
         branchId={activeBranchId}
+        onOpenHandoverModal={(orderId) => {
+          setSelectedHandoverOrderId(orderId || null);
+          setIsSettlementOpen(false);
+          setIsHandoverOpen(true);
+        }}
       />
 
       {/* Shift Modals */}
@@ -222,6 +232,26 @@ export const PosPage = () => {
         branchId={activeBranchId}
         shiftId={activeShift?.id}
         onPrintXReport={(report) => handlePrintReceipt(report, 'X_REPORT')}
+      />
+
+      {/* Shifts Archive & History Modal */}
+      <ShiftsHistoryModal
+        isOpen={isShiftsHistoryOpen}
+        onClose={() => setIsShiftsHistoryOpen(false)}
+        branchId={activeBranchId}
+        onPrintReceipt={handlePrintReceipt}
+        restaurantName={activeBranch?.name}
+      />
+
+      {/* Real-time Driver Pickup & Handover Request Modal */}
+      <CashierDriverHandoverModal
+        isOpen={isHandoverOpen}
+        onClose={() => {
+          setIsHandoverOpen(false);
+          setSelectedHandoverOrderId(null);
+        }}
+        branchId={activeBranchId}
+        initialOrderId={selectedHandoverOrderId}
       />
     </div>
   );

@@ -3,13 +3,13 @@
  */
 
 /**
- * Format numeric value with currency symbol/code.
+ * Format numeric value with raw currency symbol/code as provided by backend.
  * @param {number|string} amount
- * @param {string} [currency='ج.م']
+ * @param {string} [currency='']
  * @param {object} [options]
  * @returns {string}
  */
-export const formatCurrency = (amount, currency = 'ج.م', options = {}) => {
+export const formatCurrency = (amount, currency = '', options = {}) => {
   const num = Number(amount) || 0;
   const decimals = options.decimals !== undefined ? options.decimals : 2;
   const formattedNumber = options.useLocale
@@ -19,5 +19,5 @@ export const formatCurrency = (amount, currency = 'ج.م', options = {}) => {
       })
     : num.toFixed(decimals);
 
-  return `${formattedNumber} ${currency}`;
+  return currency ? `${formattedNumber} ${currency}` : `${formattedNumber}`;
 };

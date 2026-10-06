@@ -75,8 +75,8 @@ export const posOrderSchema = z
   });
 
 export const paymentSchema = z.object({
-  // Mirrors the backend `PaymentMethod` enum (see constants.js → PAY_METHODS).
-  paymentMethod: z.enum(PAY_METHODS.map((m) => m.id)),
+  // Mirrors the backend `PaymentMethod` enum.
+  paymentMethod: z.enum(['CASH', 'CARD', 'INSTAPAY', 'WALLET']),
   amount: z.coerce.number().positive('المبلغ يجب أن يكون موجبًا').optional(),
   expectedVersion: z.coerce.number().int().min(1, 'expectedVersion مطلوب'),
 });

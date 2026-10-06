@@ -45,11 +45,10 @@ export const PosCartPanel = ({
                 key={t.id}
                 type="button"
                 onClick={() => onChangeOrderType?.(t.id)}
-                className={`py-1.5 px-2 rounded-full text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
-                  sel
+                className={`py-1.5 px-2 rounded-full text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${sel
                     ? 'bg-zinc-900 dark:bg-zinc-800 text-white font-medium border-zinc-900 dark:border-zinc-700 shadow-sm'
                     : 'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 font-medium'
-                }`}
+                  }`}
               >
                 <Icon size={13} strokeWidth={sel ? 2.2 : 1.8} />
                 <span>{t.label}</span>
@@ -148,49 +147,50 @@ export const PosCartPanel = ({
                 {item.name}
               </span>
               <span className="inline-flex items-baseline gap-1 shrink-0" dir="ltr">
-                <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-mono">
-                  {(() => {
-                    const p = Number(item.price) * item.qty;
-                    return p % 1 === 0 ? p.toFixed(0) : p.toFixed(2);
-                  })()}
+                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100 font-mono">
+                  {(Number(item.price) * item.qty).toFixed(2)}
                 </span>
                 <span className="text-xs text-zinc-400">
-                  {currency || 'ج.م'}
+                  {currency}
                 </span>
               </span>
             </div>
 
-            {(() => { const mods = getOrderItemModifiers(item); return mods.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {mods.map((m, i) => (
-                  <span key={i} className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400">
-                    + {m.name}{m.quantity > 1 ? ` ×${m.quantity}` : ''}
-                  </span>
-                ))}
-              </div>
-            ) : null; })()}
+            {(() => {
+              const mods = getOrderItemModifiers(item); return mods.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {mods.map((m, i) => (
+                    <span key={i} className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400">
+                      + {m.name}{m.quantity > 1 ? ` ×${m.quantity}` : ''}
+                    </span>
+                  ))}
+                </div>
+              ) : null;
+            })()}
 
             <div className="flex items-center justify-between mt-1 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
-              {/* Stepper with comfortable touch targets */}
-              <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 font-semibold rounded-lg px-2 py-1 flex items-center gap-1.5 shadow-xs transition-colors">
+              {/* Stepper with comfortable standalone touch targets */}
+              <div dir="ltr" className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => onChangeQty(idx, -1)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/90 dark:hover:bg-zinc-700 active:scale-95 transition-all cursor-pointer"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 active:scale-90 transition-all cursor-pointer"
                   title="تقليل الكمية"
+                  aria-label="تقليل الكمية"
                 >
-                  <Minus size={12} />
+                  <Minus size={14} strokeWidth={2.5} />
                 </button>
-                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 w-5 text-center font-mono">
+                <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 min-w-[20px] text-center font-mono select-none">
                   {item.qty}
                 </span>
                 <button
                   type="button"
                   onClick={() => onChangeQty(idx, 1)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/90 dark:hover:bg-zinc-700 active:scale-95 transition-all cursor-pointer"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 active:scale-90 transition-all cursor-pointer"
                   title="زيادة الكمية"
+                  aria-label="زيادة الكمية"
                 >
-                  <Plus size={12} />
+                  <Plus size={14} strokeWidth={2.5} />
                 </button>
               </div>
 
@@ -198,7 +198,7 @@ export const PosCartPanel = ({
               <button
                 type="button"
                 onClick={() => onRemoveItem(idx)}
-                className="p-2 text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
+                className="p-1.5 text-zinc-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer flex items-center justify-center"
                 title="حذف من السلة"
               >
                 <Trash2 size={14} />
@@ -217,26 +217,26 @@ export const PosCartPanel = ({
           <button type="button" onClick={onValidateCoupon} disabled={!couponCode?.trim() || couponState?.loading} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 disabled:opacity-40 cursor-pointer">تطبيق</button>
         )}
       </div>
-      {couponState?.id && <div className="px-3 pb-1 text-[11px] font-bold text-emerald-600">✓ {couponState.code} — خصم {couponState.discountAmount.toFixed(0)} {currency || 'ج.م'}</div>}
+      {couponState?.id && <div className="px-3 pb-1 text-[11px] font-bold text-emerald-600">✓ {couponState.code} — خصم {couponState.discountAmount.toFixed(2)} {currency}</div>}
       {couponState?.error && <div className="px-3 pb-1 text-[11px] font-bold text-red-500">{couponState.error}</div>}
 
       {/* ── Summary & Checkout ── */}
       <div className="p-3 shrink-0 space-y-3 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800">
         {discount > 0 && (
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-500">المجموع</span><span className="font-mono text-zinc-500 line-through">{subtotal.toFixed(0)} {currency || 'ج.م'}</span>
+            <span className="text-zinc-500">المجموع</span><span className="font-mono text-zinc-500 line-through">{subtotal.toFixed(2)} {currency}</span>
           </div>
         )}
         {discount > 0 && (
           <div className="flex items-center justify-between text-xs font-bold text-emerald-600">
-            <span>الخصم</span><span className="font-mono">- {discount.toFixed(0)} {currency || 'ج.م'}</span>
+            <span>الخصم</span><span className="font-mono">- {discount.toFixed(2)} {currency}</span>
           </div>
         )}
         <div className="rounded-xl p-3 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800">
           <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">الإجمالي</span>
           <span className="inline-flex items-baseline gap-1" dir="ltr">
-            <span className="text-xl font-bold font-mono text-zinc-950 dark:text-zinc-50">{effectiveTotal % 1 === 0 ? effectiveTotal.toFixed(0) : effectiveTotal.toFixed(2)}</span>
-            <span className="text-xs text-zinc-400">{currency || 'ج.م'}</span>
+            <span className="text-xl font-bold font-mono text-zinc-950 dark:text-zinc-50">{effectiveTotal.toFixed(2)}</span>
+            <span className="text-xs text-zinc-400">{currency}</span>
           </span>
         </div>
         <button type="button" disabled={cart.length === 0} onClick={onProceedCheckout} className="w-full h-11 rounded-full font-bold text-sm flex items-center justify-center gap-2 cursor-pointer bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all shadow-sm">متابعة الدفع</button>

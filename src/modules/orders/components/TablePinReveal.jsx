@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Eye, EyeOff, Printer, Loader2, Lock, Unlock } from 'lucide-react';
 import { getTableSessionPinApi } from '../../../lib/api/table-sessions.api.js';
 import { useResetTablePinLockout } from '../../tables/hooks/useTableSessions.js';
+import { toast } from '../../../shared/context/ToastContext.jsx';
+import { printTablePinReceipt } from '../../tables/utils/tableThermalPrinting.js';
+import { useBranch } from '../../auth/context/BranchContext.jsx';
 
 /**
  * Shows the table's entry PIN when staff already has it (a session just opened or
@@ -12,16 +15,16 @@ import { useResetTablePinLockout } from '../../tables/hooks/useTableSessions.js'
  * session payload the guest app receives.
  */
 export const TablePinReveal = ({ table, session, onPrintPin }) => {
+  const { activeBranch } = useBranch();
   const [revealedPin, setRevealedPin] = useState(null);
   const [isPinVisible, setIsPinVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isPrinting, setIsPrinting] = useState(false);
   const resetLockout = useResetTablePinLockout();
 
   useEffect(() => {
     setRevealedPin(null);
     setIsPinVisible(false);
-    setError(null);
   }, [table?.id]);
 
   const isLocked = Boolean(session?.isPinLocked);
@@ -38,25 +41,55 @@ export const TablePinReveal = ({ table, session, onPrintPin }) => {
     }
 
     setIsLoading(true);
-    setError(null);
     try {
       const res = await getTableSessionPinApi(table.id);
       setRevealedPin(res?.pin || null);
       setIsPinVisible(true);
     } catch (err) {
-      setError(err?.message || 'تعذر جلب رمز الدخول');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر جلب رمز الدخول');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const defaultPrint = useCallback((targetTable, pin) => {
+    printTablePinReceipt({
+      branchName: activeBranch?.name || '',
+      displayNum: targetTable.displayNum,
+      pin,
+    });
+  }, [activeBranch]);
+
+  const printHandler = onPrintPin || defaultPrint;
+
+  const handlePrint = async () => {
+    if (!table?.id) return;
+
+    if (activePin) {
+      printHandler(table, activePin);
+      return;
+    }
+
+    setIsPrinting(true);
+    try {
+      const res = await getTableSessionPinApi(table.id);
+      if (res?.pin) {
+        setRevealedPin(res.pin);
+        printHandler(table, res.pin);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر جلب رمز الدخول للطباعة');
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
   const handleReset = async () => {
     if (!table?.id) return;
-    setError(null);
     try {
       await resetLockout.mutateAsync(table.id);
     } catch (err) {
-      setError(err?.message || 'تعذر إعادة تعيين المحاولات');
+      toast.error(err?.response?.data?.message || err?.message || 'تعذر إعادة تعيين المحاولات');
     }
   };
 
@@ -66,18 +99,17 @@ export const TablePinReveal = ({ table, session, onPrintPin }) => {
       dir="ltr"
       className="flex items-center justify-end gap-1.5 min-w-0 whitespace-nowrap"
     >
-      <span className="text-[10px] shrink-0 leading-none" style={{ color: 'var(--t3)' }}>
+      <span className="text-[10px] shrink-0 leading-none text-zinc-400 dark:text-zinc-500 font-bold">
         PIN:
       </span>
 
       {isPinVisible && activePin ? (
-        <span className="mono font-bold text-xs leading-none tracking-wider" style={{ color: 'var(--ac)' }}>
+        <span className="font-mono font-bold text-xs leading-none tracking-wider text-zinc-900 dark:text-zinc-100">
           {activePin}
         </span>
       ) : (
         <span
-          className="mono font-bold text-xs leading-none tracking-wider translate-y-[1px]"
-          style={{ color: 'var(--t3)' }}
+          className="font-mono font-bold text-xs leading-none tracking-wider translate-y-[1px] text-zinc-400 dark:text-zinc-500"
         >
           ****
         </span>
@@ -87,32 +119,31 @@ export const TablePinReveal = ({ table, session, onPrintPin }) => {
       <button
         type="button"
         onClick={handleReveal}
-        disabled={isLoading}
+        disabled={isLoading || isPrinting}
         aria-label={isPinVisible ? 'إخفاء رمز الدخول' : 'إظهار رمز الدخول'}
         title={isPinVisible ? 'إخفاء رمز الدخول' : 'إظهار رمز الدخول'}
-        className="w-6 h-6 rounded-md inline-flex items-center justify-center transition-opacity hover:opacity-80 cursor-pointer disabled:opacity-50"
-        style={{ background: 'var(--s3)', border: '1px solid var(--bd)', color: 'var(--ac)' }}
+        className="w-6 h-6 rounded-md inline-flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
       >
         {isLoading ? (
           <Loader2 size={12} className="animate-spin" />
         ) : isPinVisible ? (
-          <EyeOff size={12} />
+          <EyeOff size={13} />
         ) : (
-          <Eye size={12} />
+          <Eye size={13} />
         )}
       </button>
 
-      {onPrintPin && activePin && (
-        <button
-          type="button"
-          onClick={() => onPrintPin(table, activePin)}
-          className="p-1 rounded transition-opacity hover:opacity-70 cursor-pointer"
-          style={{ color: 'var(--t3)' }}
-          title="طباعة تذكرة رمز الدخول"
-        >
-          <Printer size={12} />
-        </button>
-      )}
+      {/* Print PIN ticket button — always visible */}
+      <button
+        type="button"
+        onClick={handlePrint}
+        disabled={isLoading || isPrinting}
+        className="w-6 h-6 rounded-md inline-flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
+        title="طباعة تذكرة رمز الدخول"
+        aria-label="طباعة تذكرة رمز الدخول"
+      >
+        {isPrinting ? <Loader2 size={12} className="animate-spin" /> : <Printer size={13} />}
+      </button>
 
       {isLocked && (
         <>
@@ -140,12 +171,6 @@ export const TablePinReveal = ({ table, session, onPrintPin }) => {
             <span>فتح القفل</span>
           </button>
         </>
-      )}
-
-      {error && (
-        <span className="text-[10px] truncate min-w-0" style={{ color: 'var(--err)' }}>
-          {error}
-        </span>
       )}
     </span>
   );

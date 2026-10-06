@@ -18,10 +18,10 @@ import { WebsiteOrderingPage } from '../modules/website/pages/WebsiteOrderingPag
 import { OrdersListPage } from '../modules/orders/pages/OrdersListPage.jsx';
 import { OrderDetailPage } from '../modules/orders/pages/OrderDetailPage.jsx';
 import { PosPage } from '../modules/orders/pages/PosPage.jsx';
+import { PhoneOrdersPage } from '../modules/orders/pages/PhoneOrdersPage.jsx';
 import { WaiterPage } from '../modules/orders/pages/WaiterPage.jsx';
 import { KdsPage } from '../modules/orders/pages/KdsPage.jsx';
 import { DeliveryPage } from '../modules/orders/pages/DeliveryPage.jsx';
-import { ShiftsListPage } from '../modules/orders/pages/ShiftsListPage.jsx';
 import { CustomersListPage } from '../modules/customers/pages/CustomersListPage.jsx';
 import { CustomerDetailPage } from '../modules/customers/pages/CustomerDetailPage.jsx';
 import { WhatsAppPage } from '../modules/whatsapp/pages/WhatsAppPage.jsx';
@@ -31,6 +31,7 @@ import { DashboardPage } from '../modules/dashboard/pages/DashboardPage.jsx';
 import { NotificationsPage } from '../modules/notifications/pages/NotificationsPage.jsx';
 import { CouponsListPage } from '../modules/coupons/pages/CouponsListPage.jsx';
 import { AuditLogsPage } from '../modules/audit-logs/pages/AuditLogsPage.jsx';
+import { ShiftsListPage } from '../modules/orders/pages/ShiftsListPage.jsx';
 import {
   ProtectedRoute,
   RequirePermission,
@@ -48,7 +49,7 @@ const POS_PERMISSIONS = [
   'orders.create',
 ];
 
-const WAITER_PERMISSIONS = ['tables.view', 'orders.create'];
+const WAITER_PERMISSIONS = ['tables.view', 'orders.view', 'orders.create', 'menu.view'];
 const TABLES_PERMISSIONS = ['tables.view', 'tables.manage'];
 
 export const router = createBrowserRouter(
@@ -128,6 +129,46 @@ export const router = createBrowserRouter(
       ),
     },
     {
+      path: '/call-center',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={['callcenter.view', 'callcenter.manage']}>
+            <PhoneOrdersPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/call-center/:tab',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={['callcenter.view', 'callcenter.manage']}>
+            <PhoneOrdersPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/phone-orders',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={['callcenter.view', 'callcenter.manage']}>
+            <PhoneOrdersPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: '/phone-orders/:tab',
+      element: (
+        <ProtectedRoute>
+          <RequirePermission permission={['callcenter.view', 'callcenter.manage']}>
+            <PhoneOrdersPage />
+          </RequirePermission>
+        </ProtectedRoute>
+      ),
+    },
+    {
       path: '/',
       element: (
         <ProtectedRoute>
@@ -166,7 +207,7 @@ export const router = createBrowserRouter(
         {
           path: 'shifts',
           element: (
-            <RequirePermission permission={['shifts.view', 'reports.view', 'orders.source_cashier']}>
+            <RequirePermission permission={['shifts.view', 'dashboard.view']}>
               <ShiftsListPage />
             </RequirePermission>
           ),
@@ -364,6 +405,10 @@ export const router = createBrowserRouter(
           element: <NotFoundPage />,
         },
       ],
+    },
+    {
+      path: '*',
+      element: <NotFoundPage />,
     },
   ],
   { future: { v7_startTransition: true } }

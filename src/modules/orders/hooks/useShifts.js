@@ -62,12 +62,13 @@ export const useXReportQuery = (branchId, shiftId, enabled = false) => {
   });
 };
 
-export const useShiftsListQuery = (branchId, params = {}) => {
+export const useShiftsListQuery = (branchId, params = {}, options = {}) => {
   return useQuery({
     queryKey: ['shifts-list', branchId, params],
     queryFn: () => listShiftsApi(branchId, params),
-    enabled: Boolean(branchId),
+    enabled: Boolean(branchId) && (options.enabled !== undefined ? options.enabled : true),
     staleTime: 10000,
+    ...options,
   });
 };
 
